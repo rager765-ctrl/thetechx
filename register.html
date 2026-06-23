@@ -124,9 +124,42 @@
 
         <!-- File Upload (DOCX, PPTX, PDF) -->
         <div class="form-group" style="margin-bottom: 20px;">
-          <label for="reg-concept-note">Upload Proposal Document (DOCX, PPTX, or PDF)</label>
-          <input type="file" id="reg-concept-note" class="form-control" accept=".docx,.pptx,.pdf" required>
-          <span style="font-size: 11px; color: var(--text-light);"><i class="fa-solid fa-info-circle"></i> Concept notes / proposals must be formatted as Word (.docx), PowerPoint (.pptx), or PDF (.pdf) files.</span>
+          <label for="reg-concept-note">Proposal Document <span style="font-weight: 400; color: var(--text-light);">(DOCX, PPTX, or PDF)</span></label>
+
+          <!-- Drop Zone -->
+          <div class="file-upload-zone" id="file-upload-zone">
+            <input type="file" id="reg-concept-note" accept=".docx,.pptx,.pdf" required>
+
+            <!-- Idle / Drag state shown here -->
+            <div class="file-upload-idle" id="file-upload-idle">
+              <div class="file-upload-icon-wrap">
+                <div class="file-upload-icon-ring"></div>
+                <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
+              </div>
+              <span class="file-upload-label" id="file-upload-label">Click to browse or drag &amp; drop</span>
+              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 10 MB</span>
+            </div>
+
+            <!-- Selected file info chip (hidden until file chosen) -->
+            <div class="file-upload-info" id="file-upload-info" style="display:none;">
+              <div class="file-upload-type-icon" id="file-upload-type-icon"><i class="fa-solid fa-file"></i></div>
+              <div class="file-upload-meta">
+                <span class="file-upload-name" id="file-upload-name"></span>
+                <span class="file-upload-size" id="file-upload-size"></span>
+              </div>
+              <button type="button" class="file-upload-remove" id="file-upload-remove" title="Remove file">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress bar (hidden until upload starts) -->
+          <div class="upload-progress-wrap" id="upload-progress-wrap" style="display:none;">
+            <div class="upload-progress-track">
+              <div class="upload-progress-bar" id="upload-progress-bar" style="width:0%"></div>
+            </div>
+            <span class="upload-progress-label" id="upload-progress-label">0%</span>
+          </div>
         </div>
 
         <!-- Dynamic Fields Container -->

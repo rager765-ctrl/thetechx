@@ -1599,6 +1599,276 @@ footer h4 {
   background-color: var(--secondary);
 }
 
+/* TOAST NOTIFICATION */
+.toast-notification {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-main);
+  color: white;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+@media (min-width: 769px) {
+  .toast-notification {
+    bottom: 32px;
+  }
+}
+
+/* FILE UPLOAD DROP ZONE — Premium Design */
+.file-upload-zone {
+  border: 2px dashed var(--border-focus);
+  border-radius: var(--radius-md);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  background: var(--bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Idle inner area ---- */
+.file-upload-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 24px 28px;
+  transition: opacity 0.2s ease;
+}
+
+/* ---- Icon wrap with animated ring ---- */
+.file-upload-icon-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.file-upload-icon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, var(--primary), var(--secondary)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0.35;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.file-upload-icon {
+  font-size: 26px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s ease;
+}
+
+.file-upload-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: block;
+}
+
+.file-upload-hint {
+  font-size: 11px;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Hidden file input overlay ---- */
+.file-upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* ---- Hover state ---- */
+.file-upload-zone:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.file-upload-zone:hover .file-upload-icon-ring {
+  opacity: 0.7;
+  transform: scale(1.08);
+}
+
+.file-upload-zone:hover .file-upload-icon {
+  transform: translateY(-3px);
+}
+
+/* ---- Drag-over state ---- */
+.file-upload-zone.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.file-upload-zone.drag-over .file-upload-icon-ring {
+  opacity: 1;
+  animation: ring-pulse 0.9s ease-in-out infinite;
+}
+
+.file-upload-zone.drag-over .file-upload-icon {
+  transform: translateY(-5px) scale(1.1);
+}
+
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+}
+
+/* ---- Selected / File loaded state ---- */
+.file-upload-zone.file-selected {
+  border-color: var(--success);
+  border-style: solid;
+  background: var(--success-light, #f0fdf4);
+  cursor: default;
+}
+
+.file-upload-zone.file-selected input[type="file"] {
+  pointer-events: none;
+}
+
+/* ---- File info chip (shown after selection) ---- */
+.file-upload-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.file-upload-type-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--success), #16a34a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.file-upload-type-icon.pdf   { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.file-upload-type-icon.docx  { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.file-upload-type-icon.pptx  { background: linear-gradient(135deg, #f97316, #ea580c); }
+
+.file-upload-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-upload-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-upload-size {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.file-upload-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--danger-light, #fef2f2);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+  z-index: 3;
+  position: relative;
+}
+
+.file-upload-remove:hover {
+  background: var(--danger);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ---- Upload progress bar ---- */
+.upload-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.upload-progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.upload-progress-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 32px;
+  text-align: right;
+}
+
 /* DIALOG MODAL */
 .modal {
   position: fixed;

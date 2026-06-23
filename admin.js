@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, addDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
 
 // 1. Firebase Config
 const firebaseConfig = {
@@ -16,6 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestore = getFirestore(app);
+const storage = getStorage(app);
 
 // State Memory
 let currentUser = null;
@@ -329,6 +331,10 @@ function initRealtimeSync() {
     snapshot.forEach(d => {
       allNews.push({ id: d.id, ...d.data() });
     });
+    allNews.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    if (activeAdminTab === "news-compose") {
+      renderAdminNewsList();
+    }
   });
 
   onSnapshot(collection(firestore, "users"), (snapshot) => {
@@ -338,32 +344,11 @@ function initRealtimeSync() {
     });
   });
 
-  onSnapshot(collection(firestore, "tracks"), async (snapshot) => {
+  onSnapshot(collection(firestore, "tracks"), (snapshot) => {
     allTracks = [];
     snapshot.forEach(d => {
       allTracks.push({ id: d.id, ...d.data() });
     });
-    
-    if (snapshot.empty && currentUser) {
-      const defaultTracks = [
-        { id: "clean-energy", name: "Clean Energy & Environment", icon: "fa-leaf", desc: "Build systems that reduce carbon footprint, manage resources sustainably, or transition to clean power.", visible: true },
-        { id: "fintech", name: "Fintech & Financial Inclusion", icon: "fa-wallet", desc: "Create tools that democratize access to capital, optimize banking, or streamline micro-payments.", visible: true },
-        { id: "healthtech", name: "Healthcare & MedTech", icon: "fa-heart-pulse", desc: "Develop software or devices that improve patient telemetry, diagnosis, or health administrative tasks.", visible: true }
-      ];
-      try {
-        for (const tr of defaultTracks) {
-          await setDoc(doc(firestore, "tracks", tr.id), {
-            name: tr.name,
-            icon: tr.icon,
-            desc: tr.desc,
-            visible: tr.visible,
-            timestamp: Date.now()
-          });
-        }
-      } catch (err) {
-        console.error("Failed seeding tracks", err);
-      }
-    }
     
     allTracks.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     renderAdminDashboard();
@@ -649,12 +634,68 @@ function renderAdminDashboard() {
     renderAdminTimelineList();
   }
 
+  else if (activeAdminTab === "news-compose") {
+    renderAdminNewsList();
+  }
   else if (activeAdminTab === "rewards-config") {
     renderAdminRewardsList();
   }
   else if (activeAdminTab === "legal-config") {
     renderAdminLegalList();
   }
+}
+
+// Render the published news articles list in the admin news-compose tab
+function renderAdminNewsList() {
+  const container = document.getElementById("admin-news-list");
+  if (!container) return;
+
+  if (allNews.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 24px 0;"><i class="fa-solid fa-inbox"></i> No articles published yet.</p>`;
+    return;
+  }
+
+  // Fallback stock images keyed by the img field
+  const stockImages = {
+    code: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80",
+    meeting: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=400&q=80",
+    presentation: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=400&q=80",
+    launch: "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=400&q=80"
+  };
+
+  const categoryColors = {
+    "Announcements": "var(--primary)",
+    "Workshops": "var(--secondary)",
+    "Deadlines": "var(--danger)",
+    "Success Stories": "var(--success)",
+    "Partner News": "var(--accent)"
+  };
+
+  container.innerHTML = allNews.map(article => {
+    const catColor = categoryColors[article.category] || "var(--text-light)";
+    const preview = (article.content || "").substring(0, 70) + ((article.content || "").length > 70 ? "..." : "");
+    const dateStr = article.timestamp ? new Date(article.timestamp).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+    const imgSrc = article.coverImage || stockImages[article.img] || stockImages.code;
+
+    return `
+      <div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; background: var(--bg-app); display: flex; align-items: center; gap: 12px;">
+        <img src="${imgSrc}" alt="${article.title}" style="width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0;" onerror="this.src='${stockImages.code}'">
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: ${catColor}; letter-spacing: 0.05em;">${article.category} &bull; ${dateStr}</div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${article.title}</div>
+          <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${preview}</p>
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <button class="btn btn-secondary btn-sm" onclick="adminEditNews('${article.id}')" style="font-size: 11px; padding: 3px 10px;">
+              <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteNews('${article.id}')" style="color: var(--danger); border-color: var(--danger); font-size: 11px; padding: 3px 10px;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 // Render Custom Fields List
@@ -707,29 +748,33 @@ function adminViewProjectDetails(projId) {
   const proj = allProjects.find(p => p.id === projId);
   if (!proj) return;
 
+  // Resolve track name — fall back to title-casing the ID if not found
   const trackObj = allTracks.find(t => t.id === proj.track);
-  const trackName = trackObj ? trackObj.name : proj.track;
+  const trackName = trackObj
+    ? trackObj.name
+    : (proj.track || "Unknown").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-  let fileIcon = "fa-file-word";
-  let fileColor = "#2b579a";
-  const fileType = (proj.conceptNoteType || "").toUpperCase();
-  if (fileType === "PDF") {
-    fileIcon = "fa-file-pdf";
+  // Derive file type from BOTH stored conceptNoteType AND the filename extension (filename wins if they disagree)
+  const fileNameExt = (proj.conceptNoteName || "").split(".").pop().toLowerCase();
+  const storedType  = (proj.conceptNoteType || "").toLowerCase();
+  const resolvedExt = fileNameExt || storedType;
+
+  let fileIcon  = "fa-file";
+  let fileColor = "var(--text-light)";
+  if (["pdf"].includes(resolvedExt)) {
+    fileIcon  = "fa-file-pdf";
     fileColor = "#e0443e";
-  } else if (fileType === "PPTX" || fileType === "PPT") {
-    fileIcon = "fa-file-powerpoint";
+  } else if (["pptx", "ppt"].includes(resolvedExt)) {
+    fileIcon  = "fa-file-powerpoint";
     fileColor = "#d24726";
-  } else if (fileType === "DOCX" || fileType === "DOC") {
-    fileIcon = "fa-file-word";
+  } else if (["docx", "doc"].includes(resolvedExt)) {
+    fileIcon  = "fa-file-word";
     fileColor = "#2b579a";
-  } else {
-    fileIcon = "fa-file";
-    fileColor = "var(--text-light)";
   }
 
-  const downloadLink = proj.conceptNoteUrl 
+  const downloadLink = proj.conceptNoteUrl
     ? `<div style="margin-top: 6px;"><a href="${proj.conceptNoteUrl}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-file-arrow-down"></i> Read &amp; Download</a></div>`
-    : `<div style="font-size: 11px; color: var(--text-light); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> Uploaded locally (no URL available)</div>`;
+    : `<div style="font-size: 11px; color: var(--text-light); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> No download URL available</div>`;
 
   const customFieldsHTML = Object.entries(proj.customFields || {}).map(([key, val]) => `
     <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
@@ -746,6 +791,13 @@ function adminViewProjectDetails(projId) {
     </div>
   `).join("");
 
+  // Status badge colour — cover all known states
+  const statusBadge = proj.status === "Approved"
+    ? `<span class="badge badge-success">${proj.status}</span>`
+    : proj.status === "Rejected"
+      ? `<span class="badge badge-danger">${proj.status}</span>`
+      : `<span class="badge badge-warning">${proj.status || 'Pending'}</span>`;
+
   openModal(`Team Details: ${proj.teamName}`, `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
       <div>
@@ -756,12 +808,15 @@ function adminViewProjectDetails(projId) {
         </div>
         <div style="margin-bottom: 12px;">
           <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light);">Concept File</label>
-          <div style="font-size: 14px; font-weight: 600; color: var(--text-main);"><i class="fa-solid ${fileIcon}" style="color: ${fileColor};"></i> ${proj.conceptNoteName || 'concept_note.docx'}</div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--text-main); display: flex; align-items: flex-start; gap: 6px;">
+            <i class="fa-solid ${fileIcon}" style="color: ${fileColor}; margin-top: 2px; flex-shrink: 0;"></i>
+            <span style="word-break: break-all; line-height: 1.4;">${proj.conceptNoteName || 'concept_note.pdf'}</span>
+          </div>
           ${downloadLink}
         </div>
         <div style="margin-bottom: 12px;">
           <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light);">Registration Status</label>
-          <div><span class="badge badge-${proj.status === 'Approved' ? 'success' : 'warning'}">${proj.status}</span></div>
+          <div>${statusBadge}</div>
         </div>
 
         <h4 style="margin-top: 20px; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--secondary);">Additional Details</h4>
@@ -778,32 +833,152 @@ function adminViewProjectDetails(projId) {
   `);
 }
 
-// News compose submission
+// News compose / edit submission
 const adminNewsForm = document.getElementById("admin-news-form");
 if (adminNewsForm) {
   adminNewsForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const editId = document.getElementById("news-edit-id").value.trim();
     const title = document.getElementById("news-title").value.trim();
     const category = document.getElementById("news-cat-select").value;
     const img = document.getElementById("news-img-select").value;
     const content = document.getElementById("news-body-content").value.trim();
+    const imgFileInput = document.getElementById("news-img-file");
+    const imgFile = imgFileInput ? imgFileInput.files[0] : null;
+
+    const submitBtn = document.getElementById("btn-news-submit");
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
 
     try {
-      showToast("Publishing article...", "info");
-      await addDoc(collection(firestore, "news"), {
-        title,
-        category,
-        img,
-        content,
-        timestamp: Date.now()
-      });
-      showToast("Published article successfully!", "success");
-      adminNewsForm.reset();
+      // Encode cover image as base64 if one was selected
+      let coverImage = "";
+      if (imgFile) {
+        showToast("Processing cover image...", "info");
+        coverImage = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (e) => reject(new Error("File reading failed."));
+          reader.readAsDataURL(imgFile);
+        });
+        
+        // Update the hint span so admin can see the status
+        const hintEl = document.getElementById("news-current-img-url");
+        if (hintEl) { hintEl.textContent = `✅ Image attached`; hintEl.style.display = "block"; }
+      }
+
+      if (editId) {
+        // Build update payload - only include coverImage if a new one was uploaded
+        const updatePayload = { title, category, img, content };
+        if (coverImage) updatePayload.coverImage = coverImage;
+        showToast("Saving article changes...", "info");
+        await updateDoc(doc(firestore, "news", editId), updatePayload);
+        showToast("Article updated successfully!", "success");
+        adminCancelNewsEdit();
+      } else {
+        showToast("Publishing article...", "info");
+        await addDoc(collection(firestore, "news"), {
+          title,
+          category,
+          img,
+          content,
+          coverImage,
+          timestamp: Date.now()
+        });
+        showToast("Published article successfully!", "success");
+        adminNewsForm.reset();
+        const hintEl = document.getElementById("news-current-img-url");
+        if (hintEl) hintEl.style.display = "none";
+      }
     } catch (err) {
-      showToast("Failed to publish: " + getCleanErrorMessage(err), "error");
+      showToast("Failed to save: " + getCleanErrorMessage(err), "error");
+    } finally {
+      if (submitBtn) {
+        const editIdNow = document.getElementById("news-edit-id")?.value;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = editIdNow
+          ? '<i class="fa-solid fa-floppy-disk"></i> Save Changes'
+          : '<i class="fa-solid fa-paper-plane"></i> Publish Article';
+      }
     }
   });
+
+  // Cancel button resets to Compose mode
+  const cancelNewsBtn = document.getElementById("btn-news-cancel");
+  if (cancelNewsBtn) {
+    cancelNewsBtn.addEventListener("click", adminCancelNewsEdit);
+  }
 }
+
+// Pre-fill the news form for editing an existing article
+function adminEditNews(articleId) {
+  const article = allNews.find(n => n.id === articleId);
+  if (!article) return;
+
+  document.getElementById("news-edit-id").value = article.id;
+  document.getElementById("news-title").value = article.title || "";
+  document.getElementById("news-cat-select").value = article.category || "Announcements";
+  document.getElementById("news-img-select").value = article.img || "code";
+  document.getElementById("news-body-content").value = article.content || "";
+
+  // Show existing cover image hint
+  const hintEl = document.getElementById("news-current-img-url");
+  if (hintEl) {
+    if (article.coverImage) {
+      hintEl.innerHTML = `<i class="fa-solid fa-image"></i> Current cover: <a href="${article.coverImage}" target="_blank" style="color: var(--success);">View image</a> (upload new to replace)`;
+      hintEl.style.display = "block";
+    } else {
+      hintEl.style.display = "none";
+    }
+  }
+
+  // Switch form to Edit mode
+  const formTitle = document.getElementById("news-form-title");
+  const submitBtn = document.getElementById("btn-news-submit");
+  const cancelBtn = document.getElementById("btn-news-cancel");
+
+  if (formTitle) formTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editing Article';
+  if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+  if (cancelBtn) cancelBtn.style.display = "inline-flex";
+
+  // Scroll to top of the form
+  const formCard = adminNewsForm ? adminNewsForm.closest(".card") : null;
+  if (formCard) formCard.scrollIntoView({ behavior: "smooth" });
+}
+
+// Reset news form back to Compose New mode
+function adminCancelNewsEdit() {
+  const editIdInput = document.getElementById("news-edit-id");
+  if (editIdInput) editIdInput.value = "";
+
+  if (adminNewsForm) adminNewsForm.reset();
+
+  const formTitle = document.getElementById("news-form-title");
+  const submitBtn = document.getElementById("btn-news-submit");
+  const cancelBtn = document.getElementById("btn-news-cancel");
+
+  if (formTitle) formTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Compose News Article';
+  if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Article';
+  if (cancelBtn) cancelBtn.style.display = "none";
+}
+
+// Delete a news article by ID
+async function adminDeleteNews(articleId) {
+  if (!confirm("Delete this article? This cannot be undone.")) return;
+  try {
+    showToast("Deleting article...", "info");
+    await deleteDoc(doc(firestore, "news", articleId));
+    showToast("Article deleted successfully!", "success");
+    // If we were editing this article, reset the form
+    const editId = document.getElementById("news-edit-id");
+    if (editId && editId.value === articleId) adminCancelNewsEdit();
+  } catch (err) {
+    showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
+  }
+}
+
+// Expose on window for inline onclick handlers
+window.adminEditNews = adminEditNews;
+window.adminDeleteNews = adminDeleteNews;
 
 // Form configurator submission
 const addFieldForm = document.getElementById("admin-add-field-form");
@@ -939,6 +1114,24 @@ async function seedDefaultsIfEmpty() {
           title: docObj.title,
           description: docObj.description,
           timestamp: docObj.timestamp
+        });
+      }
+    }
+    // 4. Seed tracks if empty
+    const tracksSnap = await getDocs(collection(firestore, "tracks"));
+    if (tracksSnap.empty) {
+      const defaultTracks = [
+        { id: "clean-energy", name: "Clean Energy & Environment", icon: "fa-leaf", desc: "Build systems that reduce carbon footprint, manage resources sustainably, or transition to clean power.", visible: true },
+        { id: "fintech", name: "Fintech & Financial Inclusion", icon: "fa-wallet", desc: "Create tools that democratize access to capital, optimize banking, or streamline micro-payments.", visible: true },
+        { id: "healthtech", name: "Healthcare & MedTech", icon: "fa-heart-pulse", desc: "Develop software or devices that improve patient telemetry, diagnosis, or health administrative tasks.", visible: true }
+      ];
+      for (const tr of defaultTracks) {
+        await setDoc(doc(firestore, "tracks", tr.id), {
+          name: tr.name,
+          icon: tr.icon,
+          desc: tr.desc,
+          visible: tr.visible,
+          timestamp: Date.now()
         });
       }
     }
@@ -1463,24 +1656,44 @@ function renderAdminLegalList() {
   if (!container) return;
 
   if (allLegal.length === 0) {
-    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 20px;">No legal documents configured. Add one on the left.</p>`;
-    return;
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 20px;"><i class="fa-solid fa-inbox"></i> No legal documents configured. Add one on the left.</p>`;
+  } else {
+    container.innerHTML = allLegal.map(leg => {
+      const preview = (leg.content || "").substring(0, 120) + ((leg.content || "").length > 120 ? "..." : "");
+      return `
+        <div style="border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="font-weight: 700; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-gavel" style="color: var(--primary);"></i> ${leg.title}
+            </div>
+            <span style="font-size: 10px; color: var(--text-light); white-space: nowrap;">${leg.timestamp ? new Date(leg.timestamp).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"}) : ""}</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">${preview}</p>
+          <div style="display: flex; gap: 8px; margin-top: 4px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end;">
+            <button class="btn btn-secondary btn-sm" onclick="adminEditLegal('${leg.id}')" style="padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteLegal('${leg.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          </div>
+        </div>
+      `;
+    }).join("");
   }
 
-  container.innerHTML = allLegal.map(leg => `
-    <div style="border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; flex-direction: column; gap: 8px;">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">
-          <i class="fa-solid fa-gavel" style="color: var(--primary);"></i> ${leg.title}
+  // Live public preview — mirrors the landing page legal card style
+  const previewContainer = document.getElementById("admin-legal-preview-container");
+  if (previewContainer) {
+    if (allLegal.length === 0) {
+      previewContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px;">No documents to preview.</p>`;
+    } else {
+      previewContainer.innerHTML = allLegal.map(leg => `
+        <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); box-shadow: var(--shadow-sm); border-radius: var(--radius-md);">
+          <div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text-main); font-family: var(--font-heading);">
+            <i class="fa-solid fa-gavel" style="color: var(--primary);"></i> ${leg.title}
+          </div>
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin: 0; white-space: pre-line;">${leg.content}</p>
         </div>
-      </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; white-space: pre-line;">${leg.content}</p>
-      <div style="display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end;">
-        <button class="btn btn-secondary btn-sm" onclick="adminEditLegal('${leg.id}')" style="padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="adminDeleteLegal('${leg.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-trash-can"></i> Delete</button>
-      </div>
-    </div>
-  `).join("");
+      `).join("");
+    }
+  }
 }
 
 // Legal CRUD Form Submit

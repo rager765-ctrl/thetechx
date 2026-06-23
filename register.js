@@ -17,9 +17,8 @@ const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-// Limit retry attempts to 5 seconds so configuration/network issues fail fast instead of hanging at 0%
-storage.maxUploadRetryTime = 5000;
-storage.maxOperationRetryTime = 5000;
+
+
 
 // State cache
 let activeCustomFields = [];
@@ -140,131 +139,116 @@ onSnapshot(collection(firestore, "tracks"), (snapshot) => {
 if (teamRegistrationForm) {
   teamRegistrationForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const teamName = document.getElementById("reg-team-name").value.trim();
-    const track = document.getElementById("reg-project-track").value;
-    const docxFileInput = document.getElementById("reg-concept-note");
-    const docxFile = docxFileInput ? docxFileInput.files[0] : null;
 
-    if (docxFile) {
-      const allowedExtensions = [".docx", ".pptx", ".pdf"];
-      const fileExt = docxFile.name.substring(docxFile.name.lastIndexOf(".")).toLowerCase();
-      if (!allowedExtensions.includes(fileExt)) {
-        showToast("Proposal document must be a .docx, .pptx, or .pdf file.", "error");
-        return;
-      }
+    // Lock submit button during processing
+    const submitBtn = teamRegistrationForm.querySelector("button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
     }
-
-    if (allProjects.find(p => p.teamName.toLowerCase() === teamName.toLowerCase())) {
-      showToast("Team name already exists.", "error");
-      return;
-    }
-
-    const members = [
-      document.getElementById("reg-m1-name").value.trim(),
-      document.getElementById("reg-m2-name").value.trim(),
-      document.getElementById("reg-m3-name").value.trim()
-    ];
-    const emails = [
-      document.getElementById("reg-m1-email").value.trim().toLowerCase(),
-      document.getElementById("reg-m2-email").value.trim().toLowerCase(),
-      document.getElementById("reg-m3-email").value.trim().toLowerCase()
-    ];
-    const contacts = [
-      document.getElementById("reg-m1-contact").value.trim(),
-      document.getElementById("reg-m2-contact").value.trim(),
-      document.getElementById("reg-m3-contact").value.trim()
-    ];
-
-    const customFields = {};
-    activeCustomFields.forEach(field => {
-      const inputEl = document.getElementById(`custom-field-${field.key}`);
-      if (inputEl) {
-        customFields[field.label] = inputEl.value.trim();
-      }
-    });
-
-    const projId = `p-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
-    
-    // File upload logic
-    let conceptNoteUrl = "";
-    if (docxFile) {
-      try {
-        showToast("Starting upload...", "info");
-        const fileRef = ref(storage, `proposals/${projId}/${docxFile.name}`);
-        
-        // Always derive standard MIME type from extension to guarantee security rules compliance
-        const fileExt = docxFile.name.substring(docxFile.name.lastIndexOf(".")).toLowerCase();
-        let contentType = "application/octet-stream";
-        if (fileExt === ".pdf") contentType = "application/pdf";
-        else if (fileExt === ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-        else if (fileExt === ".pptx") contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-        else if (fileExt === ".doc") contentType = "application/msword";
-        else if (fileExt === ".ppt") contentType = "application/vnd.ms-powerpoint";
-        
-        const metadata = { contentType };
-        const uploadTask = uploadBytesResumable(fileRef, docxFile, metadata);
-
-        // Async wrapper to track upload progress in real-time
-        await new Promise((resolve, reject) => {
-          uploadTask.on("state_changed",
-            (snapshot) => {
-              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-              showToast(`Uploading proposal: ${progress}%`, "info");
-            },
-            (error) => {
-              reject(error);
-            },
-            () => {
-              resolve();
-            }
-          );
-        });
-
-        conceptNoteUrl = await getDownloadURL(uploadTask.snapshot.ref);
-      } catch (uploadErr) {
-        console.error("Storage upload failed:", uploadErr);
-        // Fallback gracefully so testing is not blocked, alert the user about Firebase Storage configuration
-        showToast("Storage bucket not active! Proceeding with demo attachment.", "warning");
-        conceptNoteUrl = window.location.origin + "/dummy.pdf";
-        // Small delay to let the warning toast be read
-        await new Promise(resolve => setTimeout(resolve, 1500));
-      }
-    } else {
-      showToast("Please select a concept file to upload.", "error");
-      return;
-    }
-
-    const newProj = {
-      teamName,
-      title: `${teamName} Registration`,
-      track,
-      leadEmail: emails[0],
-      members,
-      emails,
-      contacts,
-      conceptNoteName: docxFile ? docxFile.name : "concept_note.pdf",
-      conceptNoteUrl: conceptNoteUrl,
-      conceptNoteType: docxFile ? docxFile.name.substring(docxFile.name.lastIndexOf(".") + 1).toUpperCase() : "PDF",
-      customFields,
-      status: "Pending",
-      scores: {},
-      judgeComments: "",
-      averageScore: null,
-      timestamp: Date.now()
-    };
 
     try {
+      const teamName = document.getElementById("reg-team-name").value.trim();
+      const track = document.getElementById("reg-project-track").value;
+      const docxFileInput = document.getElementById("reg-concept-note");
+      const docxFile = docxFileInput ? docxFileInput.files[0] : null;
+
+      if (docxFile) {
+        const allowedExtensions = [".docx", ".pptx", ".pdf"];
+        const fileExt = docxFile.name.substring(docxFile.name.lastIndexOf(".")).toLowerCase();
+        if (!allowedExtensions.includes(fileExt)) {
+          throw new Error("Proposal document must be a .docx, .pptx, or .pdf file.");
+        }
+      } else {
+        throw new Error("Please select a concept file to upload.");
+      }
+
+      // Safe checks to avoid TypeError if any database entry lacks teamName
+      const nameExists = allProjects.some(p => p.teamName && p.teamName.toLowerCase() === teamName.toLowerCase());
+      if (nameExists) {
+        throw new Error("Team name already exists.");
+      }
+
+      const members = [
+        document.getElementById("reg-m1-name").value.trim(),
+        document.getElementById("reg-m2-name").value.trim(),
+        document.getElementById("reg-m3-name").value.trim()
+      ];
+      const emails = [
+        document.getElementById("reg-m1-email").value.trim().toLowerCase(),
+        document.getElementById("reg-m2-email").value.trim().toLowerCase(),
+        document.getElementById("reg-m3-email").value.trim().toLowerCase()
+      ];
+      const contacts = [
+        document.getElementById("reg-m1-contact").value.trim(),
+        document.getElementById("reg-m2-contact").value.trim(),
+        document.getElementById("reg-m3-contact").value.trim()
+      ];
+
+      const customFields = {};
+      activeCustomFields.forEach(field => {
+        const inputEl = document.getElementById(`custom-field-${field.key}`);
+        if (inputEl) {
+          customFields[field.label] = inputEl.value.trim();
+        }
+      });
+
+      const projId = `p-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      // File encoding logic
+      showToast("Encoding proposal file...", "info");
+      if (window.__updateUploadProgress) window.__updateUploadProgress(30);
+
+      // Convert file to Base64 Data URL
+      const conceptNoteUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(new Error("File reading failed."));
+        reader.readAsDataURL(docxFile);
+      });
+
+      if (window.__updateUploadProgress) window.__updateUploadProgress(70);
+
+      const newProj = {
+        teamName,
+        title: `${teamName} Registration`,
+        track,
+        leadEmail: emails[0],
+        members,
+        emails,
+        contacts,
+        conceptNoteName: docxFile.name,
+        conceptNoteUrl: conceptNoteUrl,
+        conceptNoteType: docxFile.name.substring(docxFile.name.lastIndexOf(".") + 1).toUpperCase(),
+        customFields,
+        status: "Pending",
+        scores: {},
+        judgeComments: "",
+        averageScore: null,
+        timestamp: Date.now()
+      };
+
       showToast("Submitting team registration...", "info");
       await setDoc(doc(firestore, "projects", projId), newProj);
+
+      if (window.__updateUploadProgress) window.__updateUploadProgress(100);
       showToast("Team registration submitted successfully!", "success");
-      teamRegistrationForm.reset();
       
-      // Redirect to success page after successful registration
+      // Reset form and redirect
       setTimeout(() => {
+        if (window.__hideUploadProgress) window.__hideUploadProgress();
+        teamRegistrationForm.reset();
         window.location.href = "success.html";
       }, 1500);
+
     } catch (err) {
-      showToast("Registration failed: " + getCleanErrorMessage(err), "error");
+      console.error("Registration failed:", err);
+      showToast(getCleanErrorMessage(err), "error");
+      if (window.__hideUploadProgress) window.__hideUploadProgress();
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Team Registration';
+      }
     }
   });
 }
@@ -330,6 +314,110 @@ function checkBrowserAndEnforceChrome() {
 // Run detection
 window.addEventListener("DOMContentLoaded", () => {
   checkBrowserAndEnforceChrome();
+
+  // === File Upload – premium drop-zone with info chip + progress bar ===
+  const fileInput   = document.getElementById("reg-concept-note");
+  const uploadZone  = document.getElementById("file-upload-zone");
+  const idleEl      = document.getElementById("file-upload-idle");
+  const infoEl      = document.getElementById("file-upload-info");
+  const typeIconEl  = document.getElementById("file-upload-type-icon");
+  const nameEl      = document.getElementById("file-upload-name");
+  const sizeEl      = document.getElementById("file-upload-size");
+  const removeBtn   = document.getElementById("file-upload-remove");
+  const progressWrap = document.getElementById("upload-progress-wrap");
+  const progressBar  = document.getElementById("upload-progress-bar");
+  const progressLbl  = document.getElementById("upload-progress-label");
+
+  // File type icon class + FA icon mapping
+  const typeMap = {
+    pdf:  { cls: "pdf",  icon: "fa-file-pdf" },
+    docx: { cls: "docx", icon: "fa-file-word" },
+    doc:  { cls: "docx", icon: "fa-file-word" },
+    pptx: { cls: "pptx", icon: "fa-file-powerpoint" },
+    ppt:  { cls: "pptx", icon: "fa-file-powerpoint" }
+  };
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(2) + " MB";
+  }
+
+  function showFileInfo(file) {
+    const ext = file.name.split(".").pop().toLowerCase();
+    const map = typeMap[ext] || { cls: "", icon: "fa-file" };
+
+    // Set type-icon style
+    typeIconEl.className = `file-upload-type-icon ${map.cls}`;
+    typeIconEl.innerHTML = `<i class="fa-solid ${map.icon}"></i>`;
+
+    nameEl.textContent = file.name;
+    sizeEl.textContent = formatBytes(file.size);
+
+    // Switch display
+    if (idleEl) idleEl.style.display = "none";
+    if (infoEl) infoEl.style.display = "flex";
+    uploadZone.classList.add("file-selected");
+
+    showToast(`✅ File ready: ${file.name}`, "success");
+  }
+
+  function clearFileSelection() {
+    if (fileInput) fileInput.value = "";
+    if (idleEl) idleEl.style.display = "flex";
+    if (infoEl) infoEl.style.display = "none";
+    uploadZone.classList.remove("file-selected");
+    if (progressWrap) progressWrap.style.display = "none";
+    if (progressBar) progressBar.style.width = "0%";
+    if (progressLbl) progressLbl.textContent = "0%";
+  }
+
+  if (fileInput && uploadZone) {
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (file) {
+        showFileInfo(file);
+      } else {
+        clearFileSelection();
+      }
+    });
+
+    // Drag-over / drag-leave / drop visual feedback
+    uploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadZone.classList.add("drag-over");
+    });
+    uploadZone.addEventListener("dragleave", () => {
+      uploadZone.classList.remove("drag-over");
+    });
+    uploadZone.addEventListener("drop", (e) => {
+      uploadZone.classList.remove("drag-over");
+      // Let the browser assign the dropped file to the input naturally
+      setTimeout(() => {
+        if (fileInput.files[0]) showFileInfo(fileInput.files[0]);
+      }, 50);
+    });
+  }
+
+  // Remove × button
+  if (removeBtn) {
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearFileSelection();
+    });
+  }
+
+  // Expose progress bar updater for use in submit handler
+  window.__updateUploadProgress = (pct) => {
+    if (progressWrap) progressWrap.style.display = "flex";
+    if (progressBar) progressBar.style.width = pct + "%";
+    if (progressLbl) progressLbl.textContent = pct + "%";
+  };
+  window.__hideUploadProgress = () => {
+    if (progressWrap) progressWrap.style.display = "none";
+    if (progressBar) progressBar.style.width = "0%";
+    if (progressLbl) progressLbl.textContent = "0%";
+  };
   
   // Auto-fill button listener
   const btnAutofill = document.getElementById("btn-autofill");

@@ -532,43 +532,54 @@
               </div>
             </div>
         </div>
+        </div>
 
         <!-- ADMIN TAB: MANAGE LEGAL -->
         <div class="admin-tab-content" id="admin-tab-legal-config" style="display: none;">
           <div class="portal-header">
             <div>
               <h2>Manage Legal Documents</h2>
-              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Configure the Terms & Rules, Privacy Policies, and Contact Support content shown on the platform.</p>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Configure the Terms &amp; Rules, Privacy Policies, and Contact Support content shown on the platform.</p>
             </div>
           </div>
           
           <div class="grid-2" style="align-items: start;">
             <!-- Save/Edit Legal Card -->
             <div class="card">
-              <h3 id="admin-legal-form-title" style="margin-bottom: 16px;">Add Legal Document</h3>
+              <h3 id="admin-legal-form-title" style="margin-bottom: 16px;"><i class="fa-solid fa-file-pen"></i> Add Legal Document</h3>
               <form id="admin-legal-form">
                 <input type="hidden" id="admin-legal-edit-id" value="">
                 <div class="form-group">
                   <label for="admin-legal-title">Document Title</label>
-                  <input type="text" id="admin-legal-title" class="form-control" placeholder="e.g. Terms & Rules" required>
+                  <input type="text" id="admin-legal-title" class="form-control" placeholder="e.g. Terms &amp; Rules" required>
                 </div>
                 <div class="form-group">
                   <label for="admin-legal-content">Document Content</label>
-                  <textarea id="admin-legal-content" class="form-control" style="min-height: 200px;" placeholder="Write terms, conditions, privacy descriptions, or support instructions here..." required></textarea>
+                  <textarea id="admin-legal-content" class="form-control" style="min-height: 220px;" placeholder="Write terms, conditions, privacy descriptions, or support instructions here...&#10;&#10;Tip: Use numbered lists like:&#10;1. First rule&#10;2. Second rule" required></textarea>
+                  <span style="font-size: 11px; color: var(--text-light); margin-top: 4px; display: block;"><i class="fa-solid fa-circle-info"></i> Content supports line breaks for numbered lists.</span>
                 </div>
                 <div style="display: flex; gap: 8px; margin-top: 16px;">
-                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-legal-save-btn">Save Legal Document</button>
-                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-legal-cancel-btn">Cancel</button>
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-legal-save-btn"><i class="fa-solid fa-floppy-disk"></i> Save Legal Document</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-legal-cancel-btn"><i class="fa-solid fa-xmark"></i> Cancel</button>
                 </div>
               </form>
             </div>
 
             <!-- Existing Legal List Card -->
             <div class="card">
-              <h3 style="margin-bottom: 16px;">Configured Legal Documents</h3>
+              <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-rectangle-list"></i> Configured Legal Documents</h3>
               <div id="admin-legal-list" style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- Dynamic legal list with Edit / Delete actions -->
               </div>
+            </div>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 8px; color: var(--primary);"><i class="fa-solid fa-eye"></i> Live Public Preview</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">This shows how the legal documents appear on the public landing page right now.</p>
+            <div id="admin-legal-preview-container" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Preview rendered dynamically -->
             </div>
           </div>
         </div>
