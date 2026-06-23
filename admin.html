@@ -253,41 +253,68 @@
         <!-- ADMIN TAB: NEWS COMPOSE -->
         <div class="admin-tab-content" id="admin-tab-news-compose" style="display: none;">
           <div class="portal-header">
-            <h2>Compose News Updates</h2>
+            <h2>News Feed Management</h2>
           </div>
-          <div class="card" style="max-width: 800px;">
-            <form id="admin-news-form">
-              <div class="form-group">
-                <label for="news-title">Article Title</label>
-                <input type="text" id="news-title" class="form-control" placeholder="e.g. Workshop: Pitching Your TechX Prototype to Judges" required>
-              </div>
-              <div class="form-row">
+          
+          <div class="grid-2" style="align-items: start; gap: 24px;">
+            <!-- Column 1: Compose / Edit Form -->
+            <div class="card">
+              <h3 id="news-form-title" style="margin-bottom: 16px;"><i class="fa-solid fa-pen-to-square"></i> Compose News Article</h3>
+              <form id="admin-news-form">
+                <input type="hidden" id="news-edit-id" value="">
+                
                 <div class="form-group">
-                  <label for="news-cat-select">Category</label>
-                  <select id="news-cat-select" class="form-control" required>
-                    <option value="Announcements">Announcements</option>
-                    <option value="Workshops">Workshops</option>
-                    <option value="Deadlines">Deadlines</option>
-                    <option value="Success Stories">Success Stories</option>
-                    <option value="Partner News">Partner News</option>
-                  </select>
+                  <label for="news-title">Article Title</label>
+                  <input type="text" id="news-title" class="form-control" placeholder="e.g. Workshop: Pitching Your TechX Prototype to Judges" required>
                 </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="news-cat-select">Category</label>
+                    <select id="news-cat-select" class="form-control" required>
+                      <option value="Announcements">Announcements</option>
+                      <option value="Workshops">Workshops</option>
+                      <option value="Deadlines">Deadlines</option>
+                      <option value="Success Stories">Success Stories</option>
+                      <option value="Partner News">Partner News</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="news-img-select">Cover Image Topic (Fallback)</label>
+                    <select id="news-img-select" class="form-control" required>
+                      <option value="code">Development / Code</option>
+                      <option value="meeting">Team Workshop / Collaboration</option>
+                      <option value="presentation">Presentation / Pitching</option>
+                      <option value="launch">Rocket Launch / Milestones</option>
+                    </select>
+                  </div>
+                </div>
+                
                 <div class="form-group">
-                  <label for="news-img-select">Cover Image Topic</label>
-                  <select id="news-img-select" class="form-control" required>
-                    <option value="code">Development / Code</option>
-                    <option value="meeting">Team Workshop / Collaboration</option>
-                    <option value="presentation">Presentation / Pitching</option>
-                    <option value="launch">Rocket Launch / Milestones</option>
-                  </select>
+                  <label for="news-img-file">Upload Custom Cover Image (Optional)</label>
+                  <input type="file" id="news-img-file" class="form-control" accept="image/*">
+                  <span id="news-current-img-url" style="font-size: 11px; display: none; color: var(--success); margin-top: 4px; font-weight: 500;"></span>
                 </div>
+                
+                <div class="form-group">
+                  <label for="news-body-content">Article Body</label>
+                  <textarea id="news-body-content" class="form-control" rows="8" placeholder="Write news updates, workshop links, or timeline announcements here..." required></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button type="submit" id="btn-news-submit" class="btn btn-primary" style="flex: 1;"><i class="fa-solid fa-paper-plane"></i> Publish Article</button>
+                  <button type="button" id="btn-news-cancel" class="btn btn-secondary" style="display: none; padding: 10px 16px;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Column 2: Published Articles List -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-rectangle-list"></i> Published Articles</h3>
+              <div id="admin-news-list" style="display: flex; flex-direction: column; gap: 16px; max-height: 650px; overflow-y: auto; padding-right: 4px;">
+                <!-- News list dynamically loaded -->
               </div>
-              <div class="form-group">
-                <label for="news-body-content">Article Body</label>
-                <textarea id="news-body-content" class="form-control" rows="8" placeholder="Write news updates, workshop links, or timeline announcements here..." required></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish to News Feed</button>
-            </form>
+            </div>
           </div>
         </div>
 
@@ -448,7 +475,7 @@
         </div>
 
         <!-- ADMIN TAB: MANAGE REWARDS -->
-        <div class="admin-tab-content" id="admin-tab-rewards-config">
+        <div class="admin-tab-content" id="admin-tab-rewards-config" style="display: none;">
           <div class="portal-header">
             <div>
               <h2>Manage Challenge Rewards</h2>
@@ -507,7 +534,7 @@
         </div>
 
         <!-- ADMIN TAB: MANAGE LEGAL -->
-        <div class="admin-tab-content" id="admin-tab-legal-config">
+        <div class="admin-tab-content" id="admin-tab-legal-config" style="display: none;">
           <div class="portal-header">
             <div>
               <h2>Manage Legal Documents</h2>
