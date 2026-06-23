@@ -1782,6 +1782,21 @@ input, textarea, select, [contenteditable="true"] {
 @media (max-width: 768px) {
   .nav-logos {
     display: flex !important;
+    gap: 6px !important;
+  }
+  .nav-logos img {
+    height: 18px !important;
+  }
+  .nav-logos div {
+    height: 14px !important;
+  }
+  .logo span {
+    font-size: 18px !important;
+  }
+  .logo-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
   }
   .page-logos {
     display: none !important;
