@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Dashboard | The TechX Challenge</title>
+  <meta name="description" content="Secure administrative access to manage challenge tracks, registrations, and form configurations.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background-color: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Secure Login View (Shown when not authenticated) -->
+  <main id="admin-login-view" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+    <!-- LOGIN CARD -->
+    <div class="auth-card" id="login-card" style="max-width: 450px; width: 100%; box-shadow: var(--shadow-xl); border: 1px solid var(--border); background: white;">
+      <div class="auth-header">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px;">
+          <a href="index.html" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+            <span>Tech<span class="text-gradient">X</span></span>
+          </a>
+          <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
+            <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; text-align: left;">KSB &bull; KNUST</span>
+          </div>
+        </div>
+        <h2>Admin Login</h2>
+        <p>Access the admin workspace to manage challenge tracks, registrations, and form configurations.</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="name@company.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+      </form>
+      <div id="signup-toggle-container" style="margin-top: 16px; text-align: center;">
+        <span style="font-size: 13px; color: var(--text-light);">Don't have an admin account? <a href="#" id="to-signup-btn" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign Up</a></span>
+      </div>
+      <div style="margin-top: 12px; text-align: center;">
+        <a href="index.html" style="font-size: 13px; color: var(--primary); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Back to Homepage</a>
+      </div>
+      <div class="auth-footer" style="font-size: 12px; color: var(--text-light); text-align: center; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
+        <i class="fa-solid fa-lock"></i> Restricted access. Admin authorization required.
+      </div>
+    </div>
+
+    <!-- SIGN UP CARD -->
+    <div class="auth-card" id="signup-card" style="max-width: 450px; width: 100%; box-shadow: var(--shadow-xl); border: 1px solid var(--border); background: white; display: none;">
+      <div class="auth-header">
+        <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 20px;">
+          <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+          <span>Tech<span class="text-gradient">X</span></span>
+        </a>
+        <h2>Admin Sign Up</h2>
+        <p>Register a new administrator profile to manage the ecosystem.</p>
+      </div>
+      <form id="signup-form">
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-control" placeholder="admin@domain.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" class="form-control" placeholder="••••••••" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="signup-confirm-password">Confirm Password</label>
+          <input type="password" id="signup-confirm-password" class="form-control" placeholder="••••••••" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Create Admin Account</button>
+      </form>
+      <div style="margin-top: 16px; text-align: center;">
+        <span style="font-size: 13px; color: var(--text-light);">Already have an admin account? <a href="#" id="to-login-btn" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a></span>
+      </div>
+      <div style="margin-top: 12px; text-align: center;">
+        <a href="index.html" style="font-size: 13px; color: var(--primary); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Back to Homepage</a>
+      </div>
+      <div class="auth-footer" style="font-size: 12px; color: var(--text-light); text-align: center; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
+        <i class="fa-solid fa-lock"></i> Restricted access. Admin authorization required.
+      </div>
+    </div>
+  </main>
+
+  <!-- Dashboard view (Shown only to admins) -->
+  <div id="admin-dashboard-view" style="display: none; flex: 1; flex-direction: column;">
+    <div class="portal-layout" style="flex: 1;">
+      <!-- Sidebar -->
+      <aside class="portal-sidebar">
+        <div class="sidebar-top">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+            <a href="index.html" class="logo">
+              <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+              <span>Tech<span class="text-gradient">X</span></span>
+            </a>
+            <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 24px; width: 24px; border-radius: 50%; object-fit: cover;">
+              <span style="font-size: 10px; font-weight: 700; color: var(--text-light);">KSB &bull; KNUST</span>
+            </div>
+          </div>
+          <div class="portal-user-profile">
+            <div class="avatar" style="background-color: var(--secondary-light); color: var(--secondary);">AD</div>
+            <div class="user-info">
+              <span class="user-name">Admin Coordinator</span>
+              <span class="user-role">Lead Organizer</span>
+            </div>
+          </div>
+          <ul class="sidebar-menu">
+            <li class="sidebar-item active" data-admin-tab="overview"><i class="fa-solid fa-chart-pie"></i> Analytics Overview</li>
+            <li class="sidebar-item" data-admin-tab="applicants"><i class="fa-solid fa-id-card"></i> Applicants</li>
+            <li class="sidebar-item" data-admin-tab="news-compose"><i class="fa-solid fa-pen-nib"></i> Compose News</li>
+            <li class="sidebar-item" data-admin-tab="form-config"><i class="fa-solid fa-sliders"></i> Form Configurator</li>
+            <li class="sidebar-item" data-admin-tab="tracks-config"><i class="fa-solid fa-network-wired"></i> Manage Tracks</li>
+            <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
+            <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
+          </ul>
+        </div>
+        <button class="sidebar-item" id="admin-logout-btn" style="color: var(--danger); width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+      </aside>
+
+      <!-- Right Content Area -->
+      <main class="portal-content">
+        <!-- ADMIN TAB: OVERVIEW -->
+        <div class="admin-tab-content active" id="admin-tab-overview">
+          <div class="portal-header">
+            <h2>Ecosystem Analytics</h2>
+            <button class="btn btn-secondary btn-sm" id="admin-export-btn"><i class="fa-solid fa-file-csv"></i> Export CSV Data</button>
+          </div>
+
+          <!-- Stats -->
+          <div class="portal-grid-analytics">
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-registrations">0</div>
+              <div class="analytic-title">Total Registrants</div>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-teams">0</div>
+              <div class="analytic-title">Created Teams</div>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-submissions">0</div>
+              <div class="analytic-title">Project Submissions</div>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-tracks">0</div>
+              <div class="analytic-title">Active tracks</div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="align-items: start;">
+            <!-- Tracks breakdown graph simulation -->
+            <div class="card">
+              <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Track Distribution</h3>
+              <div id="admin-chart-distribution" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic bar breakdown -->
+              </div>
+            </div>
+            <!-- Submission statuses card -->
+            <div class="card">
+              <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-list-check" style="color: var(--secondary);"></i> Submission Ratios</h3>
+              <div id="admin-submission-ratios" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Ratios -->
+              </div>
+            </div>
+          </div>
+
+          <!-- System Security & Settings card -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 12px;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> System Security & Access</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">
+              Control whether new organizers can sign up on the login screen. Disabling this option prevents unauthorized admin registration.
+            </p>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-app);">
+              <div>
+                <span style="font-weight: 600; font-size: 14px; color: var(--text-main);">Admin Self-Registration</span>
+                <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Status: <span id="signup-status-badge" class="badge badge-success">Enabled</span></div>
+              </div>
+              <button class="btn btn-secondary" id="toggle-signup-btn" style="min-width: 200px;"><i class="fa-solid fa-toggle-on"></i> Toggle Signup Option</button>
+            </div>
+          </div>
+
+          <!-- Landing Page Hero Configuration Card -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 12px;"><i class="fa-solid fa-sliders" style="color: var(--secondary);"></i> Landing Page Header Stats</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">
+              Configure the participant count mode and the deadline countdown target date for the landing page hero section.
+            </p>
+            <form id="admin-landing-stats-form">
+              <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                  <label for="admin-stats-participants-mode">Participants Count Mode</label>
+                  <select id="admin-stats-participants-mode" class="form-control" required>
+                    <option value="dynamic">Dynamic (Calculate from Database)</option>
+                    <option value="manual">Manual Override</option>
+                  </select>
+                </div>
+                <div class="form-group" id="admin-stats-manual-group" style="display: none; flex: 1;">
+                  <label for="admin-stats-participants-override">Manual Override Value</label>
+                  <input type="text" id="admin-stats-participants-override" class="form-control" placeholder="e.g. 1,240+">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 16px;">
+                <label for="admin-stats-countdown-date">Countdown Target Deadline</label>
+                <input type="datetime-local" id="admin-stats-countdown-date" class="form-control" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fa-solid fa-floppy-disk"></i> Save Header Stats</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: APPLICANTS -->
+        <div class="admin-tab-content" id="admin-tab-applicants" style="display: none;">
+          <div class="portal-header">
+            <h2>Applicant Manager</h2>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <table class="project-list-table">
+              <thead>
+                <tr>
+                  <th>Project & Team</th>
+                  <th>Competitors</th>
+                  <th>Track</th>
+                  <th>Status</th>
+                  <th>Score / Grade</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-applicants-table-body">
+                <!-- Dynamic project listings -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: NEWS COMPOSE -->
+        <div class="admin-tab-content" id="admin-tab-news-compose" style="display: none;">
+          <div class="portal-header">
+            <h2>Compose News Updates</h2>
+          </div>
+          <div class="card" style="max-width: 800px;">
+            <form id="admin-news-form">
+              <div class="form-group">
+                <label for="news-title">Article Title</label>
+                <input type="text" id="news-title" class="form-control" placeholder="e.g. Workshop: Pitching Your TechX Prototype to Judges" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="news-cat-select">Category</label>
+                  <select id="news-cat-select" class="form-control" required>
+                    <option value="Announcements">Announcements</option>
+                    <option value="Workshops">Workshops</option>
+                    <option value="Deadlines">Deadlines</option>
+                    <option value="Success Stories">Success Stories</option>
+                    <option value="Partner News">Partner News</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="news-img-select">Cover Image Topic</label>
+                  <select id="news-img-select" class="form-control" required>
+                    <option value="code">Development / Code</option>
+                    <option value="meeting">Team Workshop / Collaboration</option>
+                    <option value="presentation">Presentation / Pitching</option>
+                    <option value="launch">Rocket Launch / Milestones</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="news-body-content">Article Body</label>
+                <textarea id="news-body-content" class="form-control" rows="8" placeholder="Write news updates, workshop links, or timeline announcements here..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish to News Feed</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: FORM CONFIGURATOR -->
+        <div class="admin-tab-content" id="admin-tab-form-config" style="display: none;">
+          <div class="portal-header">
+            <h2>Registration Form Configurator</h2>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Add Field Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Add Custom Field</h3>
+              <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
+                Define new input parameters that teams must submit during registration.
+              </p>
+              <form id="admin-add-field-form">
+                <div class="form-group">
+                  <label for="admin-field-label">Field Label</label>
+                  <input type="text" id="admin-field-label" class="form-control" placeholder="e.g. GitHub Repository" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-field-type">Input Type</label>
+                  <select id="admin-field-type" class="form-control" required>
+                    <option value="text">Text Input</option>
+                    <option value="url">URL Link</option>
+                    <option value="number">Number</option>
+                    <option value="email">Email</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Add Field</button>
+              </form>
+            </div>
+
+            <!-- Active Fields Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Active Custom Fields</h3>
+              <div id="admin-active-fields-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Dynamic fields loaded from Firebase config doc -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE TRACKS -->
+        <div class="admin-tab-content" id="admin-tab-tracks-config" style="display: none;">
+          <div class="portal-header">
+            <h2>Challenge Tracks Manager</h2>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Save/Edit Track Card -->
+            <div class="card">
+              <h3 id="admin-track-form-title" style="margin-bottom: 16px;">Add New Challenge Track</h3>
+              <form id="admin-track-form">
+                <input type="hidden" id="admin-track-edit-id" value="">
+                <div class="form-group">
+                  <label for="admin-track-name">Track Name</label>
+                  <input type="text" id="admin-track-name" class="form-control" placeholder="e.g. Clean Energy & Environment" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-track-id">Track Unique Key / ID</label>
+                  <input type="text" id="admin-track-id" class="form-control" placeholder="e.g. clean-energy (auto-generated from name if blank)">
+                </div>
+                <div class="form-group">
+                  <label for="admin-track-icon">FontAwesome Icon Class</label>
+                  <input type="text" id="admin-track-icon" class="form-control" placeholder="e.g. fa-leaf, fa-wallet, fa-heart-pulse" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-track-desc">Description</label>
+                  <textarea id="admin-track-desc" class="form-control" style="min-height: 80px;" placeholder="Describe what focus projects this track covers..." required></textarea>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 16px;">
+                  <input type="checkbox" id="admin-track-visible" checked style="width: 16px; height: 16px; cursor: pointer;">
+                  <label for="admin-track-visible" style="margin: 0; cursor: pointer; font-weight: 500;">Visible to Applicants</label>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-track-save-btn">Save Track</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-track-cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Active Tracks List Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Existing Challenge Tracks</h3>
+              <div id="admin-tracks-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic tracks loaded from Firestore -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE TIMELINE -->
+        <div class="admin-tab-content" id="admin-tab-timeline-config" style="display: none;">
+          <div class="portal-header" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <h2>Challenge Timeline Manager</h2>
+            <button class="btn btn-outline btn-sm" onclick="adminResetTimelineToDefault()" style="color: var(--warning); border-color: var(--warning); padding: 6px 12px; font-weight: 600;"><i class="fa-solid fa-arrows-rotate"></i> Reset Timeline to Default</button>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Save/Edit Event Card -->
+            <div class="card">
+              <h3 id="admin-timeline-form-title" style="margin-bottom: 16px;">Add Timeline Milestone</h3>
+              <form id="admin-timeline-form">
+                <input type="hidden" id="admin-timeline-edit-id" value="">
+                <div class="form-row">
+                  <div class="form-group" style="flex: 2;">
+                    <label for="admin-timeline-title">Event Title</label>
+                    <input type="text" id="admin-timeline-title" class="form-control" placeholder="e.g. Application Deadline" required>
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                    <label for="admin-timeline-step">Step Number</label>
+                    <input type="number" id="admin-timeline-step" class="form-control" placeholder="e.g. 1" min="1" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="admin-timeline-date">Date / Duration String</label>
+                  <input type="text" id="admin-timeline-date" class="form-control" placeholder="e.g. July 15 @ 23:59 EST" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-timeline-desc">Description</label>
+                  <textarea id="admin-timeline-desc" class="form-control" style="min-height: 80px;" placeholder="Outline deliverables, resources or milestones for this phase..." required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="admin-timeline-status">Milestone Progress Status</label>
+                  <select id="admin-timeline-status" class="form-control" required>
+                    <option value="upcoming">Upcoming (Not Active)</option>
+                    <option value="active">Active (Current Stage)</option>
+                    <option value="completed">Completed (Passed Stage)</option>
+                  </select>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-timeline-save-btn">Save Milestone</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-timeline-cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Existing Milestones Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Timeline Milestones</h3>
+              <div id="admin-timeline-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic milestones loaded from Firestore -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview Roadmap -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 8px; color: var(--primary);"><i class="fa-solid fa-eye"></i> Live Roadmap Preview</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">This shows exactly how the roadmap looks on the applicant landing page based on your settings above.</p>
+            <div class="timeline-container" id="admin-timeline-preview-container" style="background: var(--bg-card); padding: 40px 20px; border-radius: var(--radius-md);">
+              <div class="timeline-line"></div>
+              <!-- Preview rendered dynamically from administrative status state -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE REWARDS -->
+        <div class="admin-tab-content" id="admin-tab-rewards-config">
+          <div class="portal-header">
+            <div>
+              <h2>Manage Challenge Rewards</h2>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Configure the technical support, mentorship packages, and AWS credits displayed on the landing page.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="admin-rewards-reset-btn"><i class="fa-solid fa-rotate-left"></i> Reset to KNUST Defaults</button>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Save/Edit Reward Card -->
+            <div class="card">
+              <h3 id="admin-rewards-form-title" style="margin-bottom: 16px;">Add Reward Package</h3>
+              <form id="admin-rewards-form">
+                <input type="hidden" id="admin-rewards-edit-id" value="">
+                <div class="form-group">
+                  <label for="admin-rewards-rank">Rank / Heading</label>
+                  <input type="text" id="admin-rewards-rank" class="form-control" placeholder="e.g. 1st Place Grand Winner" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-rewards-amount">Value / Amount (GH₵)</label>
+                  <input type="text" id="admin-rewards-amount" class="form-control" placeholder="e.g. GH₵ 100,000" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-rewards-desc">Detailed Description</label>
+                  <textarea id="admin-rewards-desc" class="form-control" style="min-height: 100px;" placeholder="Outline the mentorship, cloud credits, office space, and engineering support included..." required></textarea>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 16px; margin-bottom: 16px;">
+                  <input type="checkbox" id="admin-rewards-popular" style="width: 18px; height: 18px; cursor: pointer;">
+                  <label for="admin-rewards-popular" style="font-weight: 500; cursor: pointer;">Feature Card (Render with highlight banner)</label>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-rewards-save-btn">Save Reward Package</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-rewards-cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Existing Rewards List Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Configured Reward Cards</h3>
+              <div id="admin-rewards-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic rewards list with Edit / Delete actions -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview Rewards -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 8px; color: var(--primary);"><i class="fa-solid fa-eye"></i> Live Rewards Preview</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">This shows exactly how the Rewards section looks on the landing page based on your settings above.</p>
+            <div class="prizes-section" style="padding: 40px 20px; border-radius: var(--radius-md);">
+              <div class="grid-3" id="admin-rewards-preview-container">
+                <!-- Preview cards rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION POPUP -->
+  <div id="toast" class="toast-notification">
+    <i class="fa-solid fa-circle-check" style="color: var(--success);" id="toast-icon"></i>
+    <span id="toast-message">Action successful!</span>
+  </div>
+
+  <!-- MODAL DIALOG (NEWS DETAILED / TIMELINE DETAILS / APPLICANT DETAILS) -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Details</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamic details inject -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

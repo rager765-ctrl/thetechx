@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The TechX Challenge | Innovate. Build. Compete.</title>
+  <meta name="description" content="Join The TechX Challenge, a premier innovation ecosystem. Compete, collaborate, build outstanding projects, and win from a massive prize pool.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="#home" class="logo" id="nav-logo">
+          <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+          <span>Tech<span class="text-gradient">X</span></span>
+        </a>
+        <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
+          <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; display: inline-block;">KSB &bull; KNUST</span>
+        </div>
+      </div>
+      
+      <div class="nav-links">
+        <a href="#home" class="nav-link active" data-view="home">Home</a>
+        <a href="#about" class="nav-link" data-view="home" data-scroll="about">About</a>
+        <a href="#tracks" class="nav-link" data-view="home" data-scroll="tracks">Tracks</a>
+        <a href="#timeline" class="nav-link" data-view="home" data-scroll="timeline">Timeline</a>
+        <a href="#resources" class="nav-link" data-view="resources">Resources</a>
+        <a href="#news" class="nav-link" data-view="news">News</a>
+        <a href="#showcase" class="nav-link" data-view="showcase">Showcase</a>
+      </div>
+
+      <div class="nav-auth">
+        <a href="admin.html" class="btn btn-secondary btn-sm" id="nav-login-btn"><i class="fa-solid fa-right-to-bracket"></i> Admin Login</a>
+        <a href="register.html" class="btn btn-primary btn-sm" id="nav-register-btn"><i class="fa-solid fa-user-plus"></i> Register Now</a>
+      </div>
+
+      <button class="menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer Menu -->
+  <div class="mobile-drawer" id="mobile-drawer">
+    <a href="#home" class="mobile-nav-link active" data-view="home">Home</a>
+    <a href="#about" class="mobile-nav-link" data-view="home" data-scroll="about">About</a>
+    <a href="#tracks" class="mobile-nav-link" data-view="home" data-scroll="tracks">Tracks</a>
+    <a href="#timeline" class="mobile-nav-link" data-view="home" data-scroll="timeline">Timeline</a>
+    <a href="#resources" class="mobile-nav-link" data-view="resources">Resources</a>
+    <a href="#news" class="mobile-nav-link" data-view="news">News</a>
+    <a href="#showcase" class="mobile-nav-link" data-view="showcase">Showcase</a>
+    <div class="mobile-auth">
+      <a href="admin.html" class="btn btn-secondary" id="mobile-login-btn">Admin Login</a>
+      <a href="register.html" class="btn btn-primary" id="mobile-register-btn">Register Now</a>
+    </div>
+  </div>
+
+  <!-- VIEWS HOLDER -->
+  <main class="view-container">
+
+    <!-- 1. LANDING PAGE VIEW -->
+    <section id="home-view" class="view active">
+      <!-- Hero Section -->
+      <div class="hero">
+        <div class="hero-graphic hero-graphic-1"></div>
+        <div class="hero-graphic hero-graphic-2"></div>
+        <div class="container hero-grid">
+          <div class="hero-content">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+              <span class="hero-tag" style="margin-bottom: 0;"><i class="fa-solid fa-circle-nodes"></i> Registration is open!</span>
+              <span class="hero-tag" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 8px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 18px; width: 18px; border-radius: 50%; object-fit: cover;">
+                <span style="color: var(--text-main); font-weight: 600;">KSB &bull; KNUST Challenge</span>
+              </span>
+            </div>
+            <h1>Innovate. Build.<br><span class="text-gradient">Compete.</span></h1>
+            <p>The TechX Challenge is the ultimate proving ground for innovators, courtesy of KNUST and spearheaded by the KNUST School of Business (KSB). Develop disruptive prototypes, connect with expert mentors, and win premium incubation packages.</p>
+            <div class="hero-ctas">
+              <a href="register.html" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> Register Now</a>
+              <a href="#about" class="btn btn-secondary btn-lg" id="learn-more-btn"><i class="fa-solid fa-circle-info"></i> Learn More</a>
+            </div>
+          </div>
+          <div class="hero-image-container">
+            <div class="hero-image-wrapper">
+              <img src="hero_techx.png" alt="TechX Hackathon Collaboration" class="hero-image">
+            </div>
+            <div class="hero-stats-badge">
+              <div class="stat-item">
+                <div class="stat-value" id="stat-participants">1,240+</div>
+                <div class="stat-label" id="stat-participants-label">Participants</div>
+              </div>
+              <div style="width: 1px; background-color: var(--border);"></div>
+              <div class="stat-item">
+                <div class="stat-value" id="stat-days">18</div>
+                <div class="stat-label" id="stat-days-label">Days Left</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- About & Overview Section -->
+      <div id="about" class="section-padding">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Overview</span>
+            <h2 class="section-title">What is The TechX Challenge?</h2>
+            <p class="section-subtitle">We bring together software developers, designers, product minds, and industry experts to shape the future of key sectors. Over 6 weeks, you'll brainstorm, code, validate, and pitch.</p>
+          </div>
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-icon" style="background-color: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
+              <h3>Industry Mentorship</h3>
+              <p>Get guided by seasoned leaders from top-tier companies. Receive targeted feedback to refine your product architecture and business model.</p>
+            </div>
+            <div class="card">
+              <div class="card-icon" style="background-color: var(--secondary-light); color: var(--secondary);"><i class="fa-solid fa-people-group"></i></div>
+              <h3>Collaborative Ecosystem</h3>
+              <p>Form dynamic teams, match skills, and exchange concepts in a rich environment built for cross-functional development.</p>
+            </div>
+            <div class="card">
+              <div class="card-icon" style="background-color: var(--accent-light); color: var(--accent);"><i class="fa-solid fa-seedling"></i></div>
+              <h3>Incubation Support</h3>
+              <p>Winners secure direct pathways to accelerator programs, cloud computing credits, VC networking, and co-working workspace access.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challenge Tracks Section -->
+      <div id="tracks" class="section-padding" style="background-color: white; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Categories</span>
+            <h2 class="section-title">Competition Tracks</h2>
+            <p class="section-subtitle">Select a focus track for your innovation. Submissions will be categorized and graded based on track-specific parameters.</p>
+          </div>
+          <div class="grid-3" id="landing-tracks-list">
+            <!-- Dynamic Tracks will load here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Prizes & Benefits Section -->
+      <div class="section-padding prizes-section">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Rewards</span>
+            <h2 class="section-title">Technical Support &amp; Mentorship</h2>
+            <p class="section-subtitle">Outstanding execution is rewarded with comprehensive resources. Teams receive deployment support, cloud credits, and direct mentorship from KNUST hubs.</p>
+          </div>
+          <div class="grid-3" id="landing-prizes-list">
+            <!-- Dynamic prizes loaded from Firestore -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div id="timeline" class="section-padding">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Roadmap</span>
+            <h2 class="section-title">Challenge Timeline</h2>
+            <p class="section-subtitle">Keep track of milestones. Click on any event card to view key details and deliverables required.</p>
+          </div>
+          <div class="timeline-container" id="landing-timeline-container">
+            <div class="timeline-line"></div>
+            <!-- Dynamic timeline items loaded from Firebase -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Eligibility Section -->
+      <div class="section-padding" style="background-color: white; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Rules</span>
+            <h2 class="section-title">Eligibility Requirements</h2>
+            <p class="section-subtitle">Please ensure you qualify before submitting. TechX values inclusion and fairness.</p>
+          </div>
+          <div class="grid-2">
+            <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
+              <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-earth-americas"></i></div>
+              <div>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Global Participation</h4>
+                <p>Open to innovators worldwide aged 18 or above. Local compliance regulations apply.</p>
+              </div>
+            </div>
+            <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
+              <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-user-group"></i></div>
+              <div>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Team Dimensions</h4>
+                <p>Participate solo or form a team of up to 5 members. Cross-disciplinary skillsets are encouraged.</p>
+              </div>
+            </div>
+            <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
+              <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-code-branch"></i></div>
+              <div>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Fresh Intellectual Property</h4>
+                <p>All work must be authored during the competition period. Pre-existing projects are ineligible.</p>
+              </div>
+            </div>
+            <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
+              <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-cube"></i></div>
+              <div>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Open-source Preference</h4>
+                <p>Prototypes utilizing public libraries and showing accessible code repos are highly valued.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="section-padding faq-section">
+        <div class="container">
+          <div class="section-title-wrapper">
+            <span class="section-title-tag">Questions</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-subtitle">Have questions? We have answers. If you can't find what you need, feel free to reach out.</p>
+          </div>
+          <div style="max-width: 800px; margin: 0 auto;">
+            <div class="accordion-item">
+              <button class="accordion-header">
+                <span>Can I submit a project in multiple tracks?</span>
+                <i class="fa-solid fa-plus accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>No, each team must select a single primary track for submission. Review the categories carefully to see where your solution fits best.</p>
+              </div>
+            </div>
+            
+            <div class="accordion-item">
+              <button class="accordion-header">
+                <span>Do I need to have a completed codebase?</span>
+                <i class="fa-solid fa-plus accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>For the initial application deadline, a detailed proposal and UX designs are sufficient. However, for the Demo Day, a working software prototype is required.</p>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-header">
+                <span>What is the registration cost?</span>
+                <i class="fa-solid fa-plus accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Registration for The TechX Challenge is 100% free of charge, thanks to our generous sponsors and community partners.</p>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <button class="accordion-header">
+                <span>How are teams matched?</span>
+                <i class="fa-solid fa-plus accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>After registering, individual applicants can browse the My Team dashboard area to join existing projects or post their skills for recruitment.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sponsors & Partners -->
+      <div class="section-padding" style="background-color: white; border-top: 1px solid var(--border);">
+        <div class="container">
+          <div class="section-title-wrapper" style="margin-bottom: 40px;">
+            <h3 style="font-size: 20px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.1em;">Supported By Global Leaders</h3>
+          </div>
+          <div class="sponsors-grid">
+            <div class="sponsor-logo"><i class="fa-brands fa-aws"></i> AWS Cloud</div>
+            <div class="sponsor-logo"><i class="fa-brands fa-google"></i> Google Cloud</div>
+            <div class="sponsor-logo"><i class="fa-brands fa-microsoft"></i> Microsoft</div>
+            <div class="sponsor-logo"><i class="fa-brands fa-stripe"></i> Stripe</div>
+            <div class="sponsor-logo"><i class="fa-brands fa-github"></i> GitHub</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+
+    <!-- 4. RESOURCE CENTER VIEW -->
+    <section id="resources-view" class="view">
+      <div class="container section-padding">
+        <div class="section-title-wrapper">
+          <span class="section-title-tag">Hub</span>
+          <h2 class="section-title">Resource Center</h2>
+          <p class="section-subtitle">Access templates, learning materials, and detailed guidelines to boost your team's project execution and score high with judges.</p>
+        </div>
+
+        <div class="resource-layout-grid">
+          <div class="resource-grid" id="public-resources-grid">
+            <!-- Dynamic Resources -->
+          </div>
+
+          <!-- Guidelines Box -->
+          <div class="card" style="padding: 24px;">
+            <h4 style="font-size: 18px; margin-bottom: 16px;"><i class="fa-solid fa-gavel" style="color: var(--primary);"></i> Evaluation Criteria</h4>
+            <ul style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: var(--text-muted);">
+              <li><strong style="color: var(--text-main);">Innovation (25%):</strong> How original is the concept? Is it a disruptive approach or simple iteration?</li>
+              <li><strong style="color: var(--text-main);">Technical Execution (25%):</strong> Quality of codebase, architectural decisions, and completeness.</li>
+              <li><strong style="color: var(--text-main);">Impact & Viability (25%):</strong> Solves a real problem, addresses market need, potential to scale.</li>
+              <li><strong style="color: var(--text-main);">Design & UX (25%):</strong> Aesthetic quality, ease of use, responsiveness, and polished layouts.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. NEWS & UPDATES HUB VIEW -->
+    <section id="news-view" class="view">
+      <div class="container section-padding">
+        <div class="section-title-wrapper">
+          <span class="section-title-tag">Ecosystem Hub</span>
+          <h2 class="section-title">News & Announcements</h2>
+          <p class="section-subtitle">Get the latest news regarding workshops, deadline updates, and success stories from past cohorts.</p>
+        </div>
+
+        <!-- Categories Filter -->
+        <div class="news-filters" id="news-categories-filter">
+          <button class="filter-btn active" data-category="all">All News</button>
+          <button class="filter-btn" data-category="Announcements">Announcements</button>
+          <button class="filter-btn" data-category="Workshops">Workshops</button>
+          <button class="filter-btn" data-category="Deadlines">Deadlines</button>
+          <button class="filter-btn" data-category="Success Stories">Success Stories</button>
+          <button class="filter-btn" data-category="Partner News">Partner News</button>
+        </div>
+
+        <div class="grid-3" id="news-feed-container">
+          <!-- Dynamic articles inject here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. PUBLIC SHOWCASE VIEW -->
+    <section id="showcase-view" class="view">
+      <div class="container section-padding">
+        <div class="section-title-wrapper">
+          <span class="section-title-tag">Gallery</span>
+          <h2 class="section-title">Ecosystem Innovation Gallery</h2>
+          <p class="section-subtitle">Celebrate the outstanding work built during The TechX Challenge. Explore team bios, architectures, and demo videos.</p>
+        </div>
+
+        <div class="showcase-grid" id="showcase-feed-container">
+          <!-- Dynamic showcased projects inject here -->
+        </div>
+      </div>
+    </section>
+
+
+
+
+
+  </main>
+
+  <!-- Footer Section -->
+  <footer id="footer-section">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#home" class="logo" style="color: white;">
+            <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+            <span>Tech<span class="text-gradient">X</span></span>
+          </a>
+          <p>Building the next generation of industry innovations and connecting creators with opportunity.</p>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 24px; width: 24px; border-radius: 50%; object-fit: cover;">
+            <span style="font-size: 11px; color: var(--text-light); line-height: 1.3;">Courtesy of <strong>KNUST</strong>, spearheaded by the <strong>KNUST School of Business (KSB)</strong></span>
+          </div>
+        </div>
+        <div>
+          <h4>Ecosystem</h4>
+          <div class="footer-links">
+            <a href="#home" class="footer-link" data-view="home">Overview</a>
+            <a href="#tracks" class="footer-link" data-view="home" data-scroll="tracks">Challenge Tracks</a>
+            <a href="#timeline" class="footer-link" data-view="home" data-scroll="timeline">Milestones</a>
+            <a href="#showcase" class="footer-link" data-view="showcase">Showcase</a>
+          </div>
+        </div>
+        <div>
+          <h4>Participants</h4>
+          <div class="footer-links">
+            <a href="register.html" class="footer-link">Apply Now</a>
+            <a href="#resources" class="footer-link" data-view="resources">Guidelines</a>
+            <a href="#resources" class="footer-link" data-view="resources">Templates</a>
+            <a href="#news" class="footer-link" data-view="news">Ecosystem News</a>
+          </div>
+        </div>
+        <div>
+          <h4>Legals</h4>
+          <div class="footer-links">
+            <a href="#" class="footer-link">Terms & Rules</a>
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Contact Support</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>&copy; 2026 The TechX Challenge. All rights reserved.</div>
+        <div style="display: flex; gap: 16px;">
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <div class="mobile-bottom-nav">
+    <a href="#home" class="mobile-bottom-nav-item active" data-view="home">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="register.html" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-user-plus"></i>
+      <span>Register</span>
+    </a>
+    <a href="#news" class="mobile-bottom-nav-item" data-view="news">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
+    </a>
+    <a href="#resources" class="mobile-bottom-nav-item" data-view="resources">
+      <i class="fa-solid fa-folder-open"></i>
+      <span>Resources</span>
+    </a>
+  </div>
+
+
+
+  <!-- TOAST NOTIFICATION POPUP -->
+  <div id="toast" class="toast-notification">
+    <i class="fa-solid fa-circle-check" style="color: var(--success);" id="toast-icon"></i>
+    <span id="toast-message">Action successful!</span>
+  </div>
+
+  <!-- MODAL DIALOG (NEWS DETAILED / TIMELINE DETAILS) -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Announcement Details</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamic details inject -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Team Registration | The TechX Challenge</title>
+  <meta name="description" content="Register your team of 3 members and submit your concept note for The TechX Challenge.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background-color: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="index.html" class="logo" id="nav-logo">
+          <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
+          <span>Tech<span class="text-gradient">X</span></span>
+        </a>
+        <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
+          <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; display: inline-block;">KSB &bull; KNUST</span>
+        </div>
+      </div>
+      <div class="nav-auth">
+        <a href="index.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-house"></i> Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Registration view Container -->
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+    <div class="auth-card" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
+      <div class="auth-header">
+        <h2>Team Registration</h2>
+        <p>Register your group of 3 members and submit your concept note</p>
+      </div>
+      <form id="team-registration-form">
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label for="reg-team-name">Team Name</label>
+            <input type="text" id="reg-team-name" class="form-control" placeholder="e.g. EcoSphere Founders" required>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="reg-project-track">Challenge Track</label>
+            <select id="reg-project-track" class="form-control" required>
+              <option value="" disabled selected>Select a track</option>
+              <!-- Dynamic options loaded from Firebase tracks collection -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Member 1 (Lead) -->
+        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-user-gear"></i> Member 1 (Team Lead)</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-m1-name">Full Name</label>
+              <input type="text" id="reg-m1-name" class="form-control" placeholder="Abena Osei" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m1-email">Email Address</label>
+              <input type="email" id="reg-m1-email" class="form-control" placeholder="abena.osei@student.knust.edu.gh" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m1-contact">Contact Number</label>
+              <input type="tel" id="reg-m1-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member 2 -->
+        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--secondary);"><i class="fa-solid fa-user"></i> Member 2</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-m2-name">Full Name</label>
+              <input type="text" id="reg-m2-name" class="form-control" placeholder="Kofi Mensah" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m2-email">Email Address</label>
+              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@student.knust.edu.gh" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m2-contact">Contact Number</label>
+              <input type="tel" id="reg-m2-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member 3 -->
+        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);"><i class="fa-solid fa-user"></i> Member 3</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-m3-name">Full Name</label>
+              <input type="text" id="reg-m3-name" class="form-control" placeholder="Kwame Asante" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m3-email">Email Address</label>
+              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@student.knust.edu.gh" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-m3-contact">Contact Number</label>
+              <input type="tel" id="reg-m3-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Upload (DOCX, PPTX, PDF) -->
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="reg-concept-note">Upload Proposal Document (DOCX, PPTX, or PDF)</label>
+          <input type="file" id="reg-concept-note" class="form-control" accept=".docx,.pptx,.pdf" required>
+          <span style="font-size: 11px; color: var(--text-light);"><i class="fa-solid fa-info-circle"></i> Concept notes / proposals must be formatted as Word (.docx), PowerPoint (.pptx), or PDF (.pdf) files.</span>
+        </div>
+
+        <!-- Dynamic Fields Container -->
+        <div id="dynamic-custom-fields-container" style="margin-bottom: 20px;"></div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg"><i class="fa-solid fa-paper-plane"></i> Submit Team Registration</button>
+      </form>
+      <div class="auth-footer" style="font-size: 12px; color: var(--text-light); text-align: center; margin-top: 16px;">
+        <i class="fa-solid fa-info-circle"></i> Once submitted, your registration is routed directly to the organizers for vetting.
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer Section -->
+  <footer id="footer-section" style="margin-top: auto;">
+    <div class="container" style="text-align: center; padding: 20px 0; border-top: 1px solid var(--border);">
+      <div>&copy; 2026 The TechX Challenge. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <div class="mobile-bottom-nav">
+    <a href="index.html#home" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="register.html" class="mobile-bottom-nav-item active">
+      <i class="fa-solid fa-user-plus"></i>
+      <span>Register</span>
+    </a>
+    <a href="index.html#news" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
+    </a>
+    <a href="index.html#resources" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-folder-open"></i>
+      <span>Resources</span>
+    </a>
+  </div>
+
+  <!-- TOAST NOTIFICATION POPUP -->
+  <div id="toast" class="toast-notification">
+    <i class="fa-solid fa-circle-check" style="color: var(--success);" id="toast-icon"></i>
+    <span id="toast-message">Action successful!</span>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script type="module" src="register.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /proposals/{projectId}/{allPaths=**} {
+      // Proposals are readable so admins can download and preview them
+      allow read: if true;
+      
+      // Applicants can upload proposals when registering their project
+      allow write: if request.resource.size < 10 * 1024 * 1024 // limit uploads to 10MB
+                   && (request.resource.contentType.matches('application/pdf') 
+                       || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                       || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.presentationml.presentation')
+                       || request.resource.contentType.matches('application/msword')
+                       || request.resource.contentType.matches('application/vnd.ms-powerpoint'));
+    }
+  }
+}
