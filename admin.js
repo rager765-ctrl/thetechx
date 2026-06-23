@@ -25,6 +25,7 @@ let allUsers = [];
 let allTracks = [];
 let allTimeline = [];
 let allPrizes = [];
+let allLegal = [];
 let activeCustomFields = [];
 let activeAdminTab = "overview";
 let signupEnabled = true;
@@ -481,6 +482,45 @@ function initRealtimeSync() {
       }
     }
   });
+
+  // Watch rewards collection
+  onSnapshot(collection(firestore, "prizes"), (snapshot) => {
+    allPrizes = [];
+    snapshot.forEach(d => {
+      allPrizes.push({ id: d.id, ...d.data() });
+    });
+    allPrizes.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    if (activeAdminTab === "rewards-config") {
+      renderAdminRewardsList();
+    }
+  });
+
+  // Watch legal collection
+  onSnapshot(collection(firestore, "legal"), (snapshot) => {
+    allLegal = [];
+    snapshot.forEach(d => {
+      allLegal.push({ id: d.id, ...d.data() });
+    });
+    allLegal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    
+    // Seed default legal documents if empty
+    if (snapshot.empty && currentUser) {
+      const defaultLegal = [
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 1 to 5 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+      ];
+      for (const docObj of defaultLegal) {
+        setDoc(doc(firestore, "legal", docObj.id), {
+          title: docObj.title,
+          content: docObj.content,
+          timestamp: docObj.timestamp
+        }).catch(err => console.error("Failed seeding legal:", err));
+      }
+    }
+    
+    renderAdminDashboard();
+  });
 }
 
 // Render Dashboard
@@ -565,7 +605,14 @@ function renderAdminDashboard() {
           <button class="btn btn-outline btn-sm" onclick="adminApproveProject('${p.id}', false)" style="color: var(--danger); border-color: var(--danger);"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
         `;
       } else {
-        actionButtons = `<span style="font-size: 12px; color: var(--text-light);"><i class="fa-solid fa-square-poll-vertical"></i> Logged</span>`;
+        actionButtons = `
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; color: var(--text-light);"><i class="fa-solid fa-square-poll-vertical"></i> Logged</span>
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteProject('${p.id}')" style="color: var(--danger); border-color: var(--danger); padding: 2px 6px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; border-radius: 4px; border: 1px solid var(--danger);">
+              <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+          </div>
+        `;
       }
 
       return `
@@ -604,6 +651,9 @@ function renderAdminDashboard() {
 
   else if (activeAdminTab === "rewards-config") {
     renderAdminRewardsList();
+  }
+  else if (activeAdminTab === "legal-config") {
+    renderAdminLegalList();
   }
 }
 
@@ -806,12 +856,13 @@ if (exportCSVBtn) {
     });
     const customHeaders = Array.from(customHeadersSet);
 
-    // Build header row
+     // Build header row
     const headers = [
       "Team Name", "Project Title", "Track", "Status", "Grade",
       "Member 1 Name", "Member 1 Email", "Member 1 Contact",
       "Member 2 Name", "Member 2 Email", "Member 2 Contact",
       "Member 3 Name", "Member 3 Email", "Member 3 Contact",
+      "Concept Note Name", "Concept Note URL", "Submission Date",
       ...customHeaders
     ];
 
@@ -820,15 +871,17 @@ if (exportCSVBtn) {
         p.teamName, p.title, p.track, p.status, p.averageScore || 'N/A',
         p.members ? p.members[0] : '', p.emails ? p.emails[0] : '', p.contacts ? p.contacts[0] : '',
         p.members ? p.members[1] : '', p.emails ? p.emails[1] : '', p.contacts ? p.contacts[1] : '',
-        p.members ? p.members[2] : '', p.emails ? p.emails[2] : '', p.contacts ? p.contacts[2] : ''
+        p.members ? p.members[2] : '', p.emails ? p.emails[2] : '', p.contacts ? p.contacts[2] : '',
+        p.conceptNoteName || '', p.conceptNoteUrl || '',
+        p.timestamp ? new Date(p.timestamp).toLocaleString() : ''
       ];
       
       const customVals = customHeaders.map(h => (p.customFields || {})[h] || '');
       return [...basic, ...customVals].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `techx_registrations_${Date.now()}.csv`);
@@ -837,6 +890,61 @@ if (exportCSVBtn) {
     document.body.removeChild(link);
     showToast("CSV registry downloaded!", "success");
   });
+}
+
+async function seedDefaultsIfEmpty() {
+  if (!currentUser) return;
+  try {
+    // 1. Seed legal documents if empty
+    const legalSnap = await getDocs(collection(firestore, "legal"));
+    if (legalSnap.empty) {
+      const defaultLegal = [
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 1 to 5 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+      ];
+      for (const docObj of defaultLegal) {
+        await setDoc(doc(firestore, "legal", docObj.id), {
+          title: docObj.title,
+          content: docObj.content,
+          timestamp: docObj.timestamp
+        });
+      }
+    }
+
+    // 2. Seed landing page stats countdown config if empty
+    const statsSnap = await getDoc(doc(firestore, "config", "landing_stats"));
+    if (!statsSnap.exists()) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 18);
+      const defaultDateStr = defaultDate.toISOString().slice(0, 16);
+      await setDoc(doc(firestore, "config", "landing_stats"), {
+        participantsMode: "dynamic",
+        participantsOverride: "1,240+",
+        countdownDate: defaultDateStr,
+        timestamp: Date.now()
+      });
+    }
+
+    // 3. Seed prizes (rewards) if empty
+    const prizesSnap = await getDocs(collection(firestore, "prizes"));
+    if (prizesSnap.empty) {
+      const defaultPrizes = [
+        { id: "p1", title: "First Prize / Gold", description: "GH₵ 20,000 cash prize, 6 months incubation workspace, direct investor pitching slot.", timestamp: Date.now() },
+        { id: "p2", title: "Second Prize / Silver", description: "GH₵ 10,000 cash prize, 3 months workspace access, prototype refinement mentorship.", timestamp: Date.now() + 1 },
+        { id: "p3", title: "Third Prize / Bronze", description: "GH₵ 5,000 cash prize, expert business design review sessions.", timestamp: Date.now() + 2 }
+      ];
+      for (const docObj of defaultPrizes) {
+        await setDoc(doc(firestore, "prizes", docObj.id), {
+          title: docObj.title,
+          description: docObj.description,
+          timestamp: docObj.timestamp
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error checking or seeding defaults:", err);
+  }
 }
 
 // Authentication Lifecycle
@@ -858,6 +966,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     if (currentUser && currentUser.isAdmin) {
       adminLoginView.style.display = "none";
       adminDashboardView.style.display = "flex";
+      seedDefaultsIfEmpty();
       renderAdminDashboard();
     } else {
       // Reject non-admins
@@ -1347,6 +1456,114 @@ const adminRewardsResetBtn = document.getElementById("admin-rewards-reset-btn");
 if (adminRewardsResetBtn) {
   adminRewardsResetBtn.addEventListener("click", adminResetRewardsToDefault);
 }
+
+// Render Configured Legal Documents in Admin Panel
+function renderAdminLegalList() {
+  const container = document.getElementById("admin-legal-list");
+  if (!container) return;
+
+  if (allLegal.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 20px;">No legal documents configured. Add one on the left.</p>`;
+    return;
+  }
+
+  container.innerHTML = allLegal.map(leg => `
+    <div style="border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">
+          <i class="fa-solid fa-gavel" style="color: var(--primary);"></i> ${leg.title}
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; white-space: pre-line;">${leg.content}</p>
+      <div style="display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end;">
+        <button class="btn btn-secondary btn-sm" onclick="adminEditLegal('${leg.id}')" style="padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="adminDeleteLegal('${leg.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Legal CRUD Form Submit
+const adminLegalForm = document.getElementById("admin-legal-form");
+if (adminLegalForm) {
+  adminLegalForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("admin-legal-title").value.trim();
+    const content = document.getElementById("admin-legal-content").value.trim();
+    const editId = document.getElementById("admin-legal-edit-id").value;
+
+    const id = editId || title.toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+    try {
+      showToast("Saving legal document...", "info");
+      await setDoc(doc(firestore, "legal", id), {
+        title,
+        content,
+        timestamp: Date.now()
+      });
+      showToast("Legal document saved successfully!", "success");
+      adminLegalForm.reset();
+      document.getElementById("admin-legal-edit-id").value = "";
+      document.getElementById("admin-legal-form-title").textContent = "Add Legal Document";
+      const cancelBtn = document.getElementById("admin-legal-cancel-btn");
+      if (cancelBtn) cancelBtn.style.display = "none";
+    } catch (err) {
+      showToast("Failed to save: " + getCleanErrorMessage(err), "error");
+    }
+  });
+}
+
+const adminLegalCancelBtn = document.getElementById("admin-legal-cancel-btn");
+if (adminLegalCancelBtn) {
+  adminLegalCancelBtn.addEventListener("click", () => {
+    if (adminLegalForm) adminLegalForm.reset();
+    document.getElementById("admin-legal-edit-id").value = "";
+    document.getElementById("admin-legal-form-title").textContent = "Add Legal Document";
+    adminLegalCancelBtn.style.display = "none";
+  });
+}
+
+function adminEditLegal(legalId) {
+  const legal = allLegal.find(l => l.id === legalId);
+  if (!legal) return;
+
+  document.getElementById("admin-legal-edit-id").value = legal.id;
+  document.getElementById("admin-legal-title").value = legal.title;
+  document.getElementById("admin-legal-content").value = legal.content;
+
+  document.getElementById("admin-legal-form-title").textContent = "Edit Legal Document";
+  if (adminLegalCancelBtn) adminLegalCancelBtn.style.display = "inline-block";
+}
+
+async function adminDeleteLegal(legalId) {
+  if (!confirm("Are you sure you want to delete this legal document? It will disappear from the portal.")) {
+    return;
+  }
+  try {
+    showToast("Deleting legal document...", "info");
+    await deleteDoc(doc(firestore, "legal", legalId));
+    showToast("Legal document deleted successfully!", "success");
+  } catch (err) {
+    showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
+  }
+}
+
+async function adminDeleteProject(projectId) {
+  if (!confirm("Are you sure you want to delete this applicant registration? This action is permanent and cannot be undone.")) {
+    return;
+  }
+  try {
+    showToast("Deleting applicant registration...", "info");
+    await deleteDoc(doc(firestore, "projects", projectId));
+    showToast("Applicant registration deleted successfully!", "success");
+  } catch (err) {
+    showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
+  }
+}
+
+window.adminEditLegal = adminEditLegal;
+window.adminDeleteLegal = adminDeleteLegal;
+window.adminDeleteProject = adminDeleteProject;
 
 // Exports for global table actions
 window.adminApproveProject = adminApproveProject;

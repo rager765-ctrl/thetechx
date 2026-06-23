@@ -169,6 +169,13 @@ function handleNavigationClick(e) {
 // Attach Nav Listeners
 navLinks.forEach(link => link.addEventListener("click", handleNavigationClick));
 
+// Attach Footer Links Listeners
+document.querySelectorAll(".footer-link").forEach(link => {
+  if (link.getAttribute("data-view")) {
+    link.addEventListener("click", handleNavigationClick);
+  }
+});
+
 // Attach Mobile Bottom Nav Listeners
 document.querySelectorAll(".mobile-bottom-nav-item").forEach(item => {
   item.addEventListener("click", (e) => {
@@ -604,6 +611,32 @@ function initRealtimeSync() {
     allPrizes.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     if (getActiveViewId() === "home") renderLandingPrizes();
   });
+
+  // Watch legal collection
+  onSnapshot(collection(firestore, "legal"), async (snapshot) => {
+    let allLegal = [];
+    snapshot.forEach(d => {
+      allLegal.push({ id: d.id, ...d.data() });
+    });
+    allLegal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    
+    // Render to public-legal-grid
+    const legalGrid = document.getElementById("public-legal-grid");
+    if (legalGrid) {
+      if (allLegal.length === 0) {
+        legalGrid.innerHTML = `<p style="text-align: center; color: var(--text-muted); grid-column: 1 / -1;">No terms or policies configured yet.</p>`;
+      } else {
+        legalGrid.innerHTML = allLegal.map(leg => `
+          <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); box-shadow: var(--shadow-sm); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text-main); font-family: var(--font-heading);">
+              <i class="fa-solid fa-gavel" style="color: var(--primary);"></i> ${leg.title}
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin: 0; white-space: pre-line;">${leg.content}</p>
+          </div>
+        `).join("");
+      }
+    }
+  });
 }
 
 // Samsung Internet browser enforcement to Google Chrome
@@ -664,6 +697,27 @@ function checkBrowserAndEnforceChrome() {
   }
 }
 
+// FAQ Accordion Toggle Interaction
+function initFaqAccordion() {
+  const headers = document.querySelectorAll(".accordion-header");
+  headers.forEach(header => {
+    header.addEventListener("click", () => {
+      const item = header.parentElement;
+      const isActive = item.classList.contains("active");
+      
+      // Close all other accordion items
+      document.querySelectorAll(".accordion-item").forEach(i => {
+        i.classList.remove("active");
+      });
+      
+      // Toggle active class on clicked item
+      if (!isActive) {
+        item.classList.add("active");
+      }
+    });
+  });
+}
+
 // Window load init
 window.addEventListener("DOMContentLoaded", () => {
   renderLandingTracks();
@@ -671,9 +725,10 @@ window.addEventListener("DOMContentLoaded", () => {
   renderLandingPrizes();
   initRealtimeSync();
   checkBrowserAndEnforceChrome();
+  initFaqAccordion();
 
   const hash = window.location.hash.substring(1);
-  if (["home", "resources", "news", "showcase"].includes(hash)) {
+  if (["home", "resources", "news", "showcase", "legal"].includes(hash)) {
     showView(hash);
   } else {
     showView("home");

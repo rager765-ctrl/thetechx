@@ -21,11 +21,18 @@
             <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
             <span>Tech<span class="text-gradient">X</span></span>
           </a>
-          <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
-            <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; text-align: left;">KSB &bull; KNUST</span>
+          <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+            <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+            <div style="width: 1px; height: 16px; background: var(--border);"></div>
+            <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
           </div>
+        </div>
+        <!-- Page Logos shown on desktop, hidden on mobile -->
+        <div class="page-logos" style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 20px; justify-content: center; width: 100%;">
+          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+          <div style="width: 1px; height: 16px; background: var(--border);"></div>
+          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
         </div>
         <h2>Admin Login</h2>
         <p>Access the admin workspace to manage challenge tracks, registrations, and form configurations.</p>
@@ -100,10 +107,11 @@
               <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
               <span>Tech<span class="text-gradient">X</span></span>
             </a>
-            <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 24px; width: 24px; border-radius: 50%; object-fit: cover;">
-              <span style="font-size: 10px; font-weight: 700; color: var(--text-light);">KSB &bull; KNUST</span>
+            <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 1px; height: 20px; background: var(--border); display: inline-block;"></div>
+              <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; object-fit: contain;">
+              <div style="width: 1px; height: 14px; background: var(--border);"></div>
+              <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; object-fit: contain;">
             </div>
           </div>
           <div class="portal-user-profile">
@@ -121,6 +129,7 @@
             <li class="sidebar-item" data-admin-tab="tracks-config"><i class="fa-solid fa-network-wired"></i> Manage Tracks</li>
             <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
             <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
+            <li class="sidebar-item" data-admin-tab="legal-config"><i class="fa-solid fa-gavel"></i> Manage Legal</li>
           </ul>
         </div>
         <button class="sidebar-item" id="admin-logout-btn" style="color: var(--danger); width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
@@ -493,6 +502,45 @@
             <div class="prizes-section" style="padding: 40px 20px; border-radius: var(--radius-md);">
               <div class="grid-3" id="admin-rewards-preview-container">
                 <!-- Preview cards rendered dynamically -->
+              </div>
+            </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE LEGAL -->
+        <div class="admin-tab-content" id="admin-tab-legal-config">
+          <div class="portal-header">
+            <div>
+              <h2>Manage Legal Documents</h2>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Configure the Terms & Rules, Privacy Policies, and Contact Support content shown on the platform.</p>
+            </div>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Save/Edit Legal Card -->
+            <div class="card">
+              <h3 id="admin-legal-form-title" style="margin-bottom: 16px;">Add Legal Document</h3>
+              <form id="admin-legal-form">
+                <input type="hidden" id="admin-legal-edit-id" value="">
+                <div class="form-group">
+                  <label for="admin-legal-title">Document Title</label>
+                  <input type="text" id="admin-legal-title" class="form-control" placeholder="e.g. Terms & Rules" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-legal-content">Document Content</label>
+                  <textarea id="admin-legal-content" class="form-control" style="min-height: 200px;" placeholder="Write terms, conditions, privacy descriptions, or support instructions here..." required></textarea>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-legal-save-btn">Save Legal Document</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-legal-cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Existing Legal List Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Configured Legal Documents</h3>
+              <div id="admin-legal-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic legal list with Edit / Delete actions -->
               </div>
             </div>
           </div>

@@ -19,10 +19,11 @@
           <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
           <span>Tech<span class="text-gradient">X</span></span>
         </a>
-        <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
-          <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; display: inline-block;">KSB &bull; KNUST</span>
+        <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+          <div style="width: 1px; height: 16px; background: var(--border);"></div>
+          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
         </div>
       </div>
       <div class="nav-auth">
@@ -34,9 +35,20 @@
   <!-- Registration view Container -->
   <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
     <div class="auth-card" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
-      <div class="auth-header">
-        <h2>Team Registration</h2>
-        <p>Register your group of 3 members and submit your concept note</p>
+      <div class="auth-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <!-- Page Logos shown on desktop, hidden on mobile -->
+          <div class="page-logos" style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+            <div style="width: 1px; height: 16px; background: var(--border);"></div>
+            <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
+          </div>
+          <h2>Team Registration</h2>
+          <p>Register your group of 3 members and submit your concept note</p>
+        </div>
+        <button type="button" id="btn-autofill" class="btn btn-secondary btn-sm" style="border: 1px dashed var(--primary); color: var(--primary); font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+          <i class="fa-solid fa-magic"></i> Auto-fill Form
+        </button>
       </div>
       <form id="team-registration-form">
         <div class="form-row">
@@ -152,6 +164,10 @@
     <a href="index.html#resources" class="mobile-bottom-nav-item">
       <i class="fa-solid fa-folder-open"></i>
       <span>Resources</span>
+    </a>
+    <a href="index.html#legal" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-gavel"></i>
+      <span>Legal</span>
     </a>
   </div>
 

@@ -135,8 +135,10 @@ img {
 
 /* Header & Navigation */
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
   z-index: 100;
   background-color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -301,10 +303,14 @@ img {
   transition: var(--transition);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-xl);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .mobile-drawer.open {
   transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .mobile-nav-link {
@@ -329,6 +335,7 @@ img {
 /* VIEWS CONTAINER */
 .view-container {
   min-height: calc(100vh - 72px);
+  padding-top: 72px;
 }
 
 .view {
@@ -1494,7 +1501,7 @@ footer h4 {
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 600;
-  z-index: 999;
+  z-index: 10000;
   box-shadow: var(--shadow-xl);
   display: flex;
   align-items: center;
@@ -1507,6 +1514,21 @@ footer h4 {
 .toast-notification.show {
   transform: translateY(0);
   opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .toast-notification {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 80px !important;
+    transform: translate(-50%, 100px) !important;
+    width: calc(100% - 40px);
+    max-width: 350px;
+    justify-content: center;
+  }
+  .toast-notification.show {
+    transform: translate(-50%, 0) !important;
+  }
 }
 
 /* SUBMISSION DETAIL VIEW */
@@ -1667,7 +1689,7 @@ input, textarea, select, [contenteditable="true"] {
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: none; /* Hidden on desktop */
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   align-items: center;
   justify-items: center;
   z-index: 9999;
@@ -1736,5 +1758,32 @@ input, textarea, select, [contenteditable="true"] {
   }
   .hero-grid {
     gap: 32px !important;
+  }
+  #learn-more-btn {
+    display: none !important;
+  }
+  .hero-tags-wrapper {
+    justify-content: center !important;
+  }
+  #footer-section {
+    display: none !important;
+  }
+}
+
+/* Responsive Branding Styles */
+@media (min-width: 769px) {
+  .nav-logos {
+    display: none !important;
+  }
+  .page-logos {
+    display: inline-flex !important;
+  }
+}
+@media (max-width: 768px) {
+  .nav-logos {
+    display: flex !important;
+  }
+  .page-logos {
+    display: none !important;
   }
 }

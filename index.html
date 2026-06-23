@@ -19,10 +19,11 @@
           <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
           <span>Tech<span class="text-gradient">X</span></span>
         </a>
-        <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 28px; width: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: white;">
-          <span style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; display: inline-block;">KSB &bull; KNUST</span>
+        <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
+          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+          <div style="width: 1px; height: 16px; background: var(--border);"></div>
+          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
         </div>
       </div>
       
@@ -34,6 +35,7 @@
         <a href="#resources" class="nav-link" data-view="resources">Resources</a>
         <a href="#news" class="nav-link" data-view="news">News</a>
         <a href="#showcase" class="nav-link" data-view="showcase">Showcase</a>
+        <a href="#legal" class="nav-link" data-view="legal">Legal</a>
       </div>
 
       <div class="nav-auth">
@@ -56,6 +58,7 @@
     <a href="#resources" class="mobile-nav-link" data-view="resources">Resources</a>
     <a href="#news" class="mobile-nav-link" data-view="news">News</a>
     <a href="#showcase" class="mobile-nav-link" data-view="showcase">Showcase</a>
+    <a href="#legal" class="mobile-nav-link" data-view="legal">Legal</a>
     <div class="mobile-auth">
       <a href="admin.html" class="btn btn-secondary" id="mobile-login-btn">Admin Login</a>
       <a href="register.html" class="btn btn-primary" id="mobile-register-btn">Register Now</a>
@@ -73,11 +76,12 @@
         <div class="hero-graphic hero-graphic-2"></div>
         <div class="container hero-grid">
           <div class="hero-content">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <div class="hero-tags-wrapper" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
               <span class="hero-tag" style="margin-bottom: 0;"><i class="fa-solid fa-circle-nodes"></i> Registration is open!</span>
-              <span class="hero-tag" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 8px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 18px; width: 18px; border-radius: 50%; object-fit: cover;">
-                <span style="color: var(--text-main); font-weight: 600;">KSB &bull; KNUST Challenge</span>
+              <span class="hero-tag page-logos" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 10px;">
+                <img src="logo_knust.png" alt="KNUST Logo" style="height: 18px; object-fit: contain;">
+                <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.2);"></div>
+                <img src="logo_ksb.png" alt="KSB Logo" style="height: 18px; object-fit: contain;">
               </span>
             </div>
             <h1>Innovate. Build.<br><span class="text-gradient">Compete.</span></h1>
@@ -358,9 +362,19 @@
       </div>
     </section>
 
-
-
-
+    <!-- 5. LEGAL VIEW -->
+    <section id="legal-view" class="view">
+      <div class="container section-padding">
+        <div class="section-title-wrapper" style="margin-bottom: 40px;">
+          <span class="section-title-tag">Legals</span>
+          <h2 class="section-title">Terms & Policies</h2>
+          <p class="section-subtitle">Official terms, rules, and privacy declarations for the TechX Challenge portal.</p>
+        </div>
+        <div class="grid-2" id="public-legal-grid" style="gap: 24px; max-width: 1000px; margin: 0 auto;">
+          <!-- Dynamic Legal Documents -->
+        </div>
+      </div>
+    </section>
 
   </main>
 
@@ -374,9 +388,10 @@
             <span>Tech<span class="text-gradient">X</span></span>
           </a>
           <p>Building the next generation of industry innovations and connecting creators with opportunity.</p>
-          <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Knust_seal.jpg/220px-Knust_seal.jpg" alt="KNUST Logo" style="height: 24px; width: 24px; border-radius: 50%; object-fit: cover;">
-            <span style="font-size: 11px; color: var(--text-light); line-height: 1.3;">Courtesy of <strong>KNUST</strong>, spearheaded by the <strong>KNUST School of Business (KSB)</strong></span>
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px;">
+            <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; object-fit: contain; filter: brightness(0) invert(1);">
+            <div style="width: 1px; height: 14px; background: rgba(255, 255, 255, 0.2);"></div>
+            <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; object-fit: contain; filter: brightness(0) invert(1);">
           </div>
         </div>
         <div>
@@ -400,9 +415,9 @@
         <div>
           <h4>Legals</h4>
           <div class="footer-links">
-            <a href="#" class="footer-link">Terms & Rules</a>
-            <a href="#" class="footer-link">Privacy Policy</a>
-            <a href="#" class="footer-link">Contact Support</a>
+            <a href="#legal" class="footer-link" data-view="legal">Terms & Rules</a>
+            <a href="#legal" class="footer-link" data-view="legal">Privacy Policy</a>
+            <a href="#legal" class="footer-link" data-view="legal">Contact Support</a>
           </div>
         </div>
       </div>
@@ -434,6 +449,10 @@
     <a href="#resources" class="mobile-bottom-nav-item" data-view="resources">
       <i class="fa-solid fa-folder-open"></i>
       <span>Resources</span>
+    </a>
+    <a href="#legal" class="mobile-bottom-nav-item" data-view="legal">
+      <i class="fa-solid fa-gavel"></i>
+      <span>Legal</span>
     </a>
   </div>
 
