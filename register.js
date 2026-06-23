@@ -227,3 +227,64 @@ if (teamRegistrationForm) {
     }
   });
 }
+
+// Samsung Internet browser enforcement to Google Chrome
+function checkBrowserAndEnforceChrome() {
+  const ua = navigator.userAgent;
+  const isSamsungBrowser = ua.indexOf("SamsungBrowser") > -1;
+  
+  if (isSamsungBrowser) {
+    if (sessionStorage.getItem("chrome_enforcement_dismissed") === "true") {
+      return;
+    }
+    
+    const banner = document.createElement("div");
+    banner.id = "browser-enforcement-banner";
+    banner.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: white;
+      padding: 14px 20px;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-bottom: 2px solid #2563eb;
+    `;
+    
+    banner.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; font-size: 16px;"></i>
+        <span>Using Samsung Internet? Open in <strong>Google Chrome</strong> for maximum compatibility.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="intent://${window.location.host}${window.location.pathname}${window.location.search}${window.location.hash}#Intent;scheme=https;package=com.android.chrome;end" 
+           style="background: #2563eb; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-brands fa-chrome"></i> Open in Chrome
+        </a>
+        <button id="close-browser-banner" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 0 4px;">&times;</button>
+      </div>
+    `;
+    
+    document.body.appendChild(banner);
+    document.body.style.paddingTop = "50px";
+    
+    document.getElementById("close-browser-banner").addEventListener("click", () => {
+      banner.remove();
+      document.body.style.paddingTop = "0px";
+      sessionStorage.setItem("chrome_enforcement_dismissed", "true");
+    });
+  }
+}
+
+// Run detection
+window.addEventListener("DOMContentLoaded", checkBrowserAndEnforceChrome);
