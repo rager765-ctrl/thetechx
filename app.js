@@ -330,8 +330,25 @@ async function setCachedData(key, value) {
   }
 }
 
+// Toggle landing page live countdown timer visibility and the Register Now button underneath
+function toggleCountdownAndRegisterBtnVisibility() {
+  if (!landingStatsConfig) return;
+  const cdWidget = document.getElementById("hero-countdown");
+  const regBtn = document.getElementById("hero-register-btn");
+  
+  if (landingStatsConfig.showCountdown === false) {
+    if (cdWidget) cdWidget.style.display = "none";
+    if (regBtn) regBtn.style.display = "inline-flex";
+  } else {
+    if (cdWidget) cdWidget.style.display = "inline-flex";
+    if (regBtn) regBtn.style.display = "none";
+  }
+}
+
 // Update dynamic participants stats value
 function updateLandingHeaderStats() {
+  toggleCountdownAndRegisterBtnVisibility();
+
   const partsVal = document.getElementById("stat-participants");
   if (!partsVal) return;
 
@@ -693,16 +710,6 @@ function initRealtimeSync() {
         countdownDate: defaultDate.toISOString(),
         showCountdown: true
       };
-    }
-    
-    // Toggle landing page live countdown timer visibility
-    const cdWidget = document.getElementById("hero-countdown");
-    if (cdWidget) {
-      if (landingStatsConfig.showCountdown === false) {
-        cdWidget.style.display = "none";
-      } else {
-        cdWidget.style.display = "inline-flex";
-      }
     }
 
     updateLandingHeaderStats();
