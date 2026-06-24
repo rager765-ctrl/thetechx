@@ -33,9 +33,70 @@
     </div>
   </nav>
 
+  <!-- Rules & Guidelines Modal Overlay -->
+  <div id="rules-modal" class="rules-modal-overlay active">
+    <div class="rules-modal-card">
+      <div class="rules-modal-header">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <div>
+          <h3>Rules & Guidelines</h3>
+          <span style="font-size: 12px; opacity: 0.9;">Please read and accept to proceed</span>
+        </div>
+      </div>
+      <div class="rules-modal-body">
+        <p class="rules-modal-intro">
+          Welcome to The TechX Challenge! Before you can proceed to the team registration form, please carefully review the following guidelines:
+        </p>
+        <div class="rules-list">
+          <div class="rules-item">
+            <div class="rules-icon-wrap">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="rules-item-content">
+              <h4>Information Integrity</h4>
+              <p>All registration details, member profiles, and submitted concept proposals must be 100% truthful, original, and free of plagiarism. Misrepresentation or false credentials will result in immediate disqualification.</p>
+            </div>
+          </div>
+          
+          <div class="rules-item">
+            <div class="rules-icon-wrap">
+              <i class="fa-solid fa-address-book"></i>
+            </div>
+            <div class="rules-item-content">
+              <h4>Official Contact Information</h4>
+              <p>The phone numbers and email addresses you provide for all team members will serve as the official channel of communication for interviews, updates, and coordinator feedback. Please ensure they are active and accurate.</p>
+            </div>
+          </div>
+
+          <div class="rules-item">
+            <div class="rules-icon-wrap">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="rules-item-content">
+              <h4>Team Formation Flexibility</h4>
+              <p>Registration is open to all. You can participate as an individual builder or in teams of up to three (3) members. Academic/institutional email accounts should be used where applicable.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rules-modal-footer">
+        <div class="rules-agree-wrap">
+          <div class="rules-agree-label">
+            <span class="rules-agree-title">I Understand & Agree</span>
+            <span class="rules-agree-desc">Toggle to accept and proceed to the form</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="rules-agree-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Registration view Container -->
   <main class="auth-main register-main">
-    <div class="auth-card" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
+    <div class="auth-card hidden" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
       <div class="auth-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; width: 100%; margin-bottom: 24px;">
         <!-- Page Logos shown on desktop, hidden on mobile -->
         <div class="page-logos" style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 8px; justify-content: center;">
@@ -45,6 +106,11 @@
         </div>
         <h2>Team Registration</h2>
         <p>Register your team and submit your concept note</p>
+        <div style="margin-top: 8px;">
+          <button type="button" id="btn-show-rules" style="color: var(--primary); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; border: 1px dashed var(--primary); padding: 4px 10px; border-radius: var(--radius-sm); background: var(--primary-light);">
+            <i class="fa-solid fa-circle-info"></i> Review Rules & Guidelines
+          </button>
+        </div>
       </div>
       <form id="team-registration-form">
         <div class="form-row">
@@ -53,9 +119,9 @@
             <input type="text" id="reg-team-name" class="form-control" placeholder="e.g. EcoSphere Founders" required>
           </div>
           <div class="form-group" style="flex: 1;">
-            <label for="reg-project-track">Challenge Track (Optional)</label>
+            <label for="reg-project-track">Challenge Track (Open to All / Optional)</label>
             <select id="reg-project-track" class="form-control">
-              <option value="" selected>Not Specified Yet (Open Track)</option>
+              <option value="" selected>Open Track (Open to all innovations)</option>
               <!-- Dynamic options loaded from Firebase tracks collection -->
             </select>
           </div>
@@ -82,39 +148,49 @@
 
         <!-- Member 2 -->
         <div class="registration-member-card">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--secondary);"><i class="fa-solid fa-user"></i> Member 2</h4>
+          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--secondary);"><i class="fa-solid fa-user"></i> Member 2 (Optional)</h4>
           <div class="form-row">
             <div class="form-group">
               <label for="reg-m2-name">Full Name</label>
-              <input type="text" id="reg-m2-name" class="form-control" placeholder="Kofi Mensah" required>
+              <input type="text" id="reg-m2-name" class="form-control" placeholder="Kofi Mensah">
             </div>
             <div class="form-group">
               <label for="reg-m2-email">Email Address</label>
-              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@gmail.com" required>
+              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@gmail.com">
             </div>
             <div class="form-group">
               <label for="reg-m2-contact">Contact Number</label>
-              <input type="tel" id="reg-m2-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+              <input type="tel" id="reg-m2-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567">
             </div>
           </div>
         </div>
 
         <!-- Member 3 -->
         <div class="registration-member-card">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);"><i class="fa-solid fa-user"></i> Member 3</h4>
+          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);"><i class="fa-solid fa-user"></i> Member 3 (Optional)</h4>
           <div class="form-row">
             <div class="form-group">
               <label for="reg-m3-name">Full Name</label>
-              <input type="text" id="reg-m3-name" class="form-control" placeholder="Kwame Asante" required>
+              <input type="text" id="reg-m3-name" class="form-control" placeholder="Kwame Asante">
             </div>
             <div class="form-group">
               <label for="reg-m3-email">Email Address</label>
-              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@gmail.com" required>
+              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@gmail.com">
             </div>
             <div class="form-group">
               <label for="reg-m3-contact">Contact Number</label>
-              <input type="tel" id="reg-m3-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+              <input type="tel" id="reg-m3-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567">
             </div>
+          </div>
+        </div>
+
+        <!-- Project Summary Note (Max 1000 words) -->
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="reg-summary-note">Project Summary Note <span style="font-weight: 400; color: var(--text-light);">(Max 1,000 words)</span></label>
+          <textarea id="reg-summary-note" class="form-control" rows="5" placeholder="Provide a brief summary of your project, the problem it solves, and your proposed solution..." style="resize: vertical; min-height: 120px;" required></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 12px; color: var(--text-light);">
+            <span>Explain your idea clearly.</span>
+            <span id="summary-word-count">0 / 1000 words</span>
           </div>
         </div>
 
@@ -133,7 +209,7 @@
                 <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
               </div>
               <span class="file-upload-label" id="file-upload-label">Click to browse or drag &amp; drop</span>
-              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 10 MB</span>
+              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 1 MB</span>
             </div>
 
             <!-- Selected file info chip (hidden until file chosen) -->

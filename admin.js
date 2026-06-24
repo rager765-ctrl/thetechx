@@ -19,6 +19,17 @@ const auth = getAuth(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
+// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
+document.addEventListener("touchstart", (e) => {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener("gesturestart", (e) => {
+  e.preventDefault();
+});
+
 // State Memory
 let currentUser = null;
 let allProjects = [];
@@ -293,6 +304,7 @@ if (adminLandingStatsForm) {
     const mode = document.getElementById("admin-stats-participants-mode").value;
     const overrideVal = document.getElementById("admin-stats-participants-override").value.trim();
     const countdownVal = document.getElementById("admin-stats-countdown-date").value;
+    const showCountdown = document.getElementById("admin-stats-show-countdown").checked;
 
     try {
       showToast("Saving header statistics configuration...", "info");
@@ -300,6 +312,7 @@ if (adminLandingStatsForm) {
         participantsMode: mode,
         participantsOverride: overrideVal,
         countdownDate: countdownVal,
+        showCountdown: showCountdown,
         timestamp: Date.now()
       });
       showToast("Header statistics saved successfully!", "success");
@@ -469,10 +482,12 @@ function initRealtimeSync() {
       const overrideInput = document.getElementById("admin-stats-participants-override");
       const dateInput = document.getElementById("admin-stats-countdown-date");
       const manualGroup = document.getElementById("admin-stats-manual-group");
+      const showCountdownCheck = document.getElementById("admin-stats-show-countdown");
 
       if (modeSelect) modeSelect.value = data.participantsMode || "dynamic";
       if (overrideInput) overrideInput.value = data.participantsOverride || "";
       if (dateInput) dateInput.value = data.countdownDate || "";
+      if (showCountdownCheck) showCountdownCheck.checked = data.showCountdown !== false;
       if (manualGroup) {
         manualGroup.style.display = (data.participantsMode === "manual") ? "block" : "none";
       }
@@ -486,6 +501,7 @@ function initRealtimeSync() {
           participantsMode: "dynamic",
           participantsOverride: "1,240+",
           countdownDate: defaultDateStr,
+          showCountdown: true,
           timestamp: Date.now()
         }).catch(() => {});
       }
@@ -2272,6 +2288,148 @@ async function adminSaveGrades(event, projId) {
 
 window.adminSaveGrades = adminSaveGrades;
 
+// Helper: Escape HTML strings for attributes
+function escapeHTML(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Setup auditorium seat hover and click listeners
+function setupSeatTooltipListeners() {
+  let tooltip = document.getElementById("auditorium-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.id = "auditorium-tooltip";
+    tooltip.className = "seating-tooltip";
+    document.body.appendChild(tooltip);
+  }
+
+  const seats = document.querySelectorAll(".seat-node");
+  seats.forEach(seat => {
+    seat.addEventListener("mouseenter", (e) => {
+      const isBooked = seat.getAttribute("data-booked") === "true";
+      const seatCode = seat.getAttribute("data-seat");
+      
+      let tooltipHTML = "";
+      if (isBooked) {
+        const name = seat.getAttribute("data-name");
+        const email = seat.getAttribute("data-email");
+        const ticketId = seat.getAttribute("data-id");
+        const date = seat.getAttribute("data-date");
+        
+        tooltipHTML = `
+          <div class="tooltip-header">
+            <span>Seat ${seatCode}</span>
+            <span class="badge badge-danger" style="font-size: 9px; padding: 2px 4px;">Booked</span>
+          </div>
+          <div class="tooltip-row"><span class="tooltip-label">Guest:</span><span class="tooltip-val">${name}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Email:</span><span class="tooltip-val">${email}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Ticket ID:</span><span class="tooltip-val">${ticketId}</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Booked On:</span><span class="tooltip-val" style="font-size: 10px;">${date}</span></div>
+        `;
+      } else {
+        tooltipHTML = `
+          <div class="tooltip-header" style="color: var(--success);">
+            <span>Seat ${seatCode}</span>
+            <span class="badge badge-success" style="font-size: 9px; padding: 2px 4px;">Available</span>
+          </div>
+          <div style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px;">Ready for assignment</div>
+        `;
+      }
+      
+      tooltip.innerHTML = tooltipHTML;
+      tooltip.style.opacity = "1";
+    });
+
+    seat.addEventListener("mousemove", (e) => {
+      tooltip.style.left = `${e.pageX + 15}px`;
+      tooltip.style.top = `${e.pageY + 15}px`;
+    });
+
+    seat.addEventListener("mouseleave", () => {
+      tooltip.style.opacity = "0";
+    });
+
+    seat.addEventListener("click", () => {
+      const isBooked = seat.getAttribute("data-booked") === "true";
+      const seatCode = seat.getAttribute("data-seat");
+      
+      if (!isBooked) {
+        const seatInput = document.getElementById("admin-ticket-add-seat");
+        const nameInput = document.getElementById("admin-ticket-add-name");
+        if (seatInput && nameInput) {
+          seatInput.value = seatCode;
+          nameInput.focus();
+          showToast(`Seat ${seatCode} selected for assignment!`, "success");
+        }
+      }
+    });
+  });
+}
+
+// Render interactive auditorium map
+function renderAuditoriumVisualizer() {
+  const mapContainer = document.getElementById("admin-auditorium-map");
+  if (!mapContainer) return;
+
+  const config = ticketingConfig || {
+    ticketLimit: 120,
+    seatPrefix: "GA-",
+    seatStartNumber: 100
+  };
+
+  const limit = Math.min(240, config.ticketLimit || 120);
+  const prefix = config.seatPrefix || "GA-";
+  const startNum = parseInt(config.seatStartNumber || 100);
+
+  const cols = 12;
+  const rowsCount = Math.ceil(limit / cols);
+
+  let html = `<div class="seating-chart-container">`;
+  
+  for (let r = 0; r < rowsCount; r++) {
+    html += `<div class="seating-row">`;
+    for (let c = 0; c < cols; c++) {
+      const seatIndex = r * cols + c;
+      if (seatIndex >= limit) {
+        break;
+      }
+      
+      const currentSeatNumber = startNum + seatIndex;
+      const seatCode = `${prefix}${currentSeatNumber}`;
+      const ticket = allTickets.find(t => t.seatCode === seatCode);
+      const isBooked = !!ticket;
+      const isVIP = r < 2;
+      const vipClass = isVIP ? "vip" : "";
+      const statusClass = isBooked ? "booked" : "available";
+      
+      html += `
+        <div class="seat-node ${statusClass} ${vipClass}" 
+             data-seat="${seatCode}" 
+             data-booked="${isBooked}"
+             data-name="${isBooked ? escapeHTML(ticket.name) : ''}"
+             data-email="${isBooked ? escapeHTML(ticket.email) : ''}"
+             data-id="${isBooked ? escapeHTML(ticket.id) : ''}"
+             data-date="${isBooked && ticket.timestamp ? escapeHTML(new Date(ticket.timestamp).toLocaleString()) : ''}"
+        >
+          ${currentSeatNumber}
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+  
+  html += `</div>`;
+  mapContainer.innerHTML = html;
+
+  setupSeatTooltipListeners();
+}
+
 // Render tickets list
 function renderAdminTicketsList() {
   const container = document.getElementById("admin-tickets-table-body");
@@ -2306,6 +2464,9 @@ function renderAdminTicketsList() {
       `;
     }).join("");
   }
+  
+  // Render auditorium seating visualizer
+  renderAuditoriumVisualizer();
 }
 
 // Ticketing settings form submission
@@ -2398,6 +2559,32 @@ async function adminDeleteTicket(ticketId) {
 }
 
 window.adminDeleteTicket = adminDeleteTicket;
+
+// Delete all applicants
+const deleteAllApplicantsBtn = document.getElementById("admin-delete-all-applicants-btn");
+if (deleteAllApplicantsBtn) {
+  deleteAllApplicantsBtn.addEventListener("click", async () => {
+    if (allProjects.length === 0) {
+      showToast("No applicants to delete.", "error");
+      return;
+    }
+    if (!confirm("CRITICAL WARNING: Are you sure you want to delete ALL applicant registrations? This action is permanent, will delete all teams, and cannot be undone.")) {
+      return;
+    }
+    if (!confirm("Are you ABSOLUTELY sure? This will delete every team and applicant registered in the system.")) {
+      return;
+    }
+    try {
+      showToast("Deleting all applicant registrations...", "info");
+      for (const proj of allProjects) {
+        await deleteDoc(doc(firestore, "projects", proj.id));
+      }
+      showToast("All applicant registrations deleted successfully!", "success");
+    } catch (err) {
+      showToast("Failed to delete all applicants: " + err.message, "error");
+    }
+  });
+}
 
 // Initialize realtime database connections
 initRealtimeSync();

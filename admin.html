@@ -223,6 +223,10 @@
                 <label for="admin-stats-countdown-date">Countdown Target Deadline</label>
                 <input type="datetime-local" id="admin-stats-countdown-date" class="form-control" required>
               </div>
+              <div class="form-group" style="margin-top: 16px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="admin-stats-show-countdown" checked style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="admin-stats-show-countdown" style="margin: 0; cursor: pointer; font-weight: 500;">Show Live Countdown Timer on Landing Page</label>
+              </div>
               <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fa-solid fa-floppy-disk"></i> Save Header Stats</button>
             </form>
           </div>
@@ -230,8 +234,9 @@
 
         <!-- ADMIN TAB: APPLICANTS -->
         <div class="admin-tab-content" id="admin-tab-applicants" style="display: none;">
-          <div class="portal-header">
+          <div class="portal-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Applicant Manager</h2>
+            <button class="btn btn-outline btn-sm" id="admin-delete-all-applicants-btn" style="color: var(--danger); border-color: var(--danger); font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Delete All Applicants</button>
           </div>
           
           <div style="overflow-x: auto;">
@@ -754,6 +759,31 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          <!-- Auditorium Seating Visualizer -->
+          <div class="card" style="margin-top: 24px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;"><i class="fa-solid fa-chair" style="color: var(--primary);"></i> KNUST Great Hall Seating Visualizer</h3>
+                <p style="color: var(--text-light); font-size: 13px; margin: 4px 0 0 0;">Interactive map of booked and available auditorium seats. Click an available seat to pre-assign it.</p>
+              </div>
+              <div style="display: flex; gap: 12px; font-size: 12px; font-weight: 600; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); border-radius: 3px; display: inline-block;"></span> Available</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 3px; display: inline-block;"></span> Booked</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="position: relative; width: 12px; height: 12px; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); border-radius: 3px; display: inline-block;"></span> VIP Row (A-B) <span style="display: inline-block; width: 4px; height: 4px; background: #f59e0b; border-radius: 50%; margin-left: -10px; margin-top: -6px; z-index: 10;"></span></span>
+              </div>
+            </div>
+
+            <!-- Stage Display -->
+            <div style="width: 100%; text-align: center; background: linear-gradient(180deg, var(--border) 0%, transparent 100%); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: var(--font-heading); font-weight: 700; font-size: 13px; letter-spacing: 3px; color: var(--text-light); text-transform: uppercase; margin-top: 8px;">
+              ★ STAGE ★
+            </div>
+
+            <!-- Seating Map Grid -->
+            <div id="admin-auditorium-map" style="padding: 24px; overflow-x: auto; background: var(--bg-app); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; position: relative;">
+              <!-- Dynamic seating row loops in Javascript -->
             </div>
           </div>
         </div>

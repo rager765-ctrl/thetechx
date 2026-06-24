@@ -17,6 +17,17 @@ const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
+// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
+document.addEventListener("touchstart", (e) => {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener("gesturestart", (e) => {
+  e.preventDefault();
+});
+
 
 
 
@@ -150,14 +161,14 @@ function renderTracksSelect() {
   const visibleTracks = allTracks.filter(t => t.visible !== false);
   if (visibleTracks.length === 0) {
     selectEl.innerHTML = `
-      <option value="" selected>Not Specified Yet (Open Track)</option>
+      <option value="" selected>Open Track (Open to all innovations)</option>
       <option value="clean-energy">Clean Energy & Environment</option>
       <option value="fintech">Fintech & Financial Inclusion</option>
       <option value="healthtech">Healthcare & MedTech</option>
     `;
   } else {
     selectEl.innerHTML = `
-      <option value="" selected>Not Specified Yet (Open Track)</option>
+      <option value="" selected>Open Track (Open to all innovations)</option>
       ` + visibleTracks.map(t => `<option value="${t.id}">${t.name}</option>`).join("") + `
     `;
   }
@@ -204,6 +215,12 @@ onSnapshot(collection(firestore, "tracks"), (snapshot) => {
   renderTracksSelect();
 });
 
+// Helper: get word count
+function getWordCount(str) {
+  if (!str) return 0;
+  return str.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
 // Form submission handler
 if (teamRegistrationForm) {
   teamRegistrationForm.addEventListener("submit", async (e) => {
@@ -225,6 +242,12 @@ if (teamRegistrationForm) {
 
       const teamName = document.getElementById("reg-team-name").value.trim();
       const track = document.getElementById("reg-project-track").value;
+      const summaryNote = document.getElementById("reg-summary-note").value.trim();
+      const summaryWordCount = getWordCount(summaryNote);
+      if (summaryWordCount > 1000) {
+        throw new Error("Project summary note exceeds the 1,000-word limit.");
+      }
+
       const docxFileInput = document.getElementById("reg-concept-note");
       const docxFile = docxFileInput ? docxFileInput.files[0] : null;
 
@@ -235,10 +258,10 @@ if (teamRegistrationForm) {
           throw new Error("Proposal document must be a .docx, .pptx, or .pdf file.");
         }
         
-        // Enforce max upload size limit of 4MB (will compress to <1MB)
-        const maxFileSize = 4 * 1024 * 1024;
+        // Enforce max upload size limit of 1MB
+        const maxFileSize = 1 * 1024 * 1024;
         if (docxFile.size > maxFileSize) {
-          throw new Error("File is too large. Maximum allowed size is 4MB.");
+          throw new Error("File is too large. Maximum allowed size is 1MB.");
         }
       } else {
         throw new Error("Please select a concept file to upload.");
@@ -251,21 +274,27 @@ if (teamRegistrationForm) {
         throw new Error("Team name already exists.");
       }
 
-      const members = [
-        document.getElementById("reg-m1-name").value.trim(),
-        document.getElementById("reg-m2-name").value.trim(),
-        document.getElementById("reg-m3-name").value.trim()
-      ];
-      const emails = [
-        document.getElementById("reg-m1-email").value.trim().toLowerCase(),
-        document.getElementById("reg-m2-email").value.trim().toLowerCase(),
-        document.getElementById("reg-m3-email").value.trim().toLowerCase()
-      ];
-      const contacts = [
-        document.getElementById("reg-m1-contact").value.trim(),
-        document.getElementById("reg-m2-contact").value.trim(),
-        document.getElementById("reg-m3-contact").value.trim()
-      ];
+      const members = [document.getElementById("reg-m1-name").value.trim()];
+      const emails = [document.getElementById("reg-m1-email").value.trim().toLowerCase()];
+      const contacts = [document.getElementById("reg-m1-contact").value.trim()];
+
+      const m2Name = document.getElementById("reg-m2-name").value.trim();
+      const m2Email = document.getElementById("reg-m2-email").value.trim().toLowerCase();
+      const m2Contact = document.getElementById("reg-m2-contact").value.trim();
+      if (m2Name && m2Email) {
+        members.push(m2Name);
+        emails.push(m2Email);
+        contacts.push(m2Contact === "+233" ? "" : m2Contact);
+      }
+
+      const m3Name = document.getElementById("reg-m3-name").value.trim();
+      const m3Email = document.getElementById("reg-m3-email").value.trim().toLowerCase();
+      const m3Contact = document.getElementById("reg-m3-contact").value.trim();
+      if (m3Name && m3Email) {
+        members.push(m3Name);
+        emails.push(m3Email);
+        contacts.push(m3Contact === "+233" ? "" : m3Contact);
+      }
 
       const customFields = {};
       activeCustomFields.forEach(field => {
@@ -299,6 +328,7 @@ if (teamRegistrationForm) {
         teamName,
         title: `${teamName} Registration`,
         track,
+        summaryNote,
         leadEmail: emails[0],
         members,
         emails,
@@ -400,6 +430,41 @@ function checkBrowserAndEnforceChrome() {
 // Run detection
 window.addEventListener("DOMContentLoaded", () => {
   checkBrowserAndEnforceChrome();
+
+  // === Rules & Guidelines Modal Logic ===
+  const rulesModal = document.getElementById("rules-modal");
+  const rulesToggle = document.getElementById("rules-agree-toggle");
+  const registerCard = document.getElementById("register-card");
+  const btnShowRules = document.getElementById("btn-show-rules");
+
+  if (rulesModal && rulesToggle && registerCard) {
+    // Initial state setup
+    rulesToggle.checked = false;
+
+    rulesToggle.addEventListener("change", () => {
+      if (rulesToggle.checked) {
+        // Wait 250ms for toggle animation to complete before hiding the modal
+        setTimeout(() => {
+          rulesModal.classList.remove("active");
+          registerCard.classList.remove("hidden");
+          registerCard.classList.add("visible");
+        }, 250);
+      } else {
+        // Hide registration form if unchecked
+        registerCard.classList.remove("visible");
+        registerCard.classList.add("hidden");
+        rulesModal.classList.add("active");
+      }
+    });
+
+    if (btnShowRules) {
+      btnShowRules.addEventListener("click", () => {
+        // Open modal again with checkbox checked
+        rulesToggle.checked = true;
+        rulesModal.classList.add("active");
+      });
+    }
+  }
 
   // === File Upload – premium drop-zone with info chip + progress bar ===
   const fileInput   = document.getElementById("reg-concept-note");
@@ -505,7 +570,23 @@ window.addEventListener("DOMContentLoaded", () => {
     if (progressLbl) progressLbl.textContent = "0%";
   };
   
-  // Auto-fill removed.
+  // Live word counter for Summary Note
+  const summaryInput = document.getElementById("reg-summary-note");
+  const wordCountBadge = document.getElementById("summary-word-count");
+  if (summaryInput && wordCountBadge) {
+    summaryInput.addEventListener("input", () => {
+      const words = summaryInput.value;
+      const count = getWordCount(words);
+      wordCountBadge.textContent = `${count} / 1000 words`;
+      if (count > 1000) {
+        wordCountBadge.style.color = "var(--danger)";
+        wordCountBadge.style.fontWeight = "700";
+      } else {
+        wordCountBadge.style.color = "var(--text-light)";
+        wordCountBadge.style.fontWeight = "400";
+      }
+    });
+  }
 });
 
 // Helper: Compress file to gzip buffer

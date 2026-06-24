@@ -15,6 +15,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 
+// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
+document.addEventListener("touchstart", (e) => {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener("gesturestart", (e) => {
+  e.preventDefault();
+});
+
 // Static Data
 const INITIAL_TRACKS = [
   { id: "clean-energy", name: "Clean Energy & Environment", icon: "fa-leaf", desc: "Build systems that reduce carbon footprint, manage resources sustainably, or transition to clean power." },
@@ -269,13 +280,63 @@ function renderLandingTimeline() {
   `;
 }
 
+// 2. IndexedDB Caching Utility for high traffic resistance
+const DB_NAME = "TechXCacheDB";
+const DB_VERSION = 1;
+const STORE_NAME = "firestore_cache";
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function getCachedData(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("IndexedDB cache read error:", err);
+    return null;
+  }
+}
+
+async function setCachedData(key, value) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put(value, key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("IndexedDB cache write error:", err);
+  }
+}
+
 // Update dynamic participants stats value
 function updateLandingHeaderStats() {
   const partsVal = document.getElementById("stat-participants");
   if (!partsVal) return;
 
   if (!landingStatsConfig) {
-    partsVal.textContent = "1,240+";
+    partsVal.textContent = "--";
     return;
   }
 
@@ -285,6 +346,64 @@ function updateLandingHeaderStats() {
     const sum = allProjects.reduce((acc, p) => acc + (p.members ? p.members.length : 0), 0);
     partsVal.textContent = sum > 0 ? `${sum}+` : "0";
   }
+}
+
+function startCountdown() {
+  if (!landingStatsConfig) return;
+  if (window.countdownIntervalId) clearInterval(window.countdownIntervalId);
+
+  const targetTime = new Date(landingStatsConfig.countdownDate).getTime();
+  const updateCountdown = () => {
+    const now = Date.now();
+    const diff = targetTime - now;
+    const daysVal = document.getElementById("stat-days");
+    const daysVal2 = document.getElementById("stat-days-slide2");
+    const daysLabel = document.getElementById("stat-days-label");
+
+    const cdDays = document.getElementById("cd-days");
+    const cdHours = document.getElementById("cd-hours");
+    const cdMinutes = document.getElementById("cd-minutes");
+    const cdSeconds = document.getElementById("cd-seconds");
+
+    if (isNaN(targetTime) || diff <= 0) {
+      if (daysVal) daysVal.textContent = "0";
+      if (daysVal2) daysVal2.textContent = "0";
+      if (daysLabel) daysLabel.textContent = "Time Elapsed";
+      
+      if (cdDays) cdDays.textContent = "00";
+      if (cdHours) cdHours.textContent = "00";
+      if (cdMinutes) cdMinutes.textContent = "00";
+      if (cdSeconds) cdSeconds.textContent = "00";
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    if (daysVal) {
+      if (days > 0) {
+        daysVal.textContent = days;
+        if (daysLabel) daysLabel.textContent = days === 1 ? "Day Left" : "Days Left";
+      } else {
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        daysVal.textContent = formattedTime;
+        if (daysLabel) daysLabel.textContent = "Time Left";
+      }
+    }
+    
+    if (daysVal2) {
+      daysVal2.textContent = days > 0 ? days : `${hours}h`;
+    }
+
+    if (cdDays) cdDays.textContent = days.toString().padStart(2, '0');
+    if (cdHours) cdHours.textContent = hours.toString().padStart(2, '0');
+    if (cdMinutes) cdMinutes.textContent = minutes.toString().padStart(2, '0');
+    if (cdSeconds) cdSeconds.textContent = seconds.toString().padStart(2, '0');
+  };
+  updateCountdown();
+  window.countdownIntervalId = setInterval(updateCountdown, 1000);
 }
 
 // Render Prizes list on landing page
@@ -528,7 +647,8 @@ function initRealtimeSync() {
       }
     }
 
-    if (getActiveViewId() === "news") renderNewsFeed();
+    setCachedData("news_cache", allNews);
+    renderNewsFeed();
   });
 
   onSnapshot(collection(firestore, "projects"), (snapshot) => {
@@ -536,9 +656,9 @@ function initRealtimeSync() {
     snapshot.forEach(d => {
       allProjects.push({ id: d.id, ...d.data() });
     });
+    setCachedData("projects_cache", allProjects);
     updateLandingHeaderStats();
-
-    if (getActiveViewId() === "showcase") renderShowcase();
+    renderShowcase();
   });
 
   onSnapshot(collection(firestore, "tracks"), (snapshot) => {
@@ -547,8 +667,8 @@ function initRealtimeSync() {
       allTracks.push({ id: d.id, ...d.data() });
     });
     allTracks.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    
-    if (getActiveViewId() === "home") renderLandingTracks();
+    setCachedData("tracks_cache", allTracks);
+    renderLandingTracks();
   });
 
   onSnapshot(collection(firestore, "timeline"), (snapshot) => {
@@ -557,58 +677,36 @@ function initRealtimeSync() {
       allTimeline.push({ id: d.id, ...d.data() });
     });
     allTimeline.sort((a, b) => (a.step || 0) - (b.step || 0));
-    
-    if (getActiveViewId() === "home") renderLandingTimeline();
+    setCachedData("timeline_cache", allTimeline);
+    renderLandingTimeline();
   });
 
   onSnapshot(doc(firestore, "config", "landing_stats"), (snapshot) => {
     if (snapshot.exists()) {
       landingStatsConfig = snapshot.data();
+      setCachedData("landing_stats_cache", landingStatsConfig);
     } else {
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 18);
       landingStatsConfig = {
         participantsMode: "dynamic",
-        countdownDate: defaultDate.toISOString()
+        countdownDate: defaultDate.toISOString(),
+        showCountdown: true
       };
     }
-    updateLandingHeaderStats();
-
-    if (window.countdownIntervalId) clearInterval(window.countdownIntervalId);
-
-    const targetTime = new Date(landingStatsConfig.countdownDate).getTime();
-    const updateCountdown = () => {
-      const now = Date.now();
-      const diff = targetTime - now;
-      const daysVal = document.getElementById("stat-days");
-      const daysVal2 = document.getElementById("stat-days-slide2");
-      const daysLabel = document.getElementById("stat-days-label");
-      if (!daysVal) return;
-
-      if (isNaN(targetTime) || diff <= 0) {
-        daysVal.textContent = "0";
-        if (daysVal2) daysVal2.innerHTML = `0<sup>+</sup>`;
-        if (daysLabel) daysLabel.textContent = "Time Elapsed";
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      if (days > 0) {
-        daysVal.textContent = days;
-        if (daysVal2) daysVal2.innerHTML = `${days}<sup>+</sup>`;
-        if (daysLabel) daysLabel.textContent = days === 1 ? "Day Left" : "Days Left";
+    
+    // Toggle landing page live countdown timer visibility
+    const cdWidget = document.getElementById("hero-countdown");
+    if (cdWidget) {
+      if (landingStatsConfig.showCountdown === false) {
+        cdWidget.style.display = "none";
       } else {
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        daysVal.textContent = formattedTime;
-        if (daysVal2) daysVal2.innerHTML = `${hours}h<sup>+</sup>`;
-        if (daysLabel) daysLabel.textContent = "Time Left";
+        cdWidget.style.display = "inline-flex";
       }
-    };
-    updateCountdown();
-    window.countdownIntervalId = setInterval(updateCountdown, 1000);
+    }
+
+    updateLandingHeaderStats();
+    startCountdown();
   });
 
   onSnapshot(collection(firestore, "prizes"), async (snapshot) => {
@@ -640,7 +738,8 @@ function initRealtimeSync() {
     }
 
     allPrizes.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    if (getActiveViewId() === "home") renderLandingPrizes();
+    setCachedData("prizes_cache", allPrizes);
+    renderLandingPrizes();
   });
 
   // Watch ticketing settings
@@ -668,6 +767,7 @@ function initRealtimeSync() {
       allLegal.push({ id: d.id, ...d.data() });
     });
     allLegal.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    setCachedData("legal_cache", allLegal);
     
     // Render to public-legal-grid
     const legalGrid = document.getElementById("public-legal-grid");
@@ -720,7 +820,8 @@ function initRealtimeSync() {
     }
     
     allResources.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    if (getActiveViewId() === "resources") renderResources();
+    setCachedData("resources_cache", allResources);
+    renderResources();
   });
 }
 
@@ -805,6 +906,68 @@ function initFaqAccordion() {
 
 // Window load init
 window.addEventListener("DOMContentLoaded", () => {
+  // Load Cached Data on Startup to prevent layout flicker and show real data instantly
+  getCachedData("landing_stats_cache").then(cached => {
+    if (cached) {
+      landingStatsConfig = cached;
+      updateLandingHeaderStats();
+      startCountdown();
+    }
+  });
+
+  getCachedData("news_cache").then(cached => {
+    if (cached) {
+      allNews = cached;
+      const announcementsCount = allNews.filter(n => n.category === "Announcements" || n.category === "Deadlines").length;
+      const badgeAnnouncements = document.getElementById("badge-announcements-count");
+      if (badgeAnnouncements) {
+        if (announcementsCount > 0) {
+          badgeAnnouncements.textContent = announcementsCount;
+          badgeAnnouncements.style.display = "inline-block";
+        } else {
+          badgeAnnouncements.style.display = "none";
+        }
+      }
+      renderNewsFeed();
+    }
+  });
+
+  getCachedData("tracks_cache").then(cached => {
+    if (cached) {
+      allTracks = cached;
+      renderLandingTracks();
+    }
+  });
+
+  getCachedData("timeline_cache").then(cached => {
+    if (cached) {
+      allTimeline = cached;
+      renderLandingTimeline();
+    }
+  });
+
+  getCachedData("prizes_cache").then(cached => {
+    if (cached) {
+      allPrizes = cached;
+      renderLandingPrizes();
+    }
+  });
+
+  getCachedData("projects_cache").then(cached => {
+    if (cached) {
+      allProjects = cached;
+      updateLandingHeaderStats();
+      renderShowcase();
+    }
+  });
+
+  getCachedData("resources_cache").then(cached => {
+    if (cached) {
+      allResources = cached;
+      renderResources();
+    }
+  });
+
   renderLandingTracks();
   renderLandingTimeline();
   renderLandingPrizes();
