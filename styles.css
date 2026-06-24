@@ -1216,7 +1216,8 @@ footer h4 {
 .portal-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
-  min-height: calc(100vh - 72px);
+  height: 100vh;
+  overflow: hidden;
 }
 
 .portal-sidebar {
@@ -1226,6 +1227,8 @@ footer h4 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .portal-user-profile {
@@ -1307,14 +1310,21 @@ footer h4 {
   background-color: var(--bg-app);
   padding: 40px;
   overflow-y: auto;
+  height: 100%;
 }
 
 @media (max-width: 992px) {
   .portal-layout {
     grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
   }
   .portal-sidebar {
     display: none; /* In production mobile, you'd toggle this. For simplicity we display menu as tabs on top for mobile */
+  }
+  .portal-content {
+    height: auto;
+    overflow: visible;
   }
 }
 
