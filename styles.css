@@ -361,6 +361,191 @@ img {
   padding: 100px 0;
 }
 
+/* Hero Carousel Slider Styles */
+.hero-slider-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.hero-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+  z-index: 1;
+}
+
+.hero-slide.active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
+/* Dots navigation */
+.hero-dots {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.3);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-dot.active {
+  background: var(--primary);
+  width: 28px;
+  border-radius: 5px;
+}
+
+/* Slide 2 Custom Background Gradient Overlay */
+.hero-slide:nth-child(2) {
+  background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 50%),
+              radial-gradient(circle at 20% 80%, rgba(79, 70, 229, 0.05) 0%, rgba(255, 255, 255, 0) 50%);
+}
+
+/* Dribbble Inspired UI Elements */
+.dribbble-ticket-promo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 6px 6px 18px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 24px;
+}
+
+.dribbble-ticket-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  text-decoration: none;
+  font-size: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dribbble-ticket-btn:hover {
+  transform: scale(1.1);
+  background-color: var(--primary-hover);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+}
+
+.dribbble-huge-title {
+  font-size: 52px !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em !important;
+  margin-bottom: 12px !important;
+  color: var(--text-main);
+  text-transform: uppercase;
+}
+
+.dribbble-date-banner {
+  display: inline-block;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+  margin-bottom: 28px;
+  font-family: var(--font-heading);
+}
+
+.dribbble-stats-row {
+  display: flex;
+  gap: 28px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+
+.dribbble-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dribbble-stat h3 {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1 !important;
+  font-family: var(--font-heading);
+}
+
+.dribbble-stat h3 sup {
+  color: var(--primary);
+  font-size: 15px;
+  margin-left: 2px;
+}
+
+.dribbble-stat p {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: var(--text-light);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .dribbble-huge-title {
+    font-size: 32px !important;
+    line-height: 1.1 !important;
+    text-align: center;
+  }
+  .dribbble-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dribbble-ticket-promo {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 20px auto;
+    font-size: 12px;
+  }
+  .dribbble-stats-row {
+    gap: 16px;
+    justify-content: center;
+    margin-top: 24px;
+  }
+  .dribbble-stat h3 {
+    font-size: 22px !important;
+  }
+  .dribbble-date-banner {
+    font-size: 12px;
+    padding: 4px 10px;
+    margin-bottom: 20px;
+  }
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -894,16 +1079,6 @@ footer h4 {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-}
-
-.register-main {
-  padding-top: 112px;
-}
-
-@media (max-width: 768px) {
-  .register-main {
-    padding-top: 92px !important;
-  }
 }
 
 .auth-card {
@@ -1519,6 +1694,107 @@ footer h4 {
   border-bottom: none;
 }
 
+/* Custom Table Styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #f8fafc;
+  color: var(--text-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  font-family: var(--font-heading);
+}
+
+.table td {
+  font-family: var(--font-body);
+  color: var(--text-muted);
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.015);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Custom badges and elements inside table */
+.ticket-id-badge {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.seat-code-badge {
+  display: inline-block;
+  background: rgba(13, 148, 136, 0.08);
+  color: var(--secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 12px;
+  border: 1px solid rgba(13, 148, 136, 0.15);
+}
+
+.seat-hidden-badge {
+  display: inline-block;
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-light);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.btn-delete-ticket {
+  background: rgba(239, 68, 68, 0.06);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.btn-delete-ticket:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
 /* POPUPS / NOTIFICATIONS */
 .toast-notification {
   position: fixed;
@@ -1935,6 +2211,26 @@ footer h4 {
   border: 1px solid var(--border);
   transform: scale(0.95);
   transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 
 .modal.open .modal-content {
@@ -2026,7 +2322,6 @@ input, textarea, select, [contenteditable="true"] {
 
 .mobile-bottom-nav-item.active i {
   transform: translateY(-2px);
-  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
 }
 
 @media (max-width: 768px) {
@@ -2201,5 +2496,22 @@ input, textarea, select, [contenteditable="true"] {
   #techx-attendance-ticket div[style*="width: 12px; height: 12px"] {
     width: 8px !important;
     height: 8px !important;
+  }
+}
+
+/* Modal Title responsive optimization */
+@media (max-width: 768px) {
+  .modal-header h3 {
+    font-size: 18px !important;
+  }
+}
+
+/* Custom padding to prevent registration card from being covered by fixed navbar */
+.register-main {
+  padding-top: 112px !important;
+}
+@media (max-width: 768px) {
+  .register-main {
+    padding-top: 96px !important; /* Extra spacing to prevent overlap on mobile */
   }
 }

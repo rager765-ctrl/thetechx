@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin Dashboard | The TechX Challenge</title>
   <meta name="description" content="Secure administrative access to manage challenge tracks, registrations, and form configurations.">
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -327,28 +328,48 @@
           </div>
           
           <div class="grid-2" style="align-items: start;">
-            <!-- Add Field Card -->
-            <div class="card">
-              <h3 style="margin-bottom: 16px;">Add Custom Field</h3>
-              <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
-                Define new input parameters that teams must submit during registration.
-              </p>
-              <form id="admin-add-field-form">
-                <div class="form-group">
-                  <label for="admin-field-label">Field Label</label>
-                  <input type="text" id="admin-field-label" class="form-control" placeholder="e.g. GitHub Repository" required>
-                </div>
-                <div class="form-group">
-                  <label for="admin-field-type">Input Type</label>
-                  <select id="admin-field-type" class="form-control" required>
-                    <option value="text">Text Input</option>
-                    <option value="url">URL Link</option>
-                    <option value="number">Number</option>
-                    <option value="email">Email</option>
-                  </select>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Add Field</button>
-              </form>
+            <!-- Column 1: Config & Deadline -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <!-- Add Field Card -->
+              <div class="card">
+                <h3 style="margin-bottom: 16px;">Add Custom Field</h3>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
+                  Define new input parameters that teams must submit during registration.
+                </p>
+                <form id="admin-add-field-form">
+                  <div class="form-group">
+                    <label for="admin-field-label">Field Label</label>
+                    <input type="text" id="admin-field-label" class="form-control" placeholder="e.g. GitHub Repository" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="admin-field-type">Input Type</label>
+                    <select id="admin-field-type" class="form-control" required>
+                      <option value="text">Text Input</option>
+                      <option value="url">URL Link</option>
+                      <option value="number">Number</option>
+                      <option value="email">Email</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">Add Field</button>
+                </form>
+              </div>
+
+              <!-- Deadline Control Card -->
+              <div class="card">
+                <h3 style="margin-bottom: 16px;">Registration Deadline Controls</h3>
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
+                  Toggle registration status to restrict new submissions after the deadline.
+                </p>
+                <form id="admin-deadline-form">
+                  <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-app); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 16px;">
+                    <label for="admin-registration-closed" style="font-weight: 600; font-size: 13px; color: var(--text-main); cursor: pointer; margin: 0;">
+                      <i class="fa-solid fa-lock" style="color: var(--danger); margin-right: 6px;"></i> Close Registration (Deadline Passed)
+                    </label>
+                    <input type="checkbox" id="admin-registration-closed" style="width: 20px; height: 20px; cursor: pointer;">
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block" id="admin-save-deadline-btn">Save Status</button>
+                </form>
+              </div>
             </div>
 
             <!-- Active Fields Card -->

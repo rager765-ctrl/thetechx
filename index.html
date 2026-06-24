@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>The TechX Challenge | Innovate. Build. Compete.</title>
   <meta name="description" content="Join The TechX Challenge, a premier innovation ecosystem. Compete, collaborate, build outstanding projects, and win from a massive prize pool.">
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -70,39 +71,89 @@
       <div class="hero">
         <div class="hero-graphic hero-graphic-1"></div>
         <div class="hero-graphic hero-graphic-2"></div>
-        <div class="container hero-grid">
-          <div class="hero-content">
-            <div class="hero-tags-wrapper" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-              <span class="hero-tag" style="margin-bottom: 0;"><i class="fa-solid fa-circle-nodes"></i> Registration is open!</span>
-              <span class="hero-tag page-logos" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 10px;">
-                <img src="logo_knust.png" alt="KNUST Logo" style="height: 18px; object-fit: contain;">
-                <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.2);"></div>
-                <img src="logo_ksb.png" alt="KSB Logo" style="height: 18px; object-fit: contain;">
-              </span>
-            </div>
-            <h1>Innovate. Build.<br><span class="text-gradient">Compete.</span></h1>
-            <p>The TechX Challenge is the ultimate proving ground for innovators, courtesy of KNUST and spearheaded by the KNUST School of Business (KSB). Develop disruptive prototypes, connect with expert mentors, and win premium incubation packages.</p>
-            <div class="hero-ctas">
-              <a href="register.html" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> Register Now</a>
-              <a href="#about" class="btn btn-secondary btn-lg" id="learn-more-btn"><i class="fa-solid fa-circle-info"></i> Learn More</a>
+        <div class="hero-slider-wrapper">
+          <!-- Slide 1: Original Hero -->
+          <div class="hero-slide active">
+            <div class="container hero-grid">
+              <div class="hero-content">
+                <div class="hero-tags-wrapper" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                  <span class="hero-tag" style="margin-bottom: 0;"><i class="fa-solid fa-circle-nodes"></i> Registration is open!</span>
+                  <span class="hero-tag page-logos" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 10px;">
+                    <img src="logo_knust.png" alt="KNUST Logo" style="height: 18px; object-fit: contain;">
+                    <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.2);"></div>
+                    <img src="logo_ksb.png" alt="KSB Logo" style="height: 18px; object-fit: contain;">
+                  </span>
+                </div>
+                <h1>Innovate. Build.<br><span class="text-gradient">Compete.</span></h1>
+                <p>The TechX Challenge is a premier launchpad to fast-track viable products into the market. Supported by KNUST and spearheaded by the KNUST School of Business (KSB), we scout and recruit ambitious builders with high-potential solutions to refine, scale, and launch them inside our dedicated incubation space.</p>
+                <div class="hero-ctas">
+                  <a href="register.html" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> Register Now</a>
+                  <a href="#about" class="btn btn-secondary btn-lg" id="learn-more-btn"><i class="fa-solid fa-circle-info"></i> Learn More</a>
+                </div>
+              </div>
+              <div class="hero-image-container">
+                <div class="hero-image-wrapper">
+                  <img src="hero_techx.png" alt="TechX Hackathon Collaboration" class="hero-image">
+                </div>
+                <div class="hero-stats-badge">
+                  <div class="stat-item">
+                    <div class="stat-value" id="stat-participants">1,240+</div>
+                    <div class="stat-label" id="stat-participants-label">Participants</div>
+                  </div>
+                  <div style="width: 1px; background-color: var(--border);"></div>
+                  <div class="stat-item">
+                    <div class="stat-value" id="stat-days">18</div>
+                    <div class="stat-label" id="stat-days-label">Days Left</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="hero-image-container">
-            <div class="hero-image-wrapper">
-              <img src="hero_techx.png" alt="TechX Hackathon Collaboration" class="hero-image">
-            </div>
-            <div class="hero-stats-badge">
-              <div class="stat-item">
-                <div class="stat-value" id="stat-participants">1,240+</div>
-                <div class="stat-label" id="stat-participants-label">Participants</div>
+          
+          <!-- Slide 2: Dribbble Inspired VR Theme -->
+          <div class="hero-slide">
+            <div class="container hero-grid dribbble-hero-grid">
+              <div class="hero-content dribbble-hero-content">
+                <div class="dribbble-ticket-promo" onclick="handleGetTicketClick(event)" style="cursor: pointer;">
+                  <span>Grab your Tickets now here.</span>
+                  <a href="#" class="dribbble-ticket-btn" onclick="handleGetTicketClick(event)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </a>
+                </div>
+                
+                <div class="dribbble-title-container">
+                  <h1 class="dribbble-huge-title">KNUST'S BIGGEST<br>TECH EVENT</h1>
+                </div>
+                
+                <div class="dribbble-stats-row">
+                  <div class="dribbble-stat">
+                    <h3>10<sup>+</sup></h3>
+                    <p>DEPARTMENTS</p>
+                  </div>
+                  <div class="dribbble-stat">
+                    <h3>15<sup>+</sup></h3>
+                    <p>TEAMS</p>
+                  </div>
+                  <div class="dribbble-stat">
+                    <h3 id="stat-days-slide2">2<sup>+</sup></h3>
+                    <p>DAYS</p>
+                  </div>
+                </div>
               </div>
-              <div style="width: 1px; background-color: var(--border);"></div>
-              <div class="stat-item">
-                <div class="stat-value" id="stat-days">18</div>
-                <div class="stat-label" id="stat-days-label">Days Left</div>
+              
+              <div class="hero-image-container dribbble-image-container">
+                <div class="hero-image-wrapper dribbble-image-wrapper">
+                  <img src="hero_touch.png" alt="TechX Digital Integration" class="hero-image">
+                </div>
               </div>
             </div>
           </div>
+        </div>
+        
+        <!-- Navigation dots for slider -->
+        <div class="hero-dots">
+          <span class="hero-dot active" data-slide="0"></span>
+          <span class="hero-dot" data-slide="1"></span>
         </div>
       </div>
 
@@ -111,24 +162,24 @@
         <div class="container">
           <div class="section-title-wrapper">
             <span class="section-title-tag">Overview</span>
-            <h2 class="section-title">What is The TechX Challenge?</h2>
-            <p class="section-subtitle">We bring together software developers, designers, product minds, and industry experts to shape the future of key sectors. Over 6 weeks, you'll brainstorm, code, validate, and pitch.</p>
+            <h2 class="section-title">Launch Your Vision</h2>
+            <p class="section-subtitle">We identify and support high-potential builders, founders, and engineers ready to take original ideas to market. Through a hands-on acceleration pipeline, we validate business models, refine technical architectures, and select projects for long-term residency in our venture hub.</p>
           </div>
           <div class="grid-3">
             <div class="card">
               <div class="card-icon" style="background-color: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
-              <h3>Industry Mentorship</h3>
-              <p>Get guided by seasoned leaders from top-tier companies. Receive targeted feedback to refine your product architecture and business model.</p>
+              <h3>Venture Scouting &amp; Mentorship</h3>
+              <p>Gain access to seasoned founders and investors who review your product's market readiness, operational model, and technical scaling path.</p>
             </div>
             <div class="card">
               <div class="card-icon" style="background-color: var(--secondary-light); color: var(--secondary);"><i class="fa-solid fa-people-group"></i></div>
-              <h3>Collaborative Ecosystem</h3>
-              <p>Form dynamic teams, match skills, and exchange concepts in a rich environment built for cross-functional development.</p>
+              <h3>Commercial Viability</h3>
+              <p>Stress-test your concept note and prototype against real market variables, ensuring you build something with actual demand and scalable unit economics.</p>
             </div>
             <div class="card">
               <div class="card-icon" style="background-color: var(--accent-light); color: var(--accent);"><i class="fa-solid fa-seedling"></i></div>
-              <h3>Incubation Support</h3>
-              <p>Winners secure direct pathways to accelerator programs, cloud computing credits, VC networking, and co-working workspace access.</p>
+              <h3>Venture Center Residency</h3>
+              <p>Top teams earn dedicated physical space, continuous funding pathways, administrative backing, and direct exposure to venture capital networks to launch.</p>
             </div>
           </div>
         </div>
@@ -189,29 +240,29 @@
             <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
               <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-earth-americas"></i></div>
               <div>
-                <h4 style="font-size: 16px; margin-bottom: 6px;">Global Participation</h4>
-                <p>Open to innovators worldwide aged 18 or above. Local compliance regulations apply.</p>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Ecosystem Builders</h4>
+                <p>Open to undergraduate students, alumni, and innovators with high-potential tech-enabled products.</p>
               </div>
             </div>
             <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
               <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-user-group"></i></div>
               <div>
-                <h4 style="font-size: 16px; margin-bottom: 6px;">Team Dimensions</h4>
-                <p>Participate solo or form a team of up to 5 members. Cross-disciplinary skillsets are encouraged.</p>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Dedicated Founders</h4>
+                <p>Teams must consist strictly of 3 members. We prioritize teams showing deep commitment and balanced technical and business capabilities.</p>
               </div>
             </div>
             <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
               <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-code-branch"></i></div>
               <div>
-                <h4 style="font-size: 16px; margin-bottom: 6px;">Fresh Intellectual Property</h4>
-                <p>All work must be authored during the competition period. Pre-existing projects are ineligible.</p>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Market-Ready Prototypes</h4>
+                <p>We welcome active, early-stage projects and original concepts that demonstrate genuine product-market fit and commercial viability.</p>
               </div>
             </div>
             <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 24px;">
               <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-cube"></i></div>
               <div>
-                <h4 style="font-size: 16px; margin-bottom: 6px;">Open-source Preference</h4>
-                <p>Prototypes utilizing public libraries and showing accessible code repos are highly valued.</p>
+                <h4 style="font-size: 16px; margin-bottom: 6px;">Scalable Technology</h4>
+                <p>We look for solutions built on clean architectures that can readily deploy, iterate, and integrate into enterprise environments.</p>
               </div>
             </div>
           </div>

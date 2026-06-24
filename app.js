@@ -350,9 +350,11 @@ function renderNewsFeed(filteredCategory = "all") {
       const articleId = e.currentTarget.closest("article").getAttribute("data-id");
       const article = allNews.find(n => n.id === articleId);
       if (article) {
+        const coverUrl = article.coverImage || images[article.img] || images.code;
         openModal(article.title, `
-          <div style="font-size: 13px; color: var(--primary); font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">${article.category} | ${article.date || ''}</div>
-          <div style="font-size: 15px; line-height: 1.7; color: var(--text-muted); margin-top: 16px; white-space: pre-wrap;">${article.content}</div>
+          <div style="font-size: 11px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${article.category} | ${article.date || 'June 2026'}</div>
+          ${coverUrl ? `<img src="${coverUrl}" alt="${article.title}" style="width: 100%; max-height: 240px; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); margin: 12px 0 8px 0; border: 1px solid var(--border);">` : ''}
+          <div style="font-size: 14px; line-height: 1.65; color: var(--text-muted); white-space: pre-wrap; font-family: system-ui, -apple-system, sans-serif;">${article.content}</div>
         `);
       }
     });
@@ -376,7 +378,6 @@ timelineItems.forEach(item => {
     const step = item.getAttribute("data-step");
     let title = "";
     let content = "";
-    
     switch(step) {
       case "1":
         title = "Registration Period (June 1 - July 15)";
@@ -580,11 +581,13 @@ function initRealtimeSync() {
       const now = Date.now();
       const diff = targetTime - now;
       const daysVal = document.getElementById("stat-days");
+      const daysVal2 = document.getElementById("stat-days-slide2");
       const daysLabel = document.getElementById("stat-days-label");
       if (!daysVal) return;
 
       if (isNaN(targetTime) || diff <= 0) {
         daysVal.textContent = "0";
+        if (daysVal2) daysVal2.innerHTML = `0<sup>+</sup>`;
         if (daysLabel) daysLabel.textContent = "Time Elapsed";
         return;
       }
@@ -592,12 +595,15 @@ function initRealtimeSync() {
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       if (days > 0) {
         daysVal.textContent = days;
+        if (daysVal2) daysVal2.innerHTML = `${days}<sup>+</sup>`;
         if (daysLabel) daysLabel.textContent = days === 1 ? "Day Left" : "Days Left";
       } else {
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((diff / (1000 * 60)) % 60);
         const seconds = Math.floor((diff / 1000) % 60);
-        daysVal.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        daysVal.textContent = formattedTime;
+        if (daysVal2) daysVal2.innerHTML = `${hours}h<sup>+</sup>`;
         if (daysLabel) daysLabel.textContent = "Time Left";
       }
     };
@@ -809,10 +815,61 @@ window.addEventListener("DOMContentLoaded", () => {
   const hash = window.location.hash.substring(1);
   if (["home", "resources", "news", "showcase", "legal"].includes(hash)) {
     showView(hash);
+  } else if (["about", "tracks", "timeline", "faq"].includes(hash)) {
+    showView("home");
+    setTimeout(() => {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 300);
   } else {
     showView("home");
   }
+  
+  initHeroCarousel();
 });
+
+// Hero Carousel auto-sliding
+function initHeroCarousel() {
+  const slides = document.querySelectorAll(".hero-slide");
+  const dots = document.querySelectorAll(".hero-dot");
+  if (slides.length === 0) return;
+
+  let currentSlide = 0;
+  let slideInterval = setInterval(nextSlide, 5000);
+
+  function goToSlide(n) {
+    slides[currentSlide].classList.remove("active");
+    dots[currentSlide].classList.remove("active");
+    currentSlide = (n + slides.length) % slides.length;
+    slides[currentSlide].classList.add("active");
+    dots[currentSlide].classList.add("active");
+  }
+
+  function nextSlide() {
+    goToSlide(currentSlide + 1);
+  }
+
+  dots.forEach((dot, idx) => {
+    dot.addEventListener("click", () => {
+      clearInterval(slideInterval);
+      goToSlide(idx);
+      slideInterval = setInterval(nextSlide, 5000);
+    });
+  });
+}
+
+// Handle click on "Get Ticket" banner on Slide 2
+function handleGetTicketClick(event) {
+  if (event) event.preventDefault();
+  if (window.ticketingConfig && window.ticketingConfig.ticketingEnabled === true) {
+    openPublicTicketModal();
+  } else {
+    showToast("Attendance booking is coming soon!", "info");
+  }
+}
+window.handleGetTicketClick = handleGetTicketClick;
 
 // Helper: Decompress Base64 gzip Data URL using DecompressionStream API
 async function decompressFileGzip(base64GzipUrl) {
@@ -930,6 +987,15 @@ async function submitPublicTicketBooking(event) {
   event.preventDefault();
   const name = document.getElementById("public-ticket-name").value.trim();
   const email = document.getElementById("public-ticket-email").value.trim();
+
+  // Validate email domain: must end in knust.edu.gh or student.knust.edu.gh or ksb.knust.edu.gh
+  const emailDomain = email.split('@')[1].toLowerCase();
+  const allowedDomains = ["knust.edu.gh", "student.knust.edu.gh", "ksb.knust.edu.gh"];
+  if (!allowedDomains.includes(emailDomain)) {
+    showToast("Access restricted: Please register with your KNUST or KSB email address.", "error");
+    return;
+  }
+
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalBtnHTML = submitBtn.innerHTML;

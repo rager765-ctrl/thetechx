@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Team Registration | The TechX Challenge</title>
   <meta name="description" content="Register your team of 3 members and submit your concept note for The TechX Challenge.">
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,17 +36,15 @@
   <!-- Registration view Container -->
   <main class="auth-main register-main">
     <div class="auth-card" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
-      <div class="auth-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <!-- Page Logos shown on desktop, hidden on mobile -->
-          <div class="page-logos" style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
-            <div style="width: 1px; height: 16px; background: var(--border);"></div>
-            <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
-          </div>
-          <h2>Team Registration</h2>
-          <p>Register your team or solo profile and submit your concept note</p>
+      <div class="auth-header" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; width: 100%; margin-bottom: 24px;">
+        <!-- Page Logos shown on desktop, hidden on mobile -->
+        <div class="page-logos" style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 8px; justify-content: center;">
+          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+          <div style="width: 1px; height: 16px; background: var(--border);"></div>
+          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
         </div>
+        <h2>Team Registration</h2>
+        <p>Register your team and submit your concept note</p>
       </div>
       <form id="team-registration-form">
         <div class="form-row">
@@ -72,7 +71,7 @@
             </div>
             <div class="form-group">
               <label for="reg-m1-email">Email Address</label>
-              <input type="email" id="reg-m1-email" class="form-control" placeholder="abena.osei@student.knust.edu.gh" required>
+              <input type="email" id="reg-m1-email" class="form-control" placeholder="abena.osei@gmail.com" required>
             </div>
             <div class="form-group">
               <label for="reg-m1-contact">Contact Number</label>
@@ -91,7 +90,7 @@
             </div>
             <div class="form-group">
               <label for="reg-m2-email">Email Address</label>
-              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@student.knust.edu.gh" required>
+              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@gmail.com" required>
             </div>
             <div class="form-group">
               <label for="reg-m2-contact">Contact Number</label>
@@ -110,7 +109,7 @@
             </div>
             <div class="form-group">
               <label for="reg-m3-email">Email Address</label>
-              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@student.knust.edu.gh" required>
+              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@gmail.com" required>
             </div>
             <div class="form-group">
               <label for="reg-m3-contact">Contact Number</label>

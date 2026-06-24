@@ -407,10 +407,17 @@ function initRealtimeSync() {
   });
 
   onSnapshot(doc(firestore, "config", "registration_form"), (snapshot) => {
+    let registrationClosed = false;
     if (snapshot.exists()) {
-      activeCustomFields = snapshot.data().customFields || [];
+      const data = snapshot.data();
+      activeCustomFields = data.customFields || [];
+      registrationClosed = data.registrationClosed || false;
     } else {
       activeCustomFields = [];
+    }
+    const closedCheckbox = document.getElementById("admin-registration-closed");
+    if (closedCheckbox) {
+      closedCheckbox.checked = registrationClosed;
     }
     if (activeAdminTab === "form-config") {
       renderAdminCustomFieldsList();
@@ -508,7 +515,7 @@ function initRealtimeSync() {
     // Seed default legal documents if empty
     if (snapshot.empty && currentUser) {
       const defaultLegal = [
-        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 1 to 5 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
@@ -827,7 +834,7 @@ async function adminDeleteCustomField(fieldKey) {
     showToast("Deleting field configuration...", "info");
     await setDoc(doc(firestore, "config", "registration_form"), {
       customFields: updatedFields
-    });
+    }, { merge: true });
     showToast("Custom field removed successfully!", "success");
   } catch (err) {
     showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
@@ -1146,11 +1153,37 @@ if (addFieldForm) {
       showToast("Saving custom field...", "info");
       await setDoc(doc(firestore, "config", "registration_form"), {
         customFields: updatedFields
-      });
+      }, { merge: true });
       showToast("Custom field added successfully!", "success");
       addFieldForm.reset();
     } catch (err) {
       showToast("Failed to save field: " + getCleanErrorMessage(err), "error");
+    }
+  });
+}
+
+// Admin Deadline Status Submission
+const deadlineForm = document.getElementById("admin-deadline-form");
+if (deadlineForm) {
+  deadlineForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const closed = document.getElementById("admin-registration-closed").checked;
+    const saveBtn = document.getElementById("admin-save-deadline-btn");
+    const originalBtnHTML = saveBtn.innerHTML;
+
+    try {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+      showToast("Updating registration deadline status...", "info");
+      await setDoc(doc(firestore, "config", "registration_form"), {
+        registrationClosed: closed
+      }, { merge: true });
+      showToast("Registration status updated successfully!", "success");
+    } catch (err) {
+      showToast("Failed to save status: " + getCleanErrorMessage(err), "error");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalBtnHTML;
     }
   });
 }
@@ -1216,7 +1249,7 @@ async function seedDefaultsIfEmpty() {
     const legalSnap = await getDocs(collection(firestore, "legal"));
     if (legalSnap.empty) {
       const defaultLegal = [
-        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 1 to 5 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
@@ -2245,20 +2278,29 @@ function renderAdminTicketsList() {
   if (!container) return;
 
   if (allTickets.length === 0) {
-    container.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 24px;"><i class="fa-solid fa-ticket"></i> No event tickets booked yet.</td></tr>`;
+    container.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 32px;"><i class="fa-solid fa-ticket" style="font-size: 24px; margin-bottom: 8px; display: block; opacity: 0.5;"></i> No event tickets booked yet.</td></tr>`;
   } else {
     container.innerHTML = allTickets.map(t => {
-      const regDate = t.timestamp ? new Date(t.timestamp).toLocaleString() : "N/A";
-      const seatDisplay = t.seatCode ? `<span style="background: rgba(37, 99, 235, 0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: monospace;">${t.seatCode}</span>` : `<span style="color: var(--text-muted);">Hidden</span>`;
+      let regDate = "N/A";
+      if (t.timestamp) {
+        const d = new Date(t.timestamp);
+        regDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + 
+                  d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      }
+      const seatDisplay = t.seatCode 
+        ? `<span class="seat-code-badge">${t.seatCode}</span>` 
+        : `<span class="seat-hidden-badge">Hidden</span>`;
       return `
         <tr>
-          <td><strong style="color: var(--primary); font-family: monospace;">${t.id}</strong></td>
-          <td style="font-weight: 600; color: var(--text-main);">${t.name}</td>
-          <td>${t.email}</td>
+          <td><span class="ticket-id-badge">${t.id}</span></td>
+          <td style="font-weight: 600; color: var(--text-main); font-size: 13.5px;">${t.name}</td>
+          <td style="color: var(--text-muted); font-size: 13px;">${t.email}</td>
           <td>${seatDisplay}</td>
-          <td style="font-size: 11px; color: var(--text-muted);">${regDate}</td>
+          <td style="font-size: 12px; color: var(--text-light);">${regDate}</td>
           <td style="text-align: center;">
-            <button class="btn btn-outline btn-sm" onclick="adminDeleteTicket('${t.id}')" style="color: var(--danger); border-color: var(--danger); padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 4px; background: transparent;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+            <button class="btn-delete-ticket" onclick="adminDeleteTicket('${t.id}')">
+              <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
           </td>
         </tr>
       `;

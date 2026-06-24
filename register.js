@@ -22,7 +22,6 @@ const storage = getStorage(app);
 
 // State cache
 let activeCustomFields = [];
-let allProjects = [];
 let allTracks = [];
 
 // Error Message Cleaner
@@ -94,21 +93,105 @@ function renderPublicCustomFields() {
   `;
 }
 
-// Real-Time Listeners
+// 2. IndexedDB Caching Utility for high traffic resistance
+const DB_NAME = "TechXCacheDB";
+const DB_VERSION = 1;
+const STORE_NAME = "firestore_cache";
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function getCachedData(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("IndexedDB cache read error:", err);
+    return null;
+  }
+}
+
+async function setCachedData(key, value) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put(value, key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("IndexedDB cache write error:", err);
+  }
+}
+
+// Render Select Tracks Element
+function renderTracksSelect() {
+  const selectEl = document.getElementById("reg-project-track");
+  if (!selectEl) return;
+  const visibleTracks = allTracks.filter(t => t.visible !== false);
+  if (visibleTracks.length === 0) {
+    selectEl.innerHTML = `
+      <option value="" selected>Not Specified Yet (Open Track)</option>
+      <option value="clean-energy">Clean Energy & Environment</option>
+      <option value="fintech">Fintech & Financial Inclusion</option>
+      <option value="healthtech">Healthcare & MedTech</option>
+    `;
+  } else {
+    selectEl.innerHTML = `
+      <option value="" selected>Not Specified Yet (Open Track)</option>
+      ` + visibleTracks.map(t => `<option value="${t.id}">${t.name}</option>`).join("") + `
+    `;
+  }
+}
+
+// Robust Caching: Load from IndexedDB immediately on startup
+getCachedData("tracks_cache").then(cachedTracks => {
+  if (cachedTracks) {
+    allTracks = cachedTracks;
+    renderTracksSelect();
+  }
+});
+
+getCachedData("form_config_cache").then(cachedConfig => {
+  if (cachedConfig) {
+    activeCustomFields = cachedConfig.customFields || [];
+    window.registrationClosed = cachedConfig.registrationClosed || false;
+    renderPublicCustomFields();
+  }
+});
+
+// Real-Time Listeners: Sync and update cache
 onSnapshot(doc(firestore, "config", "registration_form"), (snapshot) => {
+  let registrationClosed = false;
   if (snapshot.exists()) {
-    activeCustomFields = snapshot.data().customFields || [];
+    const data = snapshot.data();
+    activeCustomFields = data.customFields || [];
+    registrationClosed = data.registrationClosed || false;
+    setCachedData("form_config_cache", data);
   } else {
     activeCustomFields = [];
   }
+  window.registrationClosed = registrationClosed;
   renderPublicCustomFields();
-});
-
-onSnapshot(collection(firestore, "projects"), (snapshot) => {
-  allProjects = [];
-  snapshot.forEach(d => {
-    allProjects.push({ id: d.id, ...d.data() });
-  });
 });
 
 // Watch challenge tracks dynamically
@@ -117,25 +200,8 @@ onSnapshot(collection(firestore, "tracks"), (snapshot) => {
   snapshot.forEach(d => {
     allTracks.push({ id: d.id, ...d.data() });
   });
-  
-  const selectEl = document.getElementById("reg-project-track");
-  if (selectEl) {
-    const visibleTracks = allTracks.filter(t => t.visible !== false);
-    if (visibleTracks.length === 0) {
-      // Self-healing default fallback options
-      selectEl.innerHTML = `
-        <option value="" selected>Not Specified Yet (Open Track)</option>
-        <option value="clean-energy">Clean Energy & Environment</option>
-        <option value="fintech">Fintech & Financial Inclusion</option>
-        <option value="healthtech">Healthcare & MedTech</option>
-      `;
-    } else {
-      selectEl.innerHTML = `
-        <option value="" selected>Not Specified Yet (Open Track)</option>
-        ` + visibleTracks.map(t => `<option value="${t.id}">${t.name}</option>`).join("") + `
-      `;
-    }
-  }
+  setCachedData("tracks_cache", allTracks);
+  renderTracksSelect();
 });
 
 // Form submission handler
@@ -145,12 +211,18 @@ if (teamRegistrationForm) {
 
     // Lock submit button during processing
     const submitBtn = teamRegistrationForm.querySelector("button[type='submit']");
+    const originalBtnHTML = submitBtn ? submitBtn.innerHTML : "Submit Team Registration";
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
     }
 
     try {
+      // 1. Check registration deadline toggle status
+      if (window.registrationClosed === true) {
+        throw new Error("Registration is closed. The deadline has passed.");
+      }
+
       const teamName = document.getElementById("reg-team-name").value.trim();
       const track = document.getElementById("reg-project-track").value;
       const docxFileInput = document.getElementById("reg-concept-note");
@@ -172,9 +244,10 @@ if (teamRegistrationForm) {
         throw new Error("Please select a concept file to upload.");
       }
 
-      // Safe checks to avoid TypeError if any database entry lacks teamName
-      const nameExists = allProjects.some(p => p.teamName && p.teamName.toLowerCase() === teamName.toLowerCase());
-      if (nameExists) {
+      // 2. Traffic-proof optimization: check if team document exists by specific key
+      const projId = `p-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
+      const projectSnap = await getDoc(doc(firestore, "projects", projId));
+      if (projectSnap.exists()) {
         throw new Error("Team name already exists.");
       }
 
@@ -201,8 +274,6 @@ if (teamRegistrationForm) {
           customFields[field.label] = inputEl.value.trim();
         }
       });
-
-      const projId = `p-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
       
       // File encoding logic
       showToast("Compressing and encoding proposal file...", "info");
