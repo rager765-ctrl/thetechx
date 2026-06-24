@@ -28,6 +28,9 @@ let allTracks = [];
 let allTimeline = [];
 let allPrizes = [];
 let allLegal = [];
+let allResources = [];
+let allTickets = [];
+let ticketingConfig = null;
 let activeCustomFields = [];
 let activeAdminTab = "overview";
 let signupEnabled = true;
@@ -107,9 +110,13 @@ function getCleanErrorMessage(err) {
 }
 
 // Modal open/close
-function openModal(title, contentHTML) {
+function openModal(title, contentHTML, isWide = false) {
   modalTitle.textContent = title;
   modalBody.innerHTML = contentHTML;
+  const contentEl = infoModal.querySelector(".modal-content");
+  if (contentEl) {
+    contentEl.style.maxWidth = isWide ? "950px" : "600px";
+  }
   infoModal.classList.add("open");
 }
 
@@ -153,8 +160,12 @@ if (loginForm) {
     e.preventDefault();
     const email = document.getElementById("login-email").value.trim().toLowerCase();
     const pass = document.getElementById("login-password").value;
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    const originalBtnHTML = submitBtn.innerHTML;
 
     try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Signing In...';
       showToast("Signing in...", "info");
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       const uid = userCredential.user.uid;
@@ -166,14 +177,20 @@ if (loginForm) {
       if (!userData || !userData.isAdmin) {
         showToast("Access Denied. Only organizers/admins are allowed to log in.", "error");
         await signOut(auth);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHTML;
         return;
       }
 
       showToast("Signed in successfully!", "success");
       loginForm.reset();
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHTML;
     } catch (err) {
       console.error(err);
       showToast(getCleanErrorMessage(err), "error");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHTML;
     }
   });
 }
@@ -506,6 +523,72 @@ function initRealtimeSync() {
     
     renderAdminDashboard();
   });
+
+  onSnapshot(collection(firestore, "resources"), (snapshot) => {
+    allResources = [];
+    snapshot.forEach(d => {
+      allResources.push({ id: d.id, ...d.data() });
+    });
+    allResources.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    if (activeAdminTab === "resources-config") {
+      renderAdminResourcesList();
+    }
+  });
+
+  onSnapshot(doc(firestore, "config", "ticketing_settings"), (snapshot) => {
+    if (snapshot.exists()) {
+      ticketingConfig = snapshot.data();
+      const toggle = document.getElementById("admin-tickets-toggle");
+      const title = document.getElementById("admin-tickets-event-title");
+      const date = document.getElementById("admin-tickets-event-date");
+      const venue = document.getElementById("admin-tickets-event-venue");
+      const limit = document.getElementById("admin-tickets-limit");
+      const showSeats = document.getElementById("admin-tickets-show-seats");
+      const seatPrefix = document.getElementById("admin-tickets-seat-prefix");
+      const seatStart = document.getElementById("admin-tickets-seat-start");
+
+      if (toggle) toggle.checked = ticketingConfig.ticketingEnabled === true;
+      if (title) title.value = ticketingConfig.eventTitle || "";
+      if (date) date.value = ticketingConfig.eventDate || "";
+      if (venue) venue.value = ticketingConfig.eventVenue || "";
+      if (limit) limit.value = ticketingConfig.ticketLimit || "";
+      if (showSeats) showSeats.checked = ticketingConfig.showSeats !== false;
+      if (seatPrefix) seatPrefix.value = ticketingConfig.seatPrefix || "GA-";
+      if (seatStart) seatStart.value = ticketingConfig.seatStartNumber || 100;
+    } else {
+      if (currentUser) {
+        setDoc(doc(firestore, "config", "ticketing_settings"), {
+          ticketingEnabled: false,
+          eventTitle: "TechX Grand Finale Pitch Day",
+          eventDate: "August 15, 2026 @ 09:00 AM",
+          eventVenue: "KNUST Great Hall",
+          ticketLimit: 500,
+          showSeats: true,
+          seatPrefix: "GA-",
+          seatStartNumber: 100,
+          timestamp: Date.now()
+        }).catch(err => console.log("Seeding ticketing config deferred:", err.message));
+      }
+    }
+  });
+
+  onSnapshot(collection(firestore, "tickets"), (snapshot) => {
+    allTickets = [];
+    snapshot.forEach(d => {
+      allTickets.push({ id: d.id, ...d.data() });
+    });
+    allTickets.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+    const badge = document.getElementById("admin-tickets-count-badge");
+    if (badge) {
+      const maxLimit = ticketingConfig ? (ticketingConfig.ticketLimit || 500) : 500;
+      badge.textContent = `${allTickets.length} / ${maxLimit} Booked`;
+    }
+
+    if (activeAdminTab === "tickets-config") {
+      renderAdminTicketsList();
+    }
+  });
 }
 
 // Render Dashboard
@@ -600,11 +683,12 @@ function renderAdminDashboard() {
         `;
       }
 
+      const regDate = p.timestamp ? new Date(p.timestamp).toLocaleString() : 'Date Unknown';
       return `
         <tr>
           <td>
             <div style="font-weight: 600; color: var(--text-main);">${p.teamName}</div>
-            <div style="font-size: 12px; color: var(--text-light);">${p.title}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"><i class="fa-regular fa-clock"></i> ${regDate}</div>
           </td>
           <td>
             <div style="font-size: 13px; color: var(--text-muted);">${(p.members || []).join(", ")}</div>
@@ -642,6 +726,12 @@ function renderAdminDashboard() {
   }
   else if (activeAdminTab === "legal-config") {
     renderAdminLegalList();
+  }
+  else if (activeAdminTab === "resources-config") {
+    renderAdminResourcesList();
+  }
+  else if (activeAdminTab === "tickets-config") {
+    renderAdminTicketsList();
   }
 }
 
@@ -773,13 +863,13 @@ function adminViewProjectDetails(projId) {
   }
 
   const downloadLink = proj.conceptNoteUrl
-    ? `<div style="margin-top: 6px;"><a href="${proj.conceptNoteUrl}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-file-arrow-down"></i> Read &amp; Download</a></div>`
+    ? `<div style="margin-top: 6px;"><button type="button" onclick="downloadConceptNote('${proj.id}')" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; border: 1px solid var(--border);"><i class="fa-solid fa-file-arrow-down"></i> Read &amp; Download</button></div>`
     : `<div style="font-size: 11px; color: var(--text-light); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> No download URL available</div>`;
 
   const customFieldsHTML = Object.entries(proj.customFields || {}).map(([key, val]) => `
     <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
       <div style="font-size: 12px; color: var(--text-light); text-transform: uppercase;">${key}</div>
-      <div style="font-size: 14px; color: var(--text-main); font-weight: 500;">${val || 'N/A'}</div>
+      <div style="font-size: 14px; color: var(--text-main); font-weight: 500; white-space: pre-wrap; word-break: break-word;">${val || 'N/A'}</div>
     </div>
   `).join("");
 
@@ -799,38 +889,90 @@ function adminViewProjectDetails(projId) {
       : `<span class="badge badge-warning">${proj.status || 'Pending'}</span>`;
 
   openModal(`Team Details: ${proj.teamName}`, `
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Row 1: Basic Submissions (Horizontal grid) -->
       <div>
-        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--primary);">Basic Submissions</h4>
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light);">Focus Track</label>
-          <div style="font-size: 14px; font-weight: 600; color: var(--text-main);">${trackName}</div>
-        </div>
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light);">Concept File</label>
-          <div style="font-size: 13px; font-weight: 600; color: var(--text-main); display: flex; align-items: flex-start; gap: 6px;">
-            <i class="fa-solid ${fileIcon}" style="color: ${fileColor}; margin-top: 2px; flex-shrink: 0;"></i>
-            <span style="word-break: break-all; line-height: 1.4;">${proj.conceptNoteName || 'concept_note.pdf'}</span>
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--primary);"><i class="fa-solid fa-circle-info"></i> Basic Submissions</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+          <div>
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light); display: block; margin-bottom: 2px;">Focus Track</label>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main);">${trackName}</div>
           </div>
-          ${downloadLink}
+          <div>
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light); display: block; margin-bottom: 2px;">Concept File</label>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid ${fileIcon}" style="color: ${fileColor}; flex-shrink: 0;"></i>
+              <span style="word-break: break-all; line-height: 1.2;">${proj.conceptNoteName || 'concept_note.pdf'}</span>
+            </div>
+            ${downloadLink}
+          </div>
+          <div>
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light); display: block; margin-bottom: 2px;">Registration Status</label>
+            <div>${statusBadge}</div>
+          </div>
+          <div>
+            <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light); display: block; margin-bottom: 2px;">Registration Date</label>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-main);"><i class="fa-regular fa-clock"></i> ${proj.timestamp ? new Date(proj.timestamp).toLocaleString() : 'Date Unknown'}</div>
+          </div>
         </div>
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 11px; text-transform: uppercase; color: var(--text-light);">Registration Status</label>
-          <div>${statusBadge}</div>
-        </div>
-
-        <h4 style="margin-top: 20px; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--secondary);">Additional Details</h4>
-        ${customFieldsHTML || '<p style="font-size: 13px; color: var(--text-light);">No custom fields provided.</p>'}
       </div>
 
+      <!-- Row 2: Team Members (Horizontal grid) -->
       <div>
-        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--accent);">Team Members (3 slots)</h4>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--accent);"><i class="fa-solid fa-users"></i> Team Members (3 slots)</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
           ${membersHTML}
         </div>
       </div>
+
+      <!-- Row 3: Custom Fields / Additional Details (Horizontal grid) -->
+      ${proj.customFields && Object.keys(proj.customFields).length > 0 ? `
+      <div>
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--secondary);"><i class="fa-solid fa-list-check"></i> Additional Details</h4>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          ${customFieldsHTML}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- Row 4: Evaluation & Grading (Horizontal layout) -->
+      <div>
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--warning);"><i class="fa-solid fa-graduation-cap"></i> Evaluation &amp; Grading</h4>
+        <form id="admin-grade-form" onsubmit="adminSaveGrades(event, '${proj.id}')" style="background: var(--bg-app); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px;">
+          
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Innovation (25%)</label>
+              <input type="number" id="grade-innovation" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.innovation || ''}" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Technical Execution (25%)</label>
+              <input type="number" id="grade-technical" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.technical || ''}" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Impact &amp; Viability (25%)</label>
+              <input type="number" id="grade-impact" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.impact || ''}" required>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Design &amp; UX (25%)</label>
+              <input type="number" id="grade-design" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.design || ''}" required>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px dashed var(--border); padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Current Grade:</span>
+              <strong id="grade-average-display" style="font-size: 16px; color: var(--primary);">${proj.averageScore ? proj.averageScore + '/10' : 'Not Graded'}</strong>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; cursor: pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Scores</button>
+          </div>
+          
+        </form>
+      </div>
+
     </div>
-  `);
+  `, true);
 }
 
 // News compose / edit submission
@@ -1791,6 +1933,429 @@ window.adminResetTimelineToDefault = adminResetTimelineToDefault;
 window.adminEditPrize = adminEditPrize;
 window.adminDeletePrize = adminDeletePrize;
 window.adminResetRewardsToDefault = adminResetRewardsToDefault;
+
+// Helper: Decompress Base64 gzip Data URL using DecompressionStream API
+async function decompressFileGzip(base64GzipUrl) {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("DecompressionStream is not supported in this browser. Please use a modern browser.");
+  }
+  
+  const base64Data = base64GzipUrl.split(",")[1];
+  const binaryString = atob(base64Data);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(bytes);
+      controller.close();
+    }
+  });
+  
+  const decompressionStream = new DecompressionStream("gzip");
+  const decompressedStream = stream.pipeThrough(decompressionStream);
+  const response = new Response(decompressedStream);
+  return await response.arrayBuffer();
+}
+
+// Download and decompress project proposal document
+async function downloadConceptNote(projId) {
+  const proj = allProjects.find(p => p.id === projId);
+  if (!proj || !proj.conceptNoteUrl) {
+    showToast("No concept note found.", "error");
+    return;
+  }
+  
+  const url = proj.conceptNoteUrl;
+  const fileName = proj.conceptNoteName || "concept_note.docx";
+  const ext = fileName.split(".").pop().toLowerCase();
+  
+  let mimeType = "application/octet-stream";
+  if (ext === "pdf") mimeType = "application/pdf";
+  else if (ext === "docx") mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  else if (ext === "pptx") mimeType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  
+  try {
+    showToast("Decompressing document...", "info");
+    
+    let downloadUrl;
+    let blob;
+    if (url.startsWith("data:application/gzip;base64,")) {
+      const buffer = await decompressFileGzip(url);
+      blob = new Blob([buffer], { type: mimeType });
+      downloadUrl = URL.createObjectURL(blob);
+    } else {
+      downloadUrl = url;
+    }
+    
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    if (blob) {
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+    }
+    showToast("Download started successfully!", "success");
+  } catch (err) {
+    console.error("Decompression failed:", err);
+    showToast("Failed to prepare file: " + err.message, "error");
+  }
+}
+
+window.downloadConceptNote = downloadConceptNote;
+
+// Helper: Compress file to gzip buffer (reusable helper)
+async function compressFileGzip(file) {
+  if (typeof CompressionStream === "undefined") {
+    console.warn("CompressionStream not supported. Uploading raw file.");
+    return null;
+  }
+  try {
+    const stream = file.stream();
+    const compressionStream = new CompressionStream("gzip");
+    const compressedStream = stream.pipeThrough(compressionStream);
+    const response = new Response(compressedStream);
+    return await response.arrayBuffer();
+  } catch (err) {
+    console.error("Compression failed:", err);
+    return null;
+  }
+}
+
+// Helper: Convert ArrayBuffer to gzip Data URL
+async function bufferToBase64Gzip(buffer) {
+  const blob = new Blob([buffer], { type: "application/gzip" });
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Render Configured Resources in Admin Panel
+function renderAdminResourcesList() {
+  const container = document.getElementById("admin-resources-list");
+  if (!container) return;
+
+  if (allResources.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 20px;"><i class="fa-solid fa-inbox"></i> No resources uploaded yet. Add one on the left.</p>`;
+  } else {
+    container.innerHTML = allResources.map(res => {
+      const icon = res.icon || "fa-file";
+      return `
+        <div style="border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="font-weight: 700; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid ${icon}" style="color: var(--primary);"></i> ${res.title}
+            </div>
+            <span style="font-size: 10px; color: var(--text-light); white-space: nowrap;">${res.size || 'N/A'} &bull; ${res.type || 'File'}</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">${res.desc || ''}</p>
+          <div style="display: flex; gap: 8px; margin-top: 4px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end; align-items: center;">
+            ${res.link ? `<span style="font-size: 11px; color: var(--success); margin-right: auto;"><i class="fa-solid fa-cloud-arrow-up"></i> File Uploaded</span>` : `<span style="font-size: 11px; color: var(--text-light); margin-right: auto;">No file linked</span>`}
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteResource('${res.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 10px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Live public preview — mirrors the Resource Center card style
+  const previewContainer = document.getElementById("admin-resources-preview-container");
+  if (previewContainer) {
+    if (allResources.length === 0) {
+      previewContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-size: 13px; grid-column: 1/-1;">No resources to preview.</p>`;
+    } else {
+      previewContainer.innerHTML = allResources.map(res => {
+        const icon = res.icon || "fa-file";
+        return `
+          <div class="resource-card" style="width: 100%; border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-card); display: flex; gap: 16px; align-items: flex-start; text-align: left;">
+            <div class="resource-icon" style="font-size: 24px; color: var(--primary);"><i class="fa-solid ${icon}"></i></div>
+            <div class="resource-info" style="flex: 1;">
+              <h4 style="margin: 0 0 6px 0; font-size: 14px; color: var(--text-main); font-weight: 600;">${res.title}</h4>
+              <p style="margin: 0 0 8px 0; font-size: 12px; color: var(--text-muted); line-height: 1.4;">${res.desc || ''}</p>
+              <span style="font-size: 11px; color: var(--text-light); display: block; margin-bottom: 8px;">${res.type || 'Document'} &bull; ${res.size || 'N/A'}</span>
+              <a href="#" class="resource-link" style="font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-download"></i> Download Template</a>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+}
+
+// Resource Form Submission (Gzip Upload)
+const adminResourceForm = document.getElementById("admin-resource-form");
+if (adminResourceForm) {
+  adminResourceForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("admin-resource-title").value.trim();
+    const desc = document.getElementById("admin-resource-desc").value.trim();
+    const fileInput = document.getElementById("admin-resource-file");
+    const file = fileInput ? fileInput.files[0] : null;
+
+    if (!file) {
+      showToast("Please select a file to upload.", "error");
+      return;
+    }
+
+    const saveBtn = document.getElementById("admin-resource-save-btn");
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+    }
+
+    try {
+      showToast("Compressing and uploading resource...", "info");
+      
+      const fileExt = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+      let icon = "fa-file";
+      let type = "Document";
+      
+      if (fileExt === ".pdf") {
+        icon = "fa-file-pdf";
+        type = "PDF Document";
+      } else if (fileExt === ".pptx") {
+        icon = "fa-file-powerpoint";
+        type = "PPTX Presentation";
+      } else if (fileExt === ".docx") {
+        icon = "fa-file-word";
+        type = "Word Document";
+      } else if (fileExt === ".zip") {
+        icon = "fa-file-zipper";
+        type = "ZIP Archive";
+      } else if (fileExt === ".xlsx" || fileExt === ".xls") {
+        icon = "fa-file-excel";
+        type = "Excel Spreadsheet";
+      } else if ([".png", ".jpg", ".jpeg"].includes(fileExt)) {
+        icon = "fa-image";
+        type = "Image Asset";
+      }
+
+      let sizeStr = "";
+      if (file.size >= 1024 * 1024) {
+        sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+      } else {
+        sizeStr = `${(file.size / 1024).toFixed(0)} KB`;
+      }
+
+      let fileDataUrl = "";
+      const compressedBuffer = await compressFileGzip(file);
+      if (compressedBuffer) {
+        fileDataUrl = await bufferToBase64Gzip(compressedBuffer);
+      } else {
+        fileDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const id = title.toLowerCase().replace(/[^a-z0-9]/g, "-");
+      await setDoc(doc(firestore, "resources", id), {
+        title,
+        desc,
+        icon,
+        type,
+        size: sizeStr,
+        link: fileDataUrl,
+        timestamp: Date.now()
+      });
+
+      showToast("Resource uploaded and published!", "success");
+      adminResourceForm.reset();
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to upload: " + err.message, "error");
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload & Publish';
+      }
+    }
+  });
+}
+
+// Delete Resource
+async function adminDeleteResource(resId) {
+  if (!confirm("Are you sure you want to delete this resource? Competitors will no longer be able to download it.")) {
+    return;
+  }
+  try {
+    showToast("Deleting resource...", "info");
+    await deleteDoc(doc(firestore, "resources", resId));
+    showToast("Resource deleted successfully!", "success");
+  } catch (err) {
+    showToast("Deletion failed: " + err.message, "error");
+  }
+}
+
+window.adminDeleteResource = adminDeleteResource;
+
+// Save evaluation scores & grades
+async function adminSaveGrades(event, projId) {
+  event.preventDefault();
+  const innovation = parseFloat(document.getElementById("grade-innovation").value);
+  const technical = parseFloat(document.getElementById("grade-technical").value);
+  const impact = parseFloat(document.getElementById("grade-impact").value);
+  const design = parseFloat(document.getElementById("grade-design").value);
+  
+  if (isNaN(innovation) || isNaN(technical) || isNaN(impact) || isNaN(design)) {
+    showToast("Please fill in all score fields with valid numbers.", "error");
+    return;
+  }
+  
+  const average = parseFloat(((innovation + technical + impact + design) / 4).toFixed(1));
+  
+  try {
+    showToast("Saving project grades...", "info");
+    await updateDoc(doc(firestore, "projects", projId), {
+      scores: {
+        innovation,
+        technical,
+        impact,
+        design
+      },
+      averageScore: average
+    });
+    
+    const avgDisplay = document.getElementById("grade-average-display");
+    if (avgDisplay) avgDisplay.textContent = `${average}/10`;
+    
+    showToast("Grades saved successfully!", "success");
+  } catch (err) {
+    console.error("Failed saving grades:", err);
+    showToast("Failed to save grades: " + err.message, "error");
+  }
+}
+
+window.adminSaveGrades = adminSaveGrades;
+
+// Render tickets list
+function renderAdminTicketsList() {
+  const container = document.getElementById("admin-tickets-table-body");
+  if (!container) return;
+
+  if (allTickets.length === 0) {
+    container.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 24px;"><i class="fa-solid fa-ticket"></i> No event tickets booked yet.</td></tr>`;
+  } else {
+    container.innerHTML = allTickets.map(t => {
+      const regDate = t.timestamp ? new Date(t.timestamp).toLocaleString() : "N/A";
+      const seatDisplay = t.seatCode ? `<span style="background: rgba(37, 99, 235, 0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: monospace;">${t.seatCode}</span>` : `<span style="color: var(--text-muted);">Hidden</span>`;
+      return `
+        <tr>
+          <td><strong style="color: var(--primary); font-family: monospace;">${t.id}</strong></td>
+          <td style="font-weight: 600; color: var(--text-main);">${t.name}</td>
+          <td>${t.email}</td>
+          <td>${seatDisplay}</td>
+          <td style="font-size: 11px; color: var(--text-muted);">${regDate}</td>
+          <td style="text-align: center;">
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteTicket('${t.id}')" style="color: var(--danger); border-color: var(--danger); padding: 2px 6px; font-size: 11px; cursor: pointer; border-radius: 4px; background: transparent;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+}
+
+// Ticketing settings form submission
+const ticketingSettingsForm = document.getElementById("admin-ticketing-settings-form");
+if (ticketingSettingsForm) {
+  ticketingSettingsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const toggle = document.getElementById("admin-tickets-toggle").checked;
+    const title = document.getElementById("admin-tickets-event-title").value.trim();
+    const date = document.getElementById("admin-tickets-event-date").value.trim();
+    const venue = document.getElementById("admin-tickets-event-venue").value.trim();
+    const limit = parseInt(document.getElementById("admin-tickets-limit").value);
+    const showSeats = document.getElementById("admin-tickets-show-seats").checked;
+    const seatPrefix = document.getElementById("admin-tickets-seat-prefix").value.trim();
+    const seatStart = parseInt(document.getElementById("admin-tickets-seat-start").value);
+
+    try {
+      showToast("Saving ticketing settings...", "info");
+      await setDoc(doc(firestore, "config", "ticketing_settings"), {
+        ticketingEnabled: toggle,
+        eventTitle: title,
+        eventDate: date,
+        eventVenue: venue,
+        ticketLimit: limit,
+        showSeats: showSeats,
+        seatPrefix: seatPrefix,
+        seatStartNumber: seatStart,
+        timestamp: Date.now()
+      });
+      showToast("Ticketing settings saved successfully!", "success");
+    } catch (err) {
+      showToast("Failed to save settings: " + err.message, "error");
+    }
+  });
+}
+
+// Manual ticket registration
+const ticketAddForm = document.getElementById("admin-ticket-add-form");
+if (ticketAddForm) {
+  ticketAddForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("admin-ticket-add-name").value.trim();
+    const email = document.getElementById("admin-ticket-add-email").value.trim();
+    const customSeat = document.getElementById("admin-ticket-add-seat").value.trim();
+
+    if (ticketingConfig && allTickets.length >= ticketingConfig.ticketLimit) {
+      showToast("Ticketing limit reached! Cannot issue more tickets.", "error");
+      return;
+    }
+
+    // Determine seat code
+    let finalSeat = "";
+    if (customSeat) {
+      finalSeat = customSeat;
+    } else {
+      const prefix = ticketingConfig ? (ticketingConfig.seatPrefix || "GA-") : "GA-";
+      const startNum = ticketingConfig ? (ticketingConfig.seatStartNumber || 100) : 100;
+      finalSeat = `${prefix}${startNum + allTickets.length}`;
+    }
+
+    try {
+      showToast("Generating ticket...", "info");
+      const ticketId = `TX-${Math.floor(1000 + Math.random() * 9000)}`;
+      await setDoc(doc(firestore, "tickets", ticketId), {
+        name,
+        email,
+        seatCode: finalSeat,
+        timestamp: Date.now()
+      });
+      showToast(`Ticket ${ticketId} issued successfully!`, "success");
+      ticketAddForm.reset();
+    } catch (err) {
+      showToast("Failed to issue ticket: " + err.message, "error");
+    }
+  });
+}
+
+// Delete ticket
+async function adminDeleteTicket(ticketId) {
+  if (!confirm(`Are you sure you want to cancel and delete ticket ${ticketId}?`)) {
+    return;
+  }
+  try {
+    showToast("Canceling ticket...", "info");
+    await deleteDoc(doc(firestore, "tickets", ticketId));
+    showToast("Ticket deleted successfully!", "success");
+  } catch (err) {
+    showToast("Failed to delete ticket: " + err.message, "error");
+  }
+}
+
+window.adminDeleteTicket = adminDeleteTicket;
 
 // Initialize realtime database connections
 initRealtimeSync();

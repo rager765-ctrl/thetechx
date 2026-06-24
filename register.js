@@ -81,9 +81,12 @@ function renderPublicCustomFields() {
       <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--text-main);"><i class="fa-solid fa-square-plus"></i> Additional Organizer Requirements</h4>
       <div class="grid-2" style="gap: 16px;">
         ${activeCustomFields.map(field => `
-          <div class="form-group">
+          <div class="form-group ${field.type === 'text' ? 'custom-field-textarea-group' : ''}">
             <label for="custom-field-${field.key}">${field.label}</label>
-            <input type="${field.type}" id="custom-field-${field.key}" class="form-control" required placeholder="Enter ${field.label.toLowerCase()}">
+            ${field.type === 'text'
+              ? `<textarea id="custom-field-${field.key}" class="form-control" required placeholder="Enter ${field.label.toLowerCase()}" rows="3" style="resize: vertical; min-height: 80px;"></textarea>`
+              : `<input type="${field.type}" id="custom-field-${field.key}" class="form-control" required placeholder="Enter ${field.label.toLowerCase()}">`
+            }
           </div>
         `).join("")}
       </div>
@@ -121,14 +124,14 @@ onSnapshot(collection(firestore, "tracks"), (snapshot) => {
     if (visibleTracks.length === 0) {
       // Self-healing default fallback options
       selectEl.innerHTML = `
-        <option value="" disabled selected>Select a track</option>
+        <option value="" selected>Not Specified Yet (Open Track)</option>
         <option value="clean-energy">Clean Energy & Environment</option>
         <option value="fintech">Fintech & Financial Inclusion</option>
         <option value="healthtech">Healthcare & MedTech</option>
       `;
     } else {
       selectEl.innerHTML = `
-        <option value="" disabled selected>Select a track</option>
+        <option value="" selected>Not Specified Yet (Open Track)</option>
         ` + visibleTracks.map(t => `<option value="${t.id}">${t.name}</option>`).join("") + `
       `;
     }
@@ -158,6 +161,12 @@ if (teamRegistrationForm) {
         const fileExt = docxFile.name.substring(docxFile.name.lastIndexOf(".")).toLowerCase();
         if (!allowedExtensions.includes(fileExt)) {
           throw new Error("Proposal document must be a .docx, .pptx, or .pdf file.");
+        }
+        
+        // Enforce max upload size limit of 4MB (will compress to <1MB)
+        const maxFileSize = 4 * 1024 * 1024;
+        if (docxFile.size > maxFileSize) {
+          throw new Error("File is too large. Maximum allowed size is 4MB.");
         }
       } else {
         throw new Error("Please select a concept file to upload.");
@@ -196,16 +205,22 @@ if (teamRegistrationForm) {
       const projId = `p-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
       
       // File encoding logic
-      showToast("Encoding proposal file...", "info");
+      showToast("Compressing and encoding proposal file...", "info");
       if (window.__updateUploadProgress) window.__updateUploadProgress(30);
 
-      // Convert file to Base64 Data URL
-      const conceptNoteUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (err) => reject(new Error("File reading failed."));
-        reader.readAsDataURL(docxFile);
-      });
+      let conceptNoteUrl;
+      const compressedBuffer = await compressFileGzip(docxFile);
+      if (compressedBuffer) {
+        conceptNoteUrl = await bufferToBase64Gzip(compressedBuffer);
+      } else {
+        // Fallback to uncompressed base64 if CompressionStream is unsupported
+        conceptNoteUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (err) => reject(new Error("File reading failed."));
+          reader.readAsDataURL(docxFile);
+        });
+      }
 
       if (window.__updateUploadProgress) window.__updateUploadProgress(70);
 
@@ -419,39 +434,34 @@ window.addEventListener("DOMContentLoaded", () => {
     if (progressLbl) progressLbl.textContent = "0%";
   };
   
-  // Auto-fill button listener
-  const btnAutofill = document.getElementById("btn-autofill");
-  if (btnAutofill) {
-    btnAutofill.addEventListener("click", () => {
-      const rand = Math.floor(Math.random() * 900) + 100;
-      const teamNameInput = document.getElementById("reg-team-name");
-      if (teamNameInput) teamNameInput.value = `Visionaries Tech ${rand}`;
-
-      const trackSelect = document.getElementById("reg-project-track");
-      if (trackSelect) {
-        if (trackSelect.options.length > 1) {
-          trackSelect.selectedIndex = 1;
-        }
-      }
-
-      const memberData = [
-        { name: "Abena Osei", email: `abena.osei.${rand}@student.knust.edu.gh`, contact: "+233 24 123 4567" },
-        { name: "Kofi Mensah", email: `kofi.mensah.${rand}@student.knust.edu.gh`, contact: "+233 27 765 4321" },
-        { name: "Kwame Asante", email: `kwame.asante.${rand}@student.knust.edu.gh`, contact: "+233 55 987 6543" }
-      ];
-
-      memberData.forEach((member, i) => {
-        const idx = i + 1;
-        const nameField = document.getElementById(`reg-m${idx}-name`);
-        const emailField = document.getElementById(`reg-m${idx}-email`);
-        const contactField = document.getElementById(`reg-m${idx}-contact`);
-
-        if (nameField) nameField.value = member.name;
-        if (emailField) emailField.value = member.email;
-        if (contactField) contactField.value = member.contact;
-      });
-
-      showToast("Form fields auto-completed! Please select your concept note file.", "success");
-    });
-  }
+  // Auto-fill removed.
 });
+
+// Helper: Compress file to gzip buffer
+async function compressFileGzip(file) {
+  if (typeof CompressionStream === "undefined") {
+    console.warn("CompressionStream not supported. Uploading raw file.");
+    return null;
+  }
+  try {
+    const stream = file.stream();
+    const compressionStream = new CompressionStream("gzip");
+    const compressedStream = stream.pipeThrough(compressionStream);
+    const response = new Response(compressedStream);
+    return await response.arrayBuffer();
+  } catch (err) {
+    console.error("Compression failed:", err);
+    return null;
+  }
+}
+
+// Helper: Convert ArrayBuffer to gzip Data URL
+async function bufferToBase64Gzip(buffer) {
+  const blob = new Blob([buffer], { type: "application/gzip" });
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}

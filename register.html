@@ -33,7 +33,7 @@
   </nav>
 
   <!-- Registration view Container -->
-  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+  <main class="auth-main register-main">
     <div class="auth-card" id="register-card" style="max-width: 800px; width: 100%; box-shadow: var(--shadow-xl); background: white;">
       <div class="auth-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
         <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -44,11 +44,8 @@
             <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
           </div>
           <h2>Team Registration</h2>
-          <p>Register your group of 3 members and submit your concept note</p>
+          <p>Register your team or solo profile and submit your concept note</p>
         </div>
-        <button type="button" id="btn-autofill" class="btn btn-secondary btn-sm" style="border: 1px dashed var(--primary); color: var(--primary); font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-          <i class="fa-solid fa-magic"></i> Auto-fill Form
-        </button>
       </div>
       <form id="team-registration-form">
         <div class="form-row">
@@ -57,16 +54,16 @@
             <input type="text" id="reg-team-name" class="form-control" placeholder="e.g. EcoSphere Founders" required>
           </div>
           <div class="form-group" style="flex: 1;">
-            <label for="reg-project-track">Challenge Track</label>
-            <select id="reg-project-track" class="form-control" required>
-              <option value="" disabled selected>Select a track</option>
+            <label for="reg-project-track">Challenge Track (Optional)</label>
+            <select id="reg-project-track" class="form-control">
+              <option value="" selected>Not Specified Yet (Open Track)</option>
               <!-- Dynamic options loaded from Firebase tracks collection -->
             </select>
           </div>
         </div>
 
         <!-- Member 1 (Lead) -->
-        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+        <div class="registration-member-card">
           <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-user-gear"></i> Member 1 (Team Lead)</h4>
           <div class="form-row">
             <div class="form-group">
@@ -85,7 +82,7 @@
         </div>
 
         <!-- Member 2 -->
-        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+        <div class="registration-member-card">
           <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--secondary);"><i class="fa-solid fa-user"></i> Member 2</h4>
           <div class="form-row">
             <div class="form-group">
@@ -104,7 +101,7 @@
         </div>
 
         <!-- Member 3 -->
-        <div style="padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: var(--bg-app);">
+        <div class="registration-member-card">
           <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);"><i class="fa-solid fa-user"></i> Member 3</h4>
           <div class="form-row">
             <div class="form-group">
@@ -190,17 +187,13 @@
       <i class="fa-solid fa-user-plus"></i>
       <span>Register</span>
     </a>
-    <a href="index.html#news" class="mobile-bottom-nav-item">
-      <i class="fa-solid fa-newspaper"></i>
-      <span>News</span>
-    </a>
     <a href="index.html#resources" class="mobile-bottom-nav-item">
       <i class="fa-solid fa-folder-open"></i>
       <span>Resources</span>
     </a>
-    <a href="index.html#legal" class="mobile-bottom-nav-item">
-      <i class="fa-solid fa-gavel"></i>
-      <span>Legal</span>
+    <a href="index.html#news" class="mobile-bottom-nav-item">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
     </a>
   </div>
 

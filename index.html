@@ -34,8 +34,6 @@
         <a href="#timeline" class="nav-link" data-view="home" data-scroll="timeline">Timeline</a>
         <a href="#resources" class="nav-link" data-view="resources">Resources</a>
         <a href="#news" class="nav-link" data-view="news">News</a>
-        <a href="#showcase" class="nav-link" data-view="showcase">Showcase</a>
-        <a href="#legal" class="nav-link" data-view="legal">Legal</a>
       </div>
 
       <div class="nav-auth">
@@ -57,8 +55,6 @@
     <a href="#timeline" class="mobile-nav-link" data-view="home" data-scroll="timeline">Timeline</a>
     <a href="#resources" class="mobile-nav-link" data-view="resources">Resources</a>
     <a href="#news" class="mobile-nav-link" data-view="news">News</a>
-    <a href="#showcase" class="mobile-nav-link" data-view="showcase">Showcase</a>
-    <a href="#legal" class="mobile-nav-link" data-view="legal">Legal</a>
     <div class="mobile-auth">
       <a href="admin.html" class="btn btn-secondary" id="mobile-login-btn">Admin Login</a>
       <a href="register.html" class="btn btn-primary" id="mobile-register-btn">Register Now</a>
@@ -442,17 +438,13 @@
       <i class="fa-solid fa-user-plus"></i>
       <span>Register</span>
     </a>
-    <a href="#news" class="mobile-bottom-nav-item" data-view="news">
-      <i class="fa-solid fa-newspaper"></i>
-      <span>News</span>
-    </a>
     <a href="#resources" class="mobile-bottom-nav-item" data-view="resources">
       <i class="fa-solid fa-folder-open"></i>
       <span>Resources</span>
     </a>
-    <a href="#legal" class="mobile-bottom-nav-item" data-view="legal">
-      <i class="fa-solid fa-gavel"></i>
-      <span>Legal</span>
+    <a href="#news" class="mobile-bottom-nav-item" data-view="news">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
     </a>
   </div>
 
@@ -475,6 +467,18 @@
         <!-- Dynamic details inject -->
       </div>
     </div>
+  </div>
+
+  <!-- FLOATING EVENT TICKETS ACTION -->
+  <div id="floating-ticket-action" class="floating-ticket" style="display: none;">
+    <div class="floating-ticket-content">
+      <i class="fa-solid fa-ticket"></i>
+      <div>
+        <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: var(--text-main);">Grand Finale Tickets</h4>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-light);">Book your attendance pass!</p>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openPublicTicketModal()" style="padding: 6px 12px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-bolt"></i> Book Pass</button>
   </div>
 
   <!-- Main JavaScript File -->

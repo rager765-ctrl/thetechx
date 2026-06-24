@@ -12,7 +12,7 @@
 <body style="background-color: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column;">
 
   <!-- Secure Login View (Shown when not authenticated) -->
-  <main id="admin-login-view" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+  <main id="admin-login-view" class="auth-main">
     <!-- LOGIN CARD -->
     <div class="auth-card" id="login-card" style="max-width: 450px; width: 100%; box-shadow: var(--shadow-xl); border: 1px solid var(--border); background: white;">
       <div class="auth-header">
@@ -130,6 +130,8 @@
             <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
             <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
             <li class="sidebar-item" data-admin-tab="legal-config"><i class="fa-solid fa-gavel"></i> Manage Legal</li>
+            <li class="sidebar-item" data-admin-tab="resources-config"><i class="fa-solid fa-folder-open"></i> Manage Resources</li>
+            <li class="sidebar-item" data-admin-tab="tickets-config"><i class="fa-solid fa-ticket"></i> Manage Tickets</li>
           </ul>
         </div>
         <button class="sidebar-item" id="admin-logout-btn" style="color: var(--danger); width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
@@ -580,6 +582,157 @@
             <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">This shows how the legal documents appear on the public landing page right now.</p>
             <div id="admin-legal-preview-container" style="display: flex; flex-direction: column; gap: 16px;">
               <!-- Preview rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE RESOURCES -->
+        <div class="admin-tab-content" id="admin-tab-resources-config" style="display: none;">
+          <div class="portal-header">
+            <div>
+              <h2>Manage Resource Center</h2>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Upload templates, sheets, presentations, and guides for competitors to download from the Resource Center.</p>
+            </div>
+          </div>
+          
+          <div class="grid-2" style="align-items: start; gap: 24px;">
+            <!-- Save/Upload Resource Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload New Resource</h3>
+              <form id="admin-resource-form">
+                <div class="form-group">
+                  <label for="admin-resource-title">Resource Title</label>
+                  <input type="text" id="admin-resource-title" class="form-control" placeholder="e.g. TechX Official Rules & Guidelines" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-resource-desc">Description</label>
+                  <textarea id="admin-resource-desc" class="form-control" style="min-height: 80px;" placeholder="Describe what this template/document is for..." required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="admin-resource-file">Upload File <span style="font-weight: 400; color: var(--text-light);">(DOCX, PPTX, PDF, ZIP, XLSX, PNG, JPG; Max 4MB)</span></label>
+                  <input type="file" id="admin-resource-file" class="form-control" accept=".docx,.pptx,.pdf,.zip,.xlsx,.xls,.png,.jpg" required>
+                </div>
+                <div style="margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary btn-block" id="admin-resource-save-btn"><i class="fa-solid fa-upload"></i> Upload & Publish</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Existing Resources List Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-folder-open"></i> Published Resources</h3>
+              <div id="admin-resources-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic resource list with delete action -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="card" style="margin-top: 24px;">
+            <h3 style="margin-bottom: 8px; color: var(--primary);"><i class="fa-solid fa-eye"></i> Live Public Preview</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">This shows how the resources appear in the public Resource Center section.</p>
+            <div class="resource-layout-grid" style="width: 100%;">
+              <div class="resource-grid" id="admin-resources-preview-container" style="width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Preview cards rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: EVENT TICKETING -->
+        <div class="admin-tab-content" id="admin-tab-tickets-config" style="display: none;">
+          <div class="portal-header">
+            <div>
+              <h2>Event Ticketing Configurator</h2>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Toggle attendance booking, set ticketing limits, and manage registered attendees for the TechX Grand Finale.</p>
+            </div>
+          </div>
+          
+          <div class="grid-2" style="align-items: start; gap: 24px; grid-template-columns: 1fr 2fr;">
+            <!-- Ticket Configuration Card -->
+            <div class="card" style="display: flex; flex-direction: column; gap: 16px;">
+              <h3><i class="fa-solid fa-gears"></i> Ticketing Settings</h3>
+              <form id="admin-ticketing-settings-form" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-app); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                  <label for="admin-tickets-toggle" style="font-weight: 600; font-size: 13px; color: var(--text-main); cursor: pointer; margin: 0;"><i class="fa-solid fa-power-off" style="color: var(--primary);"></i> Enable Ticketing</label>
+                  <input type="checkbox" id="admin-tickets-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-event-title">Event Title</label>
+                  <input type="text" id="admin-tickets-event-title" class="form-control" placeholder="e.g. TechX Grand Finale Pitch Day" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-event-date">Event Date &amp; Time</label>
+                  <input type="text" id="admin-tickets-event-date" class="form-control" placeholder="e.g. August 15, 2026 @ 09:00 AM" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-event-venue">Event Venue</label>
+                  <input type="text" id="admin-tickets-event-venue" class="form-control" placeholder="e.g. KNUST Great Hall" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-limit">Ticket Quota Limit</label>
+                  <input type="number" id="admin-tickets-limit" class="form-control" placeholder="e.g. 500" min="10" required>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-app); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                  <label for="admin-tickets-show-seats" style="font-weight: 600; font-size: 13px; color: var(--text-main); cursor: pointer; margin: 0;"><i class="fa-solid fa-chair" style="color: var(--primary);"></i> Show Seat Numbers</label>
+                  <input type="checkbox" id="admin-tickets-show-seats" style="width: 20px; height: 20px; cursor: pointer;">
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-seat-prefix">Seat Prefix</label>
+                  <input type="text" id="admin-tickets-seat-prefix" class="form-control" placeholder="e.g. GA-" value="GA-">
+                </div>
+                <div class="form-group">
+                  <label for="admin-tickets-seat-start">Starting Seat Number</label>
+                  <input type="number" id="admin-tickets-seat-start" class="form-control" placeholder="e.g. 1" min="1" value="1">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+              </form>
+
+              <hr style="border: 0; border-top: 1px dashed var(--border); margin: 8px 0;">
+
+              <!-- Add Ticket Manually Form -->
+              <h3><i class="fa-solid fa-user-plus"></i> Manual Registration</h3>
+              <form id="admin-ticket-add-form" style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="form-group">
+                  <label for="admin-ticket-add-name">Attendee Full Name</label>
+                  <input type="text" id="admin-ticket-add-name" class="form-control" placeholder="e.g. Kelvin Boateng" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-ticket-add-email">Attendee Email Address</label>
+                  <input type="email" id="admin-ticket-add-email" class="form-control" placeholder="e.g. kelvin@example.com" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-ticket-add-seat">Custom Seat Number (Optional)</label>
+                  <input type="text" id="admin-ticket-add-seat" class="form-control" placeholder="e.g. VIP-01 (leave blank to auto-assign)">
+                </div>
+                <button type="submit" class="btn btn-secondary btn-block"><i class="fa-solid fa-ticket"></i> Issue Ticket</button>
+              </form>
+            </div>
+
+            <!-- Attendees & Booking Logs Card -->
+            <div class="card" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3><i class="fa-solid fa-clipboard-list"></i> Booked Attendees</h3>
+                <span id="admin-tickets-count-badge" class="badge badge-info">0 / 0 Booked</span>
+              </div>
+              
+              <div class="table-container" style="max-height: 520px; overflow-y: auto;">
+                <table class="table" style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Ticket ID</th>
+                      <th>Guest Name</th>
+                      <th>Email Address</th>
+                      <th>Seat</th>
+                      <th>Date Booked</th>
+                      <th style="width: 80px; text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-tickets-table-body">
+                    <!-- Dynamic bookings rendered here -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

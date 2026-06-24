@@ -44,6 +44,7 @@ let allTracks = [];
 let allTimeline = [];
 let landingStatsConfig = null;
 let allPrizes = [];
+let allResources = [];
 
 // DOM Elements
 const navLinks = document.querySelectorAll(".nav-link, .mobile-nav-link");
@@ -416,23 +417,47 @@ function renderResources() {
   const publicGrid = document.getElementById("public-resources-grid");
   if (!publicGrid) return;
 
-  publicGrid.innerHTML = INITIAL_RESOURCES.map(res => `
-    <div class="resource-card">
-      <div class="resource-icon"><i class="fa-solid ${res.icon}"></i></div>
-      <div class="resource-info">
-        <h4>${res.title}</h4>
-        <p>${res.desc}</p>
-        <span style="font-size: 11px; color: var(--text-light); display: block; margin-bottom: 8px;">${res.type} &bull; ${res.size}</span>
-        <a href="${res.link}" class="resource-link download-mock-btn" data-res="${res.title}"><i class="fa-solid fa-download"></i> Download Template</a>
+  const items = allResources.length > 0 ? allResources : INITIAL_RESOURCES;
+
+  publicGrid.innerHTML = items.map(res => {
+    const icon = res.icon || "fa-file";
+    const title = res.title || "Resource Template";
+    const type = res.type || "Document";
+    const size = res.size || "N/A";
+    const desc = res.desc || "";
+    
+    return `
+      <div class="resource-card">
+        <div class="resource-icon"><i class="fa-solid ${icon}"></i></div>
+        <div class="resource-info">
+          <h4>${title}</h4>
+          <p>${desc}</p>
+          <span style="font-size: 11px; color: var(--text-light); display: block; margin-bottom: 8px;">${type} &bull; ${size}</span>
+          ${res.link 
+            ? `<a href="#" class="resource-link download-resource-btn" data-id="${res.id || ''}"><i class="fa-solid fa-download"></i> Download Template</a>`
+            : `<a href="#" class="resource-link download-mock-btn" data-res="${title}"><i class="fa-solid fa-download"></i> Download Template</a>`
+          }
+        </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
+
+  document.querySelectorAll(".download-resource-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const resId = e.currentTarget.getAttribute("data-id");
+      const res = allResources.find(r => r.id === resId);
+      if (res) {
+        await downloadResourceFile(res);
+      }
+    });
+  });
 
   document.querySelectorAll(".download-mock-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       const resTitle = e.currentTarget.getAttribute("data-res");
-      showToast(`Started download for: ${resTitle}`, "info");
+      showToast(`Mock download started for: ${resTitle}`, "info");
     });
   });
 }
@@ -612,6 +637,24 @@ function initRealtimeSync() {
     if (getActiveViewId() === "home") renderLandingPrizes();
   });
 
+  // Watch ticketing settings
+  onSnapshot(doc(firestore, "config", "ticketing_settings"), (snapshot) => {
+    const floatingAction = document.getElementById("floating-ticket-action");
+    if (!floatingAction) return;
+
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      window.ticketingConfig = data;
+      if (data.ticketingEnabled === true) {
+        floatingAction.style.display = "flex";
+      } else {
+        floatingAction.style.display = "none";
+      }
+    } else {
+      floatingAction.style.display = "none";
+    }
+  });
+
   // Watch legal collection
   onSnapshot(collection(firestore, "legal"), async (snapshot) => {
     let allLegal = [];
@@ -636,6 +679,42 @@ function initRealtimeSync() {
         `).join("");
       }
     }
+  });
+
+  // Watch resources collection
+  onSnapshot(collection(firestore, "resources"), async (snapshot) => {
+    allResources = [];
+    snapshot.forEach(d => {
+      allResources.push({ id: d.id, ...d.data() });
+    });
+    
+    // Seed default resources if collection is empty
+    if (snapshot.empty) {
+      const defaultResources = [
+        { title: "TechX Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", timestamp: 1 },
+        { title: "Pitch Deck PowerPoint Template", icon: "fa-file-powerpoint", type: "PPTX Presentation", size: "4.8 MB", desc: "Use our approved slide outline for Demo Day to structure your problem, solution, and model.", timestamp: 2 },
+        { title: "Judging Scorecard Rubric Details", icon: "fa-clipboard-check", type: "PDF Document", size: "800 KB", desc: "A comprehensive breakdown of how judges rate Innovation, Execution, Impact, and UX.", timestamp: 3 }
+      ];
+      try {
+        for (const res of defaultResources) {
+          const id = res.title.toLowerCase().replace(/[^a-z0-9]/g, "-");
+          await setDoc(doc(firestore, "resources", id), {
+            title: res.title,
+            icon: res.icon,
+            type: res.type,
+            size: res.size,
+            desc: res.desc,
+            link: "", // Seed with empty link first
+            timestamp: Date.now() + res.timestamp
+          });
+        }
+      } catch (err) {
+        console.error("Failed seeding resources:", err);
+      }
+    }
+    
+    allResources.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    if (getActiveViewId() === "resources") renderResources();
   });
 }
 
@@ -734,3 +813,418 @@ window.addEventListener("DOMContentLoaded", () => {
     showView("home");
   }
 });
+
+// Helper: Decompress Base64 gzip Data URL using DecompressionStream API
+async function decompressFileGzip(base64GzipUrl) {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("DecompressionStream is not supported in this browser. Please use a modern browser.");
+  }
+  
+  const base64Data = base64GzipUrl.split(",")[1];
+  const binaryString = atob(base64Data);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(bytes);
+      controller.close();
+    }
+  });
+  
+  const decompressionStream = new DecompressionStream("gzip");
+  const decompressedStream = stream.pipeThrough(decompressionStream);
+  const response = new Response(decompressedStream);
+  return await response.arrayBuffer();
+}
+
+// Download dynamic resource file (decompresses on-the-fly)
+async function downloadResourceFile(res) {
+  const url = res.link;
+  if (!url) {
+    showToast("No download file uploaded for this resource.", "error");
+    return;
+  }
+  
+  const title = res.title;
+  let extension = "pdf";
+  if (res.icon === "fa-file-word" || res.type.includes("Word") || res.type.includes("DOCX")) extension = "docx";
+  else if (res.icon === "fa-file-powerpoint" || res.type.includes("PowerPoint") || res.type.includes("PPTX")) extension = "pptx";
+  else if (res.icon === "fa-file-zipper" || res.type.includes("ZIP") || res.type.includes("Archive")) extension = "zip";
+  else if (res.icon === "fa-file-excel" || res.type.includes("Excel") || res.type.includes("Spreadsheet")) extension = "xlsx";
+  else if (res.icon === "fa-image" || res.type.includes("Image")) extension = "png";
+  
+  const fileName = `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${extension}`;
+  
+  let mimeType = "application/octet-stream";
+  if (extension === "pdf") mimeType = "application/pdf";
+  else if (extension === "docx") mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  else if (extension === "pptx") mimeType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  else if (extension === "zip") mimeType = "application/zip";
+  else if (extension === "xlsx") mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  
+  try {
+    showToast(`Downloading ${title}...`, "info");
+    
+    let downloadUrl;
+    let blob;
+    if (url.startsWith("data:application/gzip;base64,")) {
+      const buffer = await decompressFileGzip(url);
+      blob = new Blob([buffer], { type: mimeType });
+      downloadUrl = URL.createObjectURL(blob);
+    } else {
+      downloadUrl = url;
+    }
+    
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    if (blob) {
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+    }
+  } catch (err) {
+    console.error("Decompression failed:", err);
+    showToast("Failed to download file: " + err.message, "error");
+  }
+}
+
+// Open Public Ticket Modal
+function openPublicTicketModal() {
+  const config = window.ticketingConfig || {
+    eventTitle: "TechX Grand Finale Pitch Day",
+    eventDate: "August 15, 2026 @ 09:00 AM",
+    eventVenue: "KNUST Great Hall"
+  };
+
+  openModal("Book Attendance Ticket Pass", `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: rgba(108, 92, 231, 0.08); padding: 12px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary); font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+        <strong style="color: var(--text-main); display: block; margin-bottom: 2px;">${config.eventTitle}</strong>
+        <i class="fa-regular fa-calendar-check"></i> ${config.eventDate}<br>
+        <i class="fa-solid fa-map-pin"></i> ${config.eventVenue}
+      </div>
+      <form id="public-ticket-booking-form" onsubmit="submitPublicTicketBooking(event)" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-main);">Your Full Name</label>
+          <input type="text" id="public-ticket-name" class="form-control" placeholder="e.g. Kelvin Boateng" required>
+        </div>
+        <div class="form-group">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-main);">Your Email Address</label>
+          <input type="email" id="public-ticket-email" class="form-control" placeholder="e.g. kelvin@example.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 8px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-ticket"></i> Book Free Pass</button>
+      </form>
+    </div>
+  `);
+}
+
+// Submit ticket booking to firestore
+async function submitPublicTicketBooking(event) {
+  event.preventDefault();
+  const name = document.getElementById("public-ticket-name").value.trim();
+  const email = document.getElementById("public-ticket-email").value.trim();
+  const form = event.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnHTML = submitBtn.innerHTML;
+
+  try {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+    showToast("Processing booking...", "info");
+    
+    const { getFirestore, doc, setDoc, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+    const db = getFirestore();
+    
+    // Fetch all current tickets to determine seat sequence
+    const ticketsSnap = await getDocs(collection(db, "tickets"));
+    const ticketsCount = ticketsSnap.size;
+
+    const config = window.ticketingConfig || {};
+    const prefix = config.seatPrefix || "GA-";
+    const startNum = config.seatStartNumber || 100;
+    const finalSeat = `${prefix}${startNum + ticketsCount}`;
+
+    const ticketId = `TX-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    await setDoc(doc(db, "tickets", ticketId), {
+      name,
+      email,
+      seatCode: finalSeat,
+      timestamp: Date.now()
+    });
+
+    showToast("Ticket booked successfully!", "success");
+    renderStunningTechTicket(ticketId, name, email, finalSeat);
+    
+  } catch (err) {
+    console.error(err);
+    showToast("Booking failed: " + err.message, "error");
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnHTML;
+  }
+}
+
+// Render attendance pass
+function renderStunningTechTicket(ticketId, name, email, seatCode) {
+  const config = window.ticketingConfig || {
+    eventTitle: "TechX Grand Finale Pitch Day",
+    eventDate: "August 15, 2026 @ 09:00 AM",
+    eventVenue: "KNUST Great Hall",
+    showSeats: true
+  };
+
+  const showSeatsToggle = config.showSeats !== false;
+  const seatBlockHTML = showSeatsToggle ? `
+    <div>
+      <span style="font-size: 8px; color: var(--text-light); text-transform: uppercase; display: block; margin-bottom: 2px;">Seat</span>
+      <strong style="font-size: 11px; color: var(--primary); display: block; font-weight: 700; font-family: monospace;">${seatCode || "GA-100"}</strong>
+    </div>
+  ` : "";
+
+  let barcodeHTML = '<div style="display: flex; gap: 2px; align-items: stretch; height: 32px; background: white; padding: 4px; border-radius: 2px; justify-content: center; width: 100%;">';
+  for (let i = 0; i < 20; i++) {
+    const width = (i % 3 === 0) ? "3px" : (i % 5 === 0) ? "4px" : "1.5px";
+    barcodeHTML += `<span style="background: black; width: ${width}; display: block;"></span>`;
+  }
+  barcodeHTML += '</div>';
+
+  openModal("Your TechX Attendance Pass", `
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
+      
+      <!-- Horizontal Tech-Style Ticket -->
+      <div id="techx-attendance-ticket" style="width: 100%; max-width: 600px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; display: flex; flex-direction: row; min-height: 220px;">
+        
+        <!-- Left Details Section -->
+        <div style="flex: 2.2; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px dashed var(--border); gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900;"><i class="fa-solid fa-code"></i></div>
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-main);">TECHX 2026 EVENT PASS</span>
+          </div>
+
+          <div>
+            <span style="font-size: 8px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Event Name</span>
+            <strong style="font-size: 15px; color: var(--text-main); display: block; font-family: var(--font-heading); font-weight: 700; line-height: 1.2;">${config.eventTitle}</strong>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr 0.8fr; gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px; margin-top: auto;">
+            <div>
+              <span style="font-size: 8px; color: var(--text-light); text-transform: uppercase; display: block; margin-bottom: 1px;">Date &amp; Time</span>
+              <span style="font-size: 10px; color: var(--text-main); font-weight: 600; display: block; line-height: 1.2;">${config.eventDate}</span>
+            </div>
+            <div>
+              <span style="font-size: 8px; color: var(--text-light); text-transform: uppercase; display: block; margin-bottom: 1px;">Venue</span>
+              <span style="font-size: 10px; color: var(--text-main); font-weight: 600; display: block; line-height: 1.2;">${config.eventVenue}</span>
+            </div>
+            ${seatBlockHTML}
+          </div>
+        </div>
+
+        <!-- Vertical tear-off notches -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: absolute; left: calc(68.5% - 6px); top: 0; bottom: 0; pointer-events: none; height: 100%;">
+          <div style="width: 12px; height: 12px; background: white; border-radius: 50%; border: 1px solid var(--border); border-top: 0; border-left: 0; border-right: 0; margin-top: -6px; z-index: 2;"></div>
+          <div style="width: 12px; height: 12px; background: white; border-radius: 50%; border: 1px solid var(--border); border-bottom: 0; border-left: 0; border-right: 0; margin-bottom: -6px; z-index: 2;"></div>
+        </div>
+
+        <!-- Right Stub Section -->
+        <div style="flex: 1; padding: 20px; background: var(--bg-app); display: flex; flex-direction: column; align-items: center; justify-content: space-between; border-radius: 0 12px 12px 0;">
+          <span style="font-size: 9px; text-transform: uppercase; color: var(--primary); font-weight: 700; background: rgba(37, 99, 235, 0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(37, 99, 235, 0.2); text-align: center; width: 100%;">Admit One</span>
+          
+          <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 6px; margin: 10px 0;">
+            <div style="font-size: 8px; color: var(--text-light); text-transform: uppercase; text-align: center;">Attendee Pass</div>
+            <strong style="font-size: 11px; color: var(--text-main); font-weight: 700; text-align: center; word-break: break-all; max-width: 130px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name}</strong>
+          </div>
+
+          <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            ${barcodeHTML}
+            <span style="font-family: monospace; font-size: 10px; color: var(--text-main); letter-spacing: 2px; font-weight: 700;">${ticketId}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display: flex; gap: 10px; width: 100%; max-width: 600px; justify-content: center;">
+        <button class="btn btn-secondary btn-sm" onclick="downloadTechTicket('${ticketId}', '${name.replace(/'/g, "\\'")}', '${email.replace(/'/g, "\\'")}', '${seatCode || ""}', '${config.eventTitle.replace(/'/g, "\\'")}', '${config.eventDate.replace(/'/g, "\\'")}', '${config.eventVenue.replace(/'/g, "\\'")}', ${showSeatsToggle})" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-download"></i> Download Pass</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-close-btn').click()" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-circle-check"></i> Done</button>
+      </div>
+
+    </div>
+  `);
+}
+
+// Download attendance ticket as image (horizontal)
+function downloadTechTicket(ticketId, name, email, seatCode, eventTitle, eventDate, eventVenue, showSeatsVal) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = 360;
+  const ctx = canvas.getContext("2d");
+
+  // Draw background card
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, 800, 360);
+
+  // Outer border
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(15, 15, 770, 330);
+
+  // Vertical separator dashed line at x = 540
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath();
+  ctx.moveTo(540, 15);
+  ctx.lineTo(540, 345);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Notches at (540, 15) and (540, 345)
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(540, 15, 12, 0, Math.PI);
+  ctx.fill();
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(540, 345, 12, Math.PI, 0);
+  ctx.fill();
+  ctx.stroke();
+
+  // LEFT SECTION DETAILS
+  // Brand Header
+  ctx.fillStyle = "#2563eb";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("⚡ TECHX 2026 EVENT PASS", 40, 50);
+
+  // Event Name label
+  ctx.fillStyle = "#718096";
+  ctx.font = "11px sans-serif";
+  ctx.fillText("EVENT NAME", 40, 95);
+
+  // Event title
+  ctx.fillStyle = "#1a202c";
+  ctx.font = "bold 20px sans-serif";
+  const words = eventTitle.split(" ");
+  let line = "";
+  let y = 125;
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + " ";
+    let metrics = ctx.measureText(testLine);
+    if (metrics.width > 460 && n > 0) {
+      ctx.fillText(line, 40, y);
+      line = words[n] + " ";
+      y += 26;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, 40, y);
+
+  // Attendee label
+  ctx.fillStyle = "#718096";
+  ctx.font = "11px sans-serif";
+  ctx.fillText("ATTENDEE PASS", 40, 205);
+
+  // Attendee name & email
+  ctx.fillStyle = "#1a202c";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(name, 40, 230);
+  ctx.fillStyle = "#4a5568";
+  ctx.font = "13px sans-serif";
+  ctx.fillText(email, 40, 250);
+
+  // Separator above footer info
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(40, 280);
+  ctx.lineTo(500, 280);
+  ctx.stroke();
+
+  // Date, Venue, Seat Grid
+  ctx.fillStyle = "#718096";
+  ctx.font = "10px sans-serif";
+  ctx.fillText("DATE & TIME", 40, 305);
+  ctx.fillText("VENUE", 220, 305);
+
+  const showSeatsBool = showSeatsVal !== "false" && showSeatsVal !== false;
+  if (showSeatsBool) {
+    ctx.fillText("SEAT", 420, 305);
+  }
+
+  ctx.fillStyle = "#1a202c";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText(eventDate, 40, 325);
+  ctx.fillText(eventVenue, 220, 325);
+
+  if (showSeatsBool) {
+    ctx.fillStyle = "#2563eb";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(seatCode, 420, 325);
+  }
+
+  // RIGHT SECTION DETAILS (STUB)
+  // Admit One badge block
+  ctx.fillStyle = "rgba(37, 99, 235, 0.1)";
+  ctx.beginPath();
+  ctx.roundRect(570, 35, 190, 36, 6);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(37, 99, 235, 0.2)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = "#2563eb";
+  ctx.font = "bold 13px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("ADMIT ONE", 665, 57);
+
+  // Stub Attendee name
+  ctx.fillStyle = "#718096";
+  ctx.font = "10px sans-serif";
+  ctx.fillText("ATTENDEE PASS", 665, 110);
+  ctx.fillStyle = "#1a202c";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText(name.length > 20 ? name.substring(0, 18) + "..." : name, 665, 130);
+
+  // Barcode container area
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(570, 175, 190, 100);
+
+  // Barcode lines
+  ctx.fillStyle = "#000000";
+  let bx = 590;
+  for (let i = 0; i < 24; i++) {
+    const width = (i % 3 === 0) ? 4 : (i % 5 === 0) ? 6 : 2;
+    ctx.fillRect(bx, 190, width, 45);
+    bx += width + 3;
+    if (bx >= 740) break;
+  }
+
+  // Ticket ID below barcode
+  ctx.fillStyle = "#1a202c";
+  ctx.font = "bold 14px monospace";
+  ctx.fillText(ticketId, 665, 260);
+
+  // Reset text alignment
+  ctx.textAlign = "left";
+
+  // Trigger download action
+  const link = document.createElement("a");
+  link.download = `TechX_Ticket_${ticketId}.png`;
+  link.href = canvas.toDataURL("image/png");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+window.openPublicTicketModal = openPublicTicketModal;
+window.submitPublicTicketBooking = submitPublicTicketBooking;
+window.renderStunningTechTicket = renderStunningTechTicket;
+window.downloadTechTicket = downloadTechTicket;
