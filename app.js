@@ -988,14 +988,6 @@ async function submitPublicTicketBooking(event) {
   const name = document.getElementById("public-ticket-name").value.trim();
   const email = document.getElementById("public-ticket-email").value.trim();
 
-  // Validate email domain: must end in knust.edu.gh or student.knust.edu.gh or ksb.knust.edu.gh
-  const emailDomain = email.split('@')[1].toLowerCase();
-  const allowedDomains = ["knust.edu.gh", "student.knust.edu.gh", "ksb.knust.edu.gh"];
-  if (!allowedDomains.includes(emailDomain)) {
-    showToast("Access restricted: Please register with your KNUST or KSB email address.", "error");
-    return;
-  }
-
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalBtnHTML = submitBtn.innerHTML;

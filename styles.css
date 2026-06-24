@@ -1821,6 +1821,19 @@ footer h4 {
   opacity: 1;
 }
 
+.toast-notification span {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  flex: 1;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.toast-notification i {
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .toast-notification {
     left: 50% !important;
