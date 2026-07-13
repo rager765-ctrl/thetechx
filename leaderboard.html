@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="google-site-verification" content="r86ry8TJMrzBwxZ9kA6YAYDc7mxfmMRz8oLlBJ1iLx0" />
+  <title>Shortlist Leaderboard | The HatchPoint Innovations Challenge: Nyansapo Edition</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: var(--bg-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .leaderboard-header {
+      text-align: center;
+      padding: 140px 20px 60px;
+      position: relative;
+    }
+    .leaderboard-title {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+    .leaderboard-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .leaderboard-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+      width: 100%;
+    }
+    .team-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 1);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    }
+    .team-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .team-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+    }
+    .team-info {
+      flex-grow: 1;
+    }
+    .team-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+    .team-project {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .team-track {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 24px;
+      background: rgba(59, 130, 246, 0.08);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i {
+      font-size: 48px;
+      color: var(--border);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="index.html" class="logo">
+          <div class="logo-icon" style="background: transparent; padding: 0;">
+            <img src="favicon.png" alt="HatchPoint Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px;">
+          </div>
+          <span>Hatch<span class="logo-text-accent">Point</span></span>
+        </a>
+      </div>
+      <div class="nav-auth">
+        <a href="index.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="leaderboard-header">
+    <h1 class="leaderboard-title">Official Shortlist</h1>
+    <p class="leaderboard-subtitle">Congratulations to the outstanding teams that have advanced to the next phase of The HatchPoint Innovations Challenge. Teams are displayed in no particular order.</p>
+  </div>
+
+  <div class="leaderboard-container" id="leaderboard-list">
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: var(--primary); margin-bottom: 16px;"></i>
+      <p>Loading shortlisted teams...</p>
+    </div>
+  </div>
+
+  <footer style="margin-top: auto; padding: 24px 20px; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; background: transparent;">
+    &copy; 2026 The HatchPoint Innovations Challenge: Nyansapo Edition. All rights reserved.
+  </footer>
+
+  <!-- Main Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA91WlL0vnYEYZcQo51KTDMWPPSw1eZayM",
+      authDomain: "the-tech-x.firebaseapp.com",
+      projectId: "the-tech-x",
+      storageBucket: "the-tech-x.firebasestorage.app",
+      messagingSenderId: "997772121695",
+      appId: "1:997772121695:web:0fb74ffa3bc64240a66dea",
+      measurementId: "G-VQ00H9FPKF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Fetch and render approved projects
+    async function loadLeaderboard() {
+      const container = document.getElementById("leaderboard-list");
+      try {
+        const q = query(collection(db, "projects"), where("status", "==", "Approved"));
+        const snapshot = await getDocs(q);
+        
+        let teams = [];
+        snapshot.forEach(doc => {
+          teams.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (teams.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fa-solid fa-trophy"></i>
+              <h3>No teams shortlisted yet</h3>
+              <p>The official shortlist will be published here once evaluations are complete.</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Randomize array (Fisher-Yates shuffle) so there is no implied ranking
+        for (let i = teams.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [teams[i], teams[j]] = [teams[j], teams[i]];
+        }
+
+        container.innerHTML = teams.map((team, index) => {
+          const initial = team.teamName ? team.teamName.charAt(0).toUpperCase() : "T";
+          return `
+            <div class="team-card" style="animation-delay: ${index * 0.05}s">
+              <div class="team-avatar">${initial}</div>
+              <div class="team-info">
+                <div class="team-name">${team.teamName}</div>
+                <div class="team-project">${team.title}</div>
+                ${team.track ? `<div class="team-track"><i class="fa-solid fa-tag"></i> ${team.track}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+      } catch (err) {
+        console.error("Error loading leaderboard:", err);
+        container.innerHTML = `<div class="loading-state"><p style="color: var(--danger);">Failed to load leaderboard. Please try again later.</p></div>`;
+      }
+    }
+
+    // Load on page ready
+    document.addEventListener("DOMContentLoaded", loadLeaderboard);
+  </script>
+</body>
+</html>

@@ -46,6 +46,7 @@ const INITIAL_TIMELINE = [
 let allProjects = [];
 let allNews = [];
 let allTracks = [];
+let allFeatures = [];
 let allTimeline = [];
 let landingStatsConfig = null;
 let allPrizes = [];
@@ -140,6 +141,7 @@ function showView(viewId) {
   window.scrollTo({ top: 0 });
 
   if (viewId === "home") {
+    renderLandingFeatures();
     renderLandingTracks();
     renderLandingTimeline();
   }
@@ -235,13 +237,69 @@ function renderLandingTracks() {
     return;
   }
 
-  container.innerHTML = visibleTracks.map(track => `
-    <div class="card track-card">
+  container.innerHTML = visibleTracks.map(track => {
+    const bgStyle = (track.image && !track.hideImage) ? `background-image: url('${track.image}'); background-size: cover; background-position: center; position: relative; z-index: 1;` : '';
+    const overlay = (track.image && !track.hideImage) ? `<div style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.95) 100%); z-index: -1;"></div>` : '';
+    
+    return `
+    <div class="card track-card" style="${bgStyle} overflow: hidden;">
+      ${overlay}
       <div class="card-icon"><i class="fa-solid ${track.icon || 'fa-tag'}"></i></div>
       <h3>${track.name}</h3>
       <p>${track.desc}</p>
     </div>
-  `).join("");
+  `}).join("");
+}
+
+// Render landing page dynamic features
+function renderLandingFeatures() {
+  const container = document.getElementById("landing-features-list");
+  if (!container) return;
+
+  const visibleFeatures = allFeatures.filter(f => f.visible !== false);
+
+  if (visibleFeatures.length === 0) {
+    // Dynamic self-healing fallback
+    container.innerHTML = `
+      <div class="card" style="position: relative; z-index: 1;">
+        <div class="card-icon" style="background-color: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i></div>
+        <h3>Venture Scouting &amp; Mentorship</h3>
+        <p>Gain access to seasoned founders and investors who review your product's market readiness, operational model, and technical scaling path.</p>
+      </div>
+      <div class="card" style="position: relative; z-index: 1;">
+        <div class="card-icon" style="background-color: var(--secondary-light); color: var(--secondary);"><i class="fa-solid fa-people-group"></i></div>
+        <h3>Commercial Viability</h3>
+        <p>Stress-test your concept note and prototype against real market variables, ensuring you build something with actual demand and scalable unit economics.</p>
+      </div>
+      <div class="card" style="position: relative; z-index: 1;">
+        <div class="card-icon" style="background-color: var(--accent-light); color: var(--accent);"><i class="fa-solid fa-seedling"></i></div>
+        <h3>Venture Center Residency</h3>
+        <p>Top teams earn dedicated physical space, continuous funding pathways, administrative backing, and direct exposure to venture capital networks to launch.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = visibleFeatures.map((feat, index) => {
+    const colors = [
+      { bg: "var(--primary-light)", color: "var(--primary)" },
+      { bg: "var(--secondary-light)", color: "var(--secondary)" },
+      { bg: "var(--accent-light)", color: "var(--accent)" }
+    ];
+    const c = colors[index % colors.length];
+    
+    const bgStyle = (feat.image && !feat.hideImage) ? `background-image: url('${feat.image}'); background-size: cover; background-position: center; position: relative; z-index: 1;` : '';
+    const overlay = (feat.image && !feat.hideImage) ? `<div style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.95) 100%); z-index: -1;"></div>` : '';
+
+    return `
+      <div class="card" style="${bgStyle} overflow: hidden;">
+        ${overlay}
+        <div class="card-icon" style="background-color: ${c.bg}; color: ${c.color};"><i class="fa-solid ${feat.icon || 'fa-star'}"></i></div>
+        <h3>${feat.name}</h3>
+        <p>${feat.desc}</p>
+      </div>
+    `;
+  }).join("");
 }
 
 // Render landing page dynamic timeline milestones
@@ -329,6 +387,7 @@ function toggleCountdownAndRegisterBtnVisibility() {
   if (!landingStatsConfig) return;
   const cdWidget = document.getElementById("hero-countdown");
   const regBtn = document.getElementById("hero-register-btn");
+  const lbWidget = document.getElementById("floating-leaderboard-widget");
   
   if (landingStatsConfig.showCountdown === false) {
     if (cdWidget) cdWidget.style.display = "none";
@@ -336,6 +395,14 @@ function toggleCountdownAndRegisterBtnVisibility() {
   } else {
     if (cdWidget) cdWidget.style.display = "inline-flex";
     if (regBtn) regBtn.style.display = "none";
+  }
+
+  if (lbWidget) {
+    if (landingStatsConfig.showLeaderboardWidget === false) {
+      lbWidget.style.display = "none";
+    } else {
+      lbWidget.style.display = "flex";
+    }
   }
 }
 
@@ -682,6 +749,17 @@ function initRealtimeSync() {
     renderLandingTracks();
   });
 
+  // Listen to Features Collection
+  onSnapshot(collection(firestore, "features"), (snapshot) => {
+    allFeatures = [];
+    snapshot.forEach(d => {
+      allFeatures.push({ id: d.id, ...d.data() });
+    });
+    allFeatures.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    renderLandingFeatures();
+  });
+
+  // Listen to Timeline Collection
   onSnapshot(collection(firestore, "timeline"), (snapshot) => {
     allTimeline = [];
     snapshot.forEach(d => {

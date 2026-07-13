@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Dashboard | HatchPoint. Nyansapo Edition</title>
+  <meta name="google-site-verification" content="r86ry8TJMrzBwxZ9kA6YAYDc7mxfmMRz8oLlBJ1iLx0" />
+  <title>Admin Dashboard | The HatchPoint Innovations Challenge: Nyansapo Edition</title>
   <meta name="description" content="Secure administrative access to manage challenge tracks, registrations, and form configurations.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
@@ -146,6 +147,7 @@
             <li class="sidebar-item" data-admin-tab="news-compose"><i class="fa-solid fa-pen-nib"></i> Compose News</li>
             <li class="sidebar-item" data-admin-tab="form-config"><i class="fa-solid fa-sliders"></i> Form Configurator</li>
             <li class="sidebar-item" data-admin-tab="tracks-config"><i class="fa-solid fa-network-wired"></i> Manage Tracks</li>
+            <li class="sidebar-item" data-admin-tab="features-config"><i class="fa-solid fa-star"></i> Manage Features</li>
             <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
             <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
             <li class="sidebar-item" data-admin-tab="legal-config"><i class="fa-solid fa-gavel"></i> Manage Legal</li>
@@ -265,6 +267,10 @@
                 <input type="checkbox" id="admin-stats-show-countdown" checked style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="admin-stats-show-countdown" style="margin: 0; cursor: pointer; font-weight: 500;">Show Live Countdown Timer on Landing Page</label>
               </div>
+              <div class="form-group" style="margin-top: 16px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="admin-stats-show-leaderboard" checked style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="admin-stats-show-leaderboard" style="margin: 0; cursor: pointer; font-weight: 500;">Show Shortlist Leaderboard Widget</label>
+              </div>
               <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fa-solid fa-floppy-disk"></i> Save Header Stats</button>
             </form>
           </div>
@@ -272,9 +278,12 @@
 
         <!-- ADMIN TAB: APPLICANTS -->
         <div class="admin-tab-content" id="admin-tab-applicants" style="display: none;">
-          <div class="portal-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="portal-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <h2>Applicant Manager</h2>
-            <button class="btn btn-outline btn-sm" id="admin-delete-all-applicants-btn" style="color: var(--danger); border-color: var(--danger); font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Delete All Applicants</button>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button class="btn btn-primary btn-sm" id="admin-share-leaderboard-btn" style="font-weight: 600;"><i class="fa-solid fa-trophy"></i> Share Leaderboard</button>
+              <button class="btn btn-outline btn-sm" id="admin-delete-all-applicants-btn" style="color: var(--danger); border-color: var(--danger); font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Delete All Applicants</button>
+            </div>
           </div>
           
           <div style="overflow-x: auto;">
@@ -453,6 +462,16 @@
                   <label for="admin-track-desc">Description</label>
                   <textarea id="admin-track-desc" class="form-control" style="min-height: 80px;" placeholder="Describe what focus projects this track covers..." required></textarea>
                 </div>
+                <div class="form-group">
+                  <label for="admin-track-image">Cover/Background Image (Optional)</label>
+                  <input type="file" id="admin-track-image" class="form-control" accept="image/*">
+                  <img id="admin-track-image-preview" src="" style="max-width: 100%; max-height: 120px; display: none; margin-top: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                  <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="admin-track-image-remove" style="display: none;">Remove Image</button>
+                    <input type="checkbox" id="admin-track-image-hide" style="width: 16px; height: 16px; cursor: pointer; display: none;">
+                    <label for="admin-track-image-hide" id="admin-track-image-hide-label" style="margin: 0; cursor: pointer; font-size: 13px; color: var(--text-muted); display: none;">Hide Image on Frontend</label>
+                  </div>
+                </div>
                 <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 16px;">
                   <input type="checkbox" id="admin-track-visible" checked style="width: 16px; height: 16px; cursor: pointer;">
                   <label for="admin-track-visible" style="margin: 0; cursor: pointer; font-weight: 500;">Visible to Applicants</label>
@@ -469,6 +488,61 @@
               <h3 style="margin-bottom: 16px;">Existing Challenge Tracks</h3>
               <div id="admin-tracks-list" style="display: flex; flex-direction: column; gap: 16px;">
                 <!-- Dynamic tracks loaded from Firestore -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: MANAGE FEATURES -->
+        <div class="admin-tab-content" id="admin-tab-features-config" style="display: none;">
+          <div class="portal-header">
+            <h2>Platform Features Manager</h2>
+          </div>
+          
+          <div class="grid-2" style="align-items: start;">
+            <!-- Save/Edit Feature Card -->
+            <div class="card">
+              <h3 id="admin-feature-form-title" style="margin-bottom: 16px;">Add New Feature Card</h3>
+              <form id="admin-feature-form">
+                <input type="hidden" id="admin-feature-edit-id" value="">
+                <div class="form-group">
+                  <label for="admin-feature-name">Feature Title</label>
+                  <input type="text" id="admin-feature-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-feature-icon">FontAwesome Icon Class</label>
+                  <input type="text" id="admin-feature-icon" class="form-control" placeholder="e.g. fa-graduation-cap" required>
+                </div>
+                <div class="form-group">
+                  <label for="admin-feature-desc">Description</label>
+                  <textarea id="admin-feature-desc" class="form-control" style="min-height: 80px;" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="admin-feature-image">Card Background Image (Optional)</label>
+                  <input type="file" id="admin-feature-image" class="form-control" accept="image/*">
+                  <img id="admin-feature-image-preview" src="" style="max-width: 100%; max-height: 120px; display: none; margin-top: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                  <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="admin-feature-image-remove" style="display: none;">Remove Image</button>
+                    <input type="checkbox" id="admin-feature-image-hide" style="width: 16px; height: 16px; cursor: pointer; display: none;">
+                    <label for="admin-feature-image-hide" id="admin-feature-image-hide-label" style="margin: 0; cursor: pointer; font-size: 13px; color: var(--text-muted); display: none;">Hide Image on Frontend</label>
+                  </div>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 16px;">
+                  <input type="checkbox" id="admin-feature-visible" checked style="width: 16px; height: 16px; cursor: pointer;">
+                  <label for="admin-feature-visible" style="margin: 0; cursor: pointer; font-weight: 500;">Visible to Users</label>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-feature-save-btn">Save Feature</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-feature-cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Active Features List Card -->
+            <div class="card">
+              <h3 style="margin-bottom: 16px;">Existing Features</h3>
+              <div id="admin-features-list" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic features loaded from Firestore -->
               </div>
             </div>
           </div>

@@ -2566,6 +2566,59 @@ input, textarea, select, [contenteditable="true"] {
   }
 }
 
+/* Floating Leaderboard Widget */
+.floating-leaderboard {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 12px 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUpFade 0.6s ease-out forwards;
+}
+
+.floating-leaderboard:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.floating-leaderboard-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.floating-leaderboard-content i {
+  background: linear-gradient(135deg, var(--warning), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-size: 24px;
+}
+
+@media (max-width: 768px) {
+  .floating-leaderboard {
+    bottom: 140px; /* Above mobile nav and ticket */
+    left: 16px;
+    right: 16px;
+    padding: 10px 14px;
+    border-radius: var(--radius-lg);
+    justify-content: space-between;
+  }
+}
+
+
 /* Horizontal ticket responsive rules */
 @media (max-width: 540px) {
   #hatchpoint-attendance-ticket {

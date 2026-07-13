@@ -30,6 +30,7 @@ let allProjects = [];
 let allNews = [];
 let allUsers = [];
 let allTracks = [];
+let allFeatures = [];
 let allTimeline = [];
 let allPrizes = [];
 let allLegal = [];
@@ -398,6 +399,7 @@ if (adminLandingStatsForm) {
     const overrideVal = document.getElementById("admin-stats-participants-override").value.trim();
     const countdownVal = document.getElementById("admin-stats-countdown-date").value;
     const showCountdown = document.getElementById("admin-stats-show-countdown").checked;
+    const showLeaderboard = document.getElementById("admin-stats-show-leaderboard").checked;
 
     try {
       showToast("Saving header statistics configuration...", "info");
@@ -406,6 +408,7 @@ if (adminLandingStatsForm) {
         participantsOverride: overrideVal,
         countdownDate: countdownVal,
         showCountdown: showCountdown,
+        showLeaderboardWidget: showLeaderboard,
         timestamp: Date.now()
       });
       showToast("Header statistics saved successfully!", "success");
@@ -589,11 +592,13 @@ function initRealtimeSync() {
       const dateInput = document.getElementById("admin-stats-countdown-date");
       const manualGroup = document.getElementById("admin-stats-manual-group");
       const showCountdownCheck = document.getElementById("admin-stats-show-countdown");
+      const showLeaderboardCheck = document.getElementById("admin-stats-show-leaderboard");
 
       if (modeSelect) modeSelect.value = data.participantsMode || "dynamic";
       if (overrideInput) overrideInput.value = data.participantsOverride || "";
       if (dateInput) dateInput.value = data.countdownDate || "";
       if (showCountdownCheck) showCountdownCheck.checked = data.showCountdown !== false;
+      if (showLeaderboardCheck) showLeaderboardCheck.checked = data.showLeaderboardWidget !== false;
       if (manualGroup) {
         manualGroup.style.display = (data.participantsMode === "manual") ? "block" : "none";
       }
@@ -638,7 +643,7 @@ function initRealtimeSync() {
     if (snapshot.empty && currentUser) {
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
-        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing HatchPoint. Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
@@ -841,6 +846,9 @@ function renderAdminDashboard() {
 
   else if (activeAdminTab === "tracks-config") {
     renderAdminTracksList();
+  }
+  else if (activeAdminTab === "features-config") {
+    renderAdminFeaturesList();
   }
 
   else if (activeAdminTab === "timeline-config") {
@@ -1375,7 +1383,7 @@ async function seedDefaultsIfEmpty() {
     if (legalSnap.empty) {
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
-        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing HatchPoint. Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
@@ -1510,6 +1518,50 @@ function renderAdminTracksList() {
   }).join("");
 }
 
+// Track Image Handlers
+let currentTrackImageBase64 = null;
+const adminTrackImageInput = document.getElementById("admin-track-image");
+const adminTrackImagePreview = document.getElementById("admin-track-image-preview");
+const adminTrackImageRemove = document.getElementById("admin-track-image-remove");
+const adminTrackImageHide = document.getElementById("admin-track-image-hide");
+const adminTrackImageHideLabel = document.getElementById("admin-track-image-hide-label");
+
+if (adminTrackImageInput) {
+  adminTrackImageInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("Image must be smaller than 2MB", "error");
+        adminTrackImageInput.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        currentTrackImageBase64 = event.target.result;
+        adminTrackImagePreview.src = currentTrackImageBase64;
+        adminTrackImagePreview.style.display = "block";
+        adminTrackImageRemove.style.display = "inline-block";
+        adminTrackImageHide.style.display = "inline-block";
+        adminTrackImageHideLabel.style.display = "inline-block";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+if (adminTrackImageRemove) {
+  adminTrackImageRemove.addEventListener("click", () => {
+    currentTrackImageBase64 = null;
+    adminTrackImagePreview.src = "";
+    adminTrackImagePreview.style.display = "none";
+    adminTrackImageInput.value = "";
+    adminTrackImageRemove.style.display = "none";
+    adminTrackImageHide.style.display = "none";
+    adminTrackImageHideLabel.style.display = "none";
+    if (adminTrackImageHide) adminTrackImageHide.checked = false;
+  });
+}
+
 // Track CRUD Actions
 const adminTrackForm = document.getElementById("admin-track-form");
 if (adminTrackForm) {
@@ -1536,6 +1588,8 @@ if (adminTrackForm) {
         icon,
         desc,
         visible,
+        image: currentTrackImageBase64,
+        hideImage: adminTrackImageHide ? adminTrackImageHide.checked : false,
         timestamp: Date.now()
       });
       showToast("Track configurations saved successfully!", "success");
@@ -1543,6 +1597,7 @@ if (adminTrackForm) {
       document.getElementById("admin-track-edit-id").value = "";
       document.getElementById("admin-track-id").disabled = false;
       document.getElementById("admin-track-form-title").textContent = "Add New Challenge Track";
+      if (adminTrackImageRemove) adminTrackImageRemove.click();
       const cancelBtn = document.getElementById("admin-track-cancel-btn");
       if (cancelBtn) cancelBtn.style.display = "none";
     } catch (err) {
@@ -1558,6 +1613,7 @@ if (adminTrackCancelBtn) {
     document.getElementById("admin-track-edit-id").value = "";
     document.getElementById("admin-track-id").disabled = false;
     document.getElementById("admin-track-form-title").textContent = "Add New Challenge Track";
+    if (adminTrackImageRemove) adminTrackImageRemove.click();
     adminTrackCancelBtn.style.display = "none";
   });
 }
@@ -1573,6 +1629,24 @@ function adminEditTrack(trackId) {
   document.getElementById("admin-track-icon").value = track.icon;
   document.getElementById("admin-track-desc").value = track.desc;
   document.getElementById("admin-track-visible").checked = track.visible !== false;
+  
+  currentTrackImageBase64 = track.image || null;
+  if (currentTrackImageBase64) {
+    adminTrackImagePreview.src = currentTrackImageBase64;
+    adminTrackImagePreview.style.display = "block";
+    adminTrackImageRemove.style.display = "inline-block";
+    adminTrackImageHide.style.display = "inline-block";
+    adminTrackImageHideLabel.style.display = "inline-block";
+    if (adminTrackImageHide) adminTrackImageHide.checked = !!track.hideImage;
+  } else {
+    adminTrackImagePreview.src = "";
+    adminTrackImagePreview.style.display = "none";
+    adminTrackImageRemove.style.display = "none";
+    adminTrackImageHide.style.display = "none";
+    adminTrackImageHideLabel.style.display = "none";
+    if (adminTrackImageHide) adminTrackImageHide.checked = false;
+  }
+  if (adminTrackImageInput) adminTrackImageInput.value = "";
   
   document.getElementById("admin-track-form-title").textContent = "Edit Challenge Track";
   if (adminTrackCancelBtn) adminTrackCancelBtn.style.display = "inline-block";
@@ -1601,6 +1675,169 @@ async function adminDeleteTrack(trackId) {
   } catch (err) {
     showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
   }
+}
+
+// ================= FEATURES CRUD ACTIONS ================= //
+
+let currentFeatureImageBase64 = null;
+const adminFeatureImageInput = document.getElementById("admin-feature-image");
+const adminFeatureImagePreview = document.getElementById("admin-feature-image-preview");
+const adminFeatureImageRemove = document.getElementById("admin-feature-image-remove");
+const adminFeatureImageHide = document.getElementById("admin-feature-image-hide");
+const adminFeatureImageHideLabel = document.getElementById("admin-feature-image-hide-label");
+
+if (adminFeatureImageInput) {
+  adminFeatureImageInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("Image must be smaller than 2MB", "error");
+        adminFeatureImageInput.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        currentFeatureImageBase64 = event.target.result;
+        adminFeatureImagePreview.src = currentFeatureImageBase64;
+        adminFeatureImagePreview.style.display = "block";
+        adminFeatureImageRemove.style.display = "inline-block";
+        adminFeatureImageHide.style.display = "inline-block";
+        adminFeatureImageHideLabel.style.display = "inline-block";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+if (adminFeatureImageRemove) {
+  adminFeatureImageRemove.addEventListener("click", () => {
+    currentFeatureImageBase64 = null;
+    adminFeatureImagePreview.src = "";
+    adminFeatureImagePreview.style.display = "none";
+    adminFeatureImageInput.value = "";
+    adminFeatureImageRemove.style.display = "none";
+    adminFeatureImageHide.style.display = "none";
+    adminFeatureImageHideLabel.style.display = "none";
+    if (adminFeatureImageHide) adminFeatureImageHide.checked = false;
+  });
+}
+
+const adminFeatureForm = document.getElementById("admin-feature-form");
+if (adminFeatureForm) {
+  adminFeatureForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("admin-feature-name").value.trim();
+    const icon = document.getElementById("admin-feature-icon").value.trim();
+    const desc = document.getElementById("admin-feature-desc").value.trim();
+    const visible = document.getElementById("admin-feature-visible").checked;
+    const editId = document.getElementById("admin-feature-edit-id").value;
+    const id = editId || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+    try {
+      showToast("Saving feature...", "info");
+      await setDoc(doc(firestore, "features", id), {
+        name, icon, desc, visible,
+        image: currentFeatureImageBase64,
+        hideImage: adminFeatureImageHide ? adminFeatureImageHide.checked : false,
+        timestamp: Date.now()
+      });
+      showToast("Feature saved successfully!", "success");
+      adminFeatureForm.reset();
+      document.getElementById("admin-feature-edit-id").value = "";
+      document.getElementById("admin-feature-form-title").textContent = "Add New Feature Card";
+      if (adminFeatureImageRemove) adminFeatureImageRemove.click();
+      const cancelBtn = document.getElementById("admin-feature-cancel-btn");
+      if (cancelBtn) cancelBtn.style.display = "none";
+    } catch (err) {
+      showToast("Failed to save feature: " + getCleanErrorMessage(err), "error");
+    }
+  });
+}
+
+const adminFeatureCancelBtn = document.getElementById("admin-feature-cancel-btn");
+if (adminFeatureCancelBtn) {
+  adminFeatureCancelBtn.addEventListener("click", () => {
+    if (adminFeatureForm) adminFeatureForm.reset();
+    document.getElementById("admin-feature-edit-id").value = "";
+    document.getElementById("admin-feature-form-title").textContent = "Add New Feature Card";
+    if (adminFeatureImageRemove) adminFeatureImageRemove.click();
+    adminFeatureCancelBtn.style.display = "none";
+  });
+}
+
+function adminEditFeature(featureId) {
+  const feat = allFeatures.find(f => f.id === featureId);
+  if (!feat) return;
+  document.getElementById("admin-feature-edit-id").value = feat.id;
+  document.getElementById("admin-feature-name").value = feat.name;
+  document.getElementById("admin-feature-icon").value = feat.icon;
+  document.getElementById("admin-feature-desc").value = feat.desc;
+  document.getElementById("admin-feature-visible").checked = feat.visible !== false;
+  
+  currentFeatureImageBase64 = feat.image || null;
+  if (currentFeatureImageBase64) {
+    adminFeatureImagePreview.src = currentFeatureImageBase64;
+    adminFeatureImagePreview.style.display = "block";
+    adminFeatureImageRemove.style.display = "inline-block";
+    adminFeatureImageHide.style.display = "inline-block";
+    adminFeatureImageHideLabel.style.display = "inline-block";
+    if (adminFeatureImageHide) adminFeatureImageHide.checked = !!feat.hideImage;
+  } else {
+    if (adminFeatureImageRemove) adminFeatureImageRemove.click();
+  }
+  if (adminFeatureImageInput) adminFeatureImageInput.value = "";
+  document.getElementById("admin-feature-form-title").textContent = "Edit Feature Card";
+  if (adminFeatureCancelBtn) adminFeatureCancelBtn.style.display = "inline-block";
+}
+
+async function adminDeleteFeature(featureId) {
+  if (!confirm("Are you sure you want to delete this feature?")) return;
+  try {
+    showToast("Deleting feature...", "info");
+    await deleteDoc(doc(firestore, "features", featureId));
+    showToast("Feature deleted successfully!", "success");
+  } catch (err) {
+    showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
+  }
+}
+
+async function adminToggleFeatureVisibility(featureId, currentVisible) {
+  try {
+    showToast("Updating visibility...", "info");
+    await updateDoc(doc(firestore, "features", featureId), { visible: !currentVisible });
+    showToast("Visibility updated successfully!", "success");
+  } catch (err) {
+    showToast("Failed to update visibility.", "error");
+  }
+}
+
+function renderAdminFeaturesList() {
+  const container = document.getElementById("admin-features-list");
+  if (!container) return;
+  if (allFeatures.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); font-size: 13px; padding: 20px;">No features configured.</p>`;
+    return;
+  }
+  container.innerHTML = allFeatures.map(feat => {
+    return `
+      <div style="border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden;">
+        ${feat.image && !feat.hideImage ? `<div style="position: absolute; top:0; left:0; width: 100%; height: 100%; opacity: 0.1; background-image: url('${feat.image}'); background-size: cover; background-position: center; z-index: 0; pointer-events: none;"></div>` : ''}
+        <div style="display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text-main); font-size: 14px;">
+            <i class="fa-solid ${feat.icon} text-primary"></i> ${feat.name}
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0; position: relative; z-index: 1;">${feat.desc}</p>
+        <div style="display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end; position: relative; z-index: 1;">
+          <button class="btn btn-secondary btn-sm" onclick="adminToggleFeatureVisibility('${feat.id}', ${feat.visible !== false})" style="padding: 4px 8px; font-size: 11px;">
+            <i class="fa-solid ${feat.visible !== false ? 'fa-eye-slash' : 'fa-eye'}"></i> ${feat.visible !== false ? 'Hide' : 'Show'}
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="adminEditFeature('${feat.id}')" style="padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="adminDeleteFeature('${feat.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 // Render Challenge Timeline config panel list
@@ -2692,6 +2929,20 @@ if (deleteAllApplicantsBtn) {
     } catch (err) {
       showToast("Failed to delete all applicants: " + err.message, "error");
     }
+  });
+}
+
+// Share Leaderboard
+const shareLeaderboardBtn = document.getElementById("admin-share-leaderboard-btn");
+if (shareLeaderboardBtn) {
+  shareLeaderboardBtn.addEventListener("click", () => {
+    const url = window.location.origin + '/leaderboard.html';
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Leaderboard link copied to clipboard!', 'success');
+    }).catch(err => {
+      showToast('Failed to copy link. Check console.', 'error');
+      console.error(err);
+    });
   });
 }
 
