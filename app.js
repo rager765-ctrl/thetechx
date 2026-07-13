@@ -15,13 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 
-// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
-document.addEventListener("touchstart", (e) => {
-  if (e.touches.length > 1) {
-    e.preventDefault();
-  }
-}, { passive: false });
-
+// Prevent pinch-to-zoom using standard gesture events
 document.addEventListener("gesturestart", (e) => {
   e.preventDefault();
 });
@@ -34,7 +28,7 @@ const INITIAL_TRACKS = [
 ];
 
 const INITIAL_RESOURCES = [
-  { title: "TechX Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", link: "#" },
+  { title: "HatchPoint Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", link: "#" },
   { title: "Pitch Deck PowerPoint Template", icon: "fa-file-powerpoint", type: "PPTX Presentation", size: "4.8 MB", desc: "Use our approved slide outline for Demo Day to structure your problem, solution, and model.", link: "#" },
   { title: "Judging Scorecard Rubric Details", icon: "fa-clipboard-check", type: "PDF Document", size: "800 KB", desc: "A comprehensive breakdown of how judges rate Innovation, Execution, Impact, and UX.", link: "#" }
 ];
@@ -281,7 +275,7 @@ function renderLandingTimeline() {
 }
 
 // 2. IndexedDB Caching Utility for high traffic resistance
-const DB_NAME = "TechXCacheDB";
+const DB_NAME = "HatchPointCacheDB";
 const DB_VERSION = 1;
 const STORE_NAME = "firestore_cache";
 
@@ -804,7 +798,7 @@ function initRealtimeSync() {
     // Seed default resources if collection is empty
     if (snapshot.empty) {
       const defaultResources = [
-        { title: "TechX Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", timestamp: 1 },
+        { title: "HatchPoint Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", timestamp: 1 },
         { title: "Pitch Deck PowerPoint Template", icon: "fa-file-powerpoint", type: "PPTX Presentation", size: "4.8 MB", desc: "Use our approved slide outline for Demo Day to structure your problem, solution, and model.", timestamp: 2 },
         { title: "Judging Scorecard Rubric Details", icon: "fa-clipboard-check", type: "PDF Document", size: "800 KB", desc: "A comprehensive breakdown of how judges rate Innovation, Execution, Impact, and UX.", timestamp: 3 }
       ];
@@ -1125,7 +1119,7 @@ async function downloadResourceFile(res) {
 // Open Public Ticket Modal
 function openPublicTicketModal() {
   const config = window.ticketingConfig || {
-    eventTitle: "TechX Grand Finale Pitch Day",
+    eventTitle: "HatchPoint Grand Finale Pitch Day",
     eventDate: "August 15, 2026 @ 09:00 AM",
     eventVenue: "KNUST Great Hall"
   };
@@ -1202,7 +1196,7 @@ async function submitPublicTicketBooking(event) {
 // Render attendance pass
 function renderStunningTechTicket(ticketId, name, email, seatCode) {
   const config = window.ticketingConfig || {
-    eventTitle: "TechX Grand Finale Pitch Day",
+    eventTitle: "HatchPoint Grand Finale Pitch Day",
     eventDate: "August 15, 2026 @ 09:00 AM",
     eventVenue: "KNUST Great Hall",
     showSeats: true
@@ -1223,17 +1217,17 @@ function renderStunningTechTicket(ticketId, name, email, seatCode) {
   }
   barcodeHTML += '</div>';
 
-  openModal("Your TechX Attendance Pass", `
+  openModal("Your HatchPoint Attendance Pass", `
     <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
       
       <!-- Horizontal Tech-Style Ticket -->
-      <div id="techx-attendance-ticket" style="width: 100%; max-width: 600px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; display: flex; flex-direction: row; min-height: 220px;">
+      <div id="hatchpoint-attendance-ticket" style="width: 100%; max-width: 600px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; display: flex; flex-direction: row; min-height: 220px;">
         
         <!-- Left Details Section -->
         <div style="flex: 2.2; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px dashed var(--border); gap: 14px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <div style="background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900;"><i class="fa-solid fa-code"></i></div>
-            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-main);">TECHX 2026 EVENT PASS</span>
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-main);">HATCHPOINT 2026 EVENT PASS</span>
           </div>
 
           <div>
@@ -1329,7 +1323,7 @@ function downloadTechTicket(ticketId, name, email, seatCode, eventTitle, eventDa
   // Brand Header
   ctx.fillStyle = "#2563eb";
   ctx.font = "bold 16px sans-serif";
-  ctx.fillText("⚡ TECHX 2026 EVENT PASS", 40, 50);
+  ctx.fillText("⚡ HATCHPOINT 2026 EVENT PASS", 40, 50);
 
   // Event Name label
   ctx.fillStyle = "#718096";
@@ -1445,7 +1439,7 @@ function downloadTechTicket(ticketId, name, email, seatCode, eventTitle, eventDa
 
   // Trigger download action
   const link = document.createElement("a");
-  link.download = `TechX_Ticket_${ticketId}.png`;
+  link.download = `HatchPoint_Ticket_${ticketId}.png`;
   link.href = canvas.toDataURL("image/png");
   document.body.appendChild(link);
   link.click();
@@ -1456,3 +1450,25 @@ window.openPublicTicketModal = openPublicTicketModal;
 window.submitPublicTicketBooking = submitPublicTicketBooking;
 window.renderStunningTechTicket = renderStunningTechTicket;
 window.downloadTechTicket = downloadTechTicket;
+
+// Admin shortcut listener
+let adminShortcutCombo = JSON.parse(localStorage.getItem("adminShortcutCombo") || "[]");
+let pressedGlobalKeys = new Set();
+onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
+  if (snapshot.exists()) {
+    adminShortcutCombo = snapshot.data().shortcutCombo || [];
+    localStorage.setItem("adminShortcutCombo", JSON.stringify(adminShortcutCombo));
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  pressedGlobalKeys.add(e.key.toLowerCase());
+  if (adminShortcutCombo.length > 0 && adminShortcutCombo.length === pressedGlobalKeys.size && adminShortcutCombo.every(k => pressedGlobalKeys.has(k))) {
+    e.preventDefault();
+    pressedGlobalKeys.clear();
+    window.location.href = "admin.html";
+  }
+});
+window.addEventListener("keyup", (e) => {
+  pressedGlobalKeys.delete(e.key.toLowerCase());
+});

@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Dashboard | The TechX Challenge</title>
+  <title>Admin Dashboard | HatchPoint. Nyansapo Edition</title>
   <meta name="description" content="Secure administrative access to manage challenge tracks, registrations, and form configurations.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="background-color: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column;">
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
 
   <!-- Secure Login View (Shown when not authenticated) -->
   <main id="admin-login-view" class="auth-main">
@@ -19,8 +19,14 @@
       <div class="auth-header">
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px;">
           <a href="index.html" class="logo">
-            <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
-            <span>Tech<span class="text-gradient">X</span></span>
+            <div class="logo-icon">
+              <svg class="custom-tag-icon" viewBox="0 0 24 24">
+                <polyline points="8 7 3 12 8 17"></polyline>
+                <line x1="15" y1="4" x2="9" y2="20"></line>
+                <polyline points="16 7 21 12 16 17"></polyline>
+              </svg>
+            </div>
+            <span>Hatch<span class="logo-text-accent">Point</span></span>
           </a>
           <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
@@ -64,8 +70,14 @@
     <div class="auth-card" id="signup-card" style="max-width: 450px; width: 100%; box-shadow: var(--shadow-xl); border: 1px solid var(--border); background: white; display: none;">
       <div class="auth-header">
         <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 20px;">
-          <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
-          <span>Tech<span class="text-gradient">X</span></span>
+          <div class="logo-icon">
+            <svg class="custom-tag-icon" viewBox="0 0 24 24">
+              <polyline points="8 7 3 12 8 17"></polyline>
+              <line x1="15" y1="4" x2="9" y2="20"></line>
+              <polyline points="16 7 21 12 16 17"></polyline>
+            </svg>
+          </div>
+          <span>Hatch<span class="logo-text-accent">Point</span></span>
         </a>
         <h2>Admin Sign Up</h2>
         <p>Register a new administrator profile to manage the ecosystem.</p>
@@ -105,8 +117,14 @@
         <div class="sidebar-top">
           <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
             <a href="index.html" class="logo">
-              <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
-              <span>Tech<span class="text-gradient">X</span></span>
+              <div class="logo-icon">
+                <svg class="custom-tag-icon" viewBox="0 0 24 24">
+                  <polyline points="8 7 3 12 8 17"></polyline>
+                  <line x1="15" y1="4" x2="9" y2="20"></line>
+                  <polyline points="16 7 21 12 16 17"></polyline>
+                </svg>
+              </div>
+              <span>Hatch<span class="logo-text-accent">Point</span></span>
             </a>
             <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
               <div style="width: 1px; height: 20px; background: var(--border); display: inline-block;"></div>
@@ -197,6 +215,26 @@
               </div>
               <button class="btn btn-secondary" id="toggle-signup-btn" style="min-width: 200px;"><i class="fa-solid fa-toggle-on"></i> Toggle Signup Option</button>
             </div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-app); margin-top: 12px;">
+              <div>
+                <span style="font-weight: 600; font-size: 14px; color: var(--text-main);">Admin Portal Shortcut Combo</span>
+                <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Set a custom keyboard combination (3 to 4 keys) to secretly open the admin login page from anywhere. To avoid native browser conflicts, use combinations like <kbd>Alt + Shift + X</kbd>.</div>
+                
+                <!-- Display Mode -->
+                <div style="display: flex; gap: 6px; margin-top: 8px;" id="admin-combo-display-area">
+                  <div id="admin-combo-display" style="display: flex; gap: 6px;"><span class="badge badge-info">None Set</span></div>
+                </div>
+                
+                <!-- Record Mode -->
+                <div id="admin-combo-record-area" style="display: none; align-items: center; gap: 8px; margin-top: 8px;">
+                  <span id="combo-recording-display" style="padding: 4px 8px; background: var(--bg-card); border: 1px dashed var(--warning); border-radius: 4px; font-family: monospace; font-size: 11px; color: var(--warning); font-weight: 700; text-transform: uppercase;">Press Keys...</span>
+                  <button class="btn btn-primary btn-sm" id="btn-set-combo" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-check"></i> Set Combo</button>
+                  <button class="btn btn-outline btn-sm" id="btn-cancel-combo" style="padding: 6px 12px; font-size: 12px;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                </div>
+              </div>
+              <button class="btn btn-secondary" id="btn-record-combo" style="min-width: 200px;"><i class="fa-solid fa-keyboard"></i> Record New Combo</button>
+            </div>
           </div>
 
           <!-- Landing Page Hero Configuration Card -->
@@ -273,7 +311,7 @@
                 
                 <div class="form-group">
                   <label for="news-title">Article Title</label>
-                  <input type="text" id="news-title" class="form-control" placeholder="e.g. Workshop: Pitching Your TechX Prototype to Judges" required>
+                  <input type="text" id="news-title" class="form-control" placeholder="e.g. Workshop: Pitching Your Prototype to Judges" required>
                 </div>
                 
                 <div class="form-row">
@@ -628,7 +666,7 @@
               <form id="admin-resource-form">
                 <div class="form-group">
                   <label for="admin-resource-title">Resource Title</label>
-                  <input type="text" id="admin-resource-title" class="form-control" placeholder="e.g. TechX Official Rules & Guidelines" required>
+                  <input type="text" id="admin-resource-title" class="form-control" placeholder="e.g. HatchPoint Official Rules & Guidelines" required>
                 </div>
                 <div class="form-group">
                   <label for="admin-resource-desc">Description</label>
@@ -670,7 +708,7 @@
           <div class="portal-header">
             <div>
               <h2>Event Ticketing Configurator</h2>
-              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Toggle attendance booking, set ticketing limits, and manage registered attendees for the TechX Grand Finale.</p>
+              <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Toggle attendance booking, set ticketing limits, and manage registered attendees for the HatchPoint Grand Finale.</p>
             </div>
           </div>
           
@@ -685,7 +723,7 @@
                 </div>
                 <div class="form-group">
                   <label for="admin-tickets-event-title">Event Title</label>
-                  <input type="text" id="admin-tickets-event-title" class="form-control" placeholder="e.g. TechX Grand Finale Pitch Day" required>
+                  <input type="text" id="admin-tickets-event-title" class="form-control" placeholder="e.g. HatchPoint Grand Finale Pitch Day" required>
                 </div>
                 <div class="form-group">
                   <label for="admin-tickets-event-date">Event Date &amp; Time</label>

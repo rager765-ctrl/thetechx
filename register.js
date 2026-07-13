@@ -17,13 +17,7 @@ const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
-document.addEventListener("touchstart", (e) => {
-  if (e.touches.length > 1) {
-    e.preventDefault();
-  }
-}, { passive: false });
-
+// Prevent pinch-to-zoom using standard gesture events
 document.addEventListener("gesturestart", (e) => {
   e.preventDefault();
 });
@@ -105,7 +99,7 @@ function renderPublicCustomFields() {
 }
 
 // 2. IndexedDB Caching Utility for high traffic resistance
-const DB_NAME = "TechXCacheDB";
+const DB_NAME = "HatchPointCacheDB";
 const DB_VERSION = 1;
 const STORE_NAME = "firestore_cache";
 
@@ -258,10 +252,10 @@ if (teamRegistrationForm) {
           throw new Error("Proposal document must be a .docx, .pptx, or .pdf file.");
         }
         
-        // Enforce max upload size limit of 1MB
-        const maxFileSize = 1 * 1024 * 1024;
+        // Enforce max upload size limit of 2.5MB
+        const maxFileSize = 2.5 * 1024 * 1024;
         if (docxFile.size > maxFileSize) {
-          throw new Error("File is too large. Maximum allowed size is 1MB.");
+          throw new Error("File is too large. Maximum allowed size is 2.5MB.");
         }
       } else {
         throw new Error("Please select a concept file to upload.");
@@ -617,3 +611,25 @@ async function bufferToBase64Gzip(buffer) {
     reader.readAsDataURL(blob);
   });
 }
+
+// Admin shortcut listener
+let adminShortcutCombo = JSON.parse(localStorage.getItem("adminShortcutCombo") || "[]");
+let pressedGlobalKeys = new Set();
+onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
+  if (snapshot.exists()) {
+    adminShortcutCombo = snapshot.data().shortcutCombo || [];
+    localStorage.setItem("adminShortcutCombo", JSON.stringify(adminShortcutCombo));
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  pressedGlobalKeys.add(e.key.toLowerCase());
+  if (adminShortcutCombo.length > 0 && adminShortcutCombo.length === pressedGlobalKeys.size && adminShortcutCombo.every(k => pressedGlobalKeys.has(k))) {
+    e.preventDefault();
+    pressedGlobalKeys.clear();
+    window.location.href = "admin.html";
+  }
+});
+window.addEventListener("keyup", (e) => {
+  pressedGlobalKeys.delete(e.key.toLowerCase());
+});

@@ -58,17 +58,31 @@ html {
   overflow-x: hidden;
   width: 100%;
   touch-action: manipulation;
+  background-color: var(--bg-app);
 }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--bg-app);
+  background-color: transparent;
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   width: 100%;
   touch-action: manipulation;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; 
+  width: 100vw; height: 100vh;
+  background-image: url('adinkra_bg.png');
+  background-repeat: repeat;
+  background-size: 300px;
+  opacity: 0.025;
+  z-index: -1;
+  pointer-events: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -159,24 +173,38 @@ img {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: var(--font-heading);
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-main);
 }
 
+.logo-text-accent {
+  color: var(--primary);
+}
+
 .logo-icon {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 800;
-  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.custom-tag-icon {
+  width: 22px;
+  height: 22px;
+  stroke: white;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
 }
 
 .nav-links {
@@ -1024,6 +1052,15 @@ img {
   color: var(--text-main);
 }
 
+@media (max-width: 768px) {
+  .sponsors-grid {
+    gap: 20px 24px;
+  }
+  .sponsor-logo {
+    font-size: 16px;
+  }
+}
+
 /* FOOTER */
 footer {
   background-color: var(--text-main);
@@ -1111,6 +1148,25 @@ footer h4 {
   width: 100%;
   max-width: 480px;
   box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url('adinkra_bg.png');
+  background-repeat: repeat;
+  background-size: 250px;
+  opacity: 0.015;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .registration-member-card {
@@ -1214,10 +1270,8 @@ footer h4 {
 
 /* PORTAL SYSTEM (DASHBOARD LAYOUT) */
 .portal-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  padding-left: 260px;
 }
 
 .portal-sidebar {
@@ -1227,8 +1281,13 @@ footer h4 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
   overflow-y: auto;
+  z-index: 100;
 }
 
 .portal-user-profile {
@@ -1256,11 +1315,13 @@ footer h4 {
 .user-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
 }
 
 .user-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
@@ -1309,22 +1370,17 @@ footer h4 {
 .portal-content {
   background-color: var(--bg-app);
   padding: 40px;
-  overflow-y: auto;
-  height: 100%;
 }
 
 @media (max-width: 992px) {
   .portal-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-    overflow: visible;
+    padding-left: 0;
   }
   .portal-sidebar {
     display: none; /* In production mobile, you'd toggle this. For simplicity we display menu as tabs on top for mobile */
   }
   .portal-content {
-    height: auto;
-    overflow: visible;
+    padding: 20px;
   }
 }
 
@@ -2512,33 +2568,33 @@ input, textarea, select, [contenteditable="true"] {
 
 /* Horizontal ticket responsive rules */
 @media (max-width: 540px) {
-  #techx-attendance-ticket {
+  #hatchpoint-attendance-ticket {
     min-height: 160px !important;
   }
-  #techx-attendance-ticket > div:first-child {
+  #hatchpoint-attendance-ticket > div:first-child {
     padding: 12px !important;
     gap: 8px !important;
   }
-  #techx-attendance-ticket > div:last-child {
+  #hatchpoint-attendance-ticket > div:last-child {
     padding: 12px !important;
   }
-  #techx-attendance-ticket strong {
+  #hatchpoint-attendance-ticket strong {
     font-size: 11px !important;
   }
-  #techx-attendance-ticket span {
+  #hatchpoint-attendance-ticket span {
     font-size: 7.5px !important;
   }
-  #techx-attendance-ticket div[style*="grid-template-columns"] {
+  #hatchpoint-attendance-ticket div[style*="grid-template-columns"] {
     gap: 6px !important;
     padding-top: 8px !important;
   }
-  #techx-attendance-ticket div[style*="margin-top: auto"] {
+  #hatchpoint-attendance-ticket div[style*="margin-top: auto"] {
     margin-top: 4px !important;
   }
-  #techx-attendance-ticket div[style*="left: calc"] {
+  #hatchpoint-attendance-ticket div[style*="left: calc"] {
     left: calc(68.5% - 4px) !important;
   }
-  #techx-attendance-ticket div[style*="width: 12px; height: 12px"] {
+  #hatchpoint-attendance-ticket div[style*="width: 12px; height: 12px"] {
     width: 8px !important;
     height: 8px !important;
   }

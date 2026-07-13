@@ -19,13 +19,7 @@ const auth = getAuth(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-// Prevent pinch-to-zoom gestures on iOS Safari & Samsung Internet
-document.addEventListener("touchstart", (e) => {
-  if (e.touches.length > 1) {
-    e.preventDefault();
-  }
-}, { passive: false });
-
+// Prevent pinch-to-zoom using standard gesture events
 document.addEventListener("gesturestart", (e) => {
   e.preventDefault();
 });
@@ -277,12 +271,111 @@ if (toggleSignupBtn) {
       showToast("Updating security settings...", "info");
       await setDoc(doc(firestore, "config", "admin_settings"), {
         signupEnabled: !signupEnabled
-      });
+      }, { merge: true });
       showToast("Security settings updated!", "success");
     } catch (err) {
       showToast("Failed to update settings: " + getCleanErrorMessage(err), "error");
     }
   });
+}
+
+// Keyboard Combo Recorder
+const btnRecordCombo = document.getElementById("btn-record-combo");
+const comboRecordArea = document.getElementById("admin-combo-record-area");
+const comboDisplayArea = document.getElementById("admin-combo-display-area");
+const comboRecordingDisplay = document.getElementById("combo-recording-display");
+const btnSetCombo = document.getElementById("btn-set-combo");
+const btnCancelCombo = document.getElementById("btn-cancel-combo");
+
+if (btnRecordCombo) {
+  let isRecording = false;
+  let pressedKeys = new Set();
+  
+  const keydownHandler = (e) => {
+    e.preventDefault(); 
+    if (pressedKeys.size < 4) {
+      pressedKeys.add(e.key.toLowerCase());
+      updateRecordingDisplay();
+    }
+  };
+  
+  const keyupHandler = (e) => {
+    e.preventDefault();
+  };
+
+  const updateRecordingDisplay = () => {
+    if (pressedKeys.size === 0) {
+      comboRecordingDisplay.textContent = "Press Keys...";
+    } else {
+      comboRecordingDisplay.innerHTML = Array.from(pressedKeys).map(k => `<kbd style="background: transparent; border: none; color: inherit; padding: 0;">${k}</kbd>`).join(" + ");
+    }
+  };
+
+  const stopRecording = () => {
+    window.removeEventListener("keydown", keydownHandler);
+    window.removeEventListener("keyup", keyupHandler);
+    isRecording = false;
+    if (comboRecordArea) comboRecordArea.style.display = "none";
+    if (comboDisplayArea) comboDisplayArea.style.display = "flex";
+    if (btnRecordCombo) btnRecordCombo.style.display = "inline-flex";
+  };
+  
+  btnRecordCombo.addEventListener("click", () => {
+    if (isRecording) return;
+    isRecording = true;
+    pressedKeys.clear();
+    updateRecordingDisplay();
+    
+    if (comboDisplayArea) comboDisplayArea.style.display = "none";
+    if (btnRecordCombo) btnRecordCombo.style.display = "none";
+    if (comboRecordArea) comboRecordArea.style.display = "flex";
+    
+    showToast("Press up to 4 keys to form your combo.", "info");
+    window.addEventListener("keydown", keydownHandler);
+    window.addEventListener("keyup", keyupHandler);
+  });
+
+  if (btnCancelCombo) {
+    btnCancelCombo.addEventListener("click", () => {
+      stopRecording();
+      showToast("Recording cancelled.", "info");
+    });
+  }
+
+  if (btnSetCombo) {
+    btnSetCombo.addEventListener("click", async () => {
+      const comboArray = Array.from(pressedKeys);
+      
+      if (comboArray.length > 0 && (comboArray.length < 3 || comboArray.length > 4)) {
+        showToast("Combination must be exactly 3 or 4 keys.", "error");
+        return;
+      }
+
+      stopRecording();
+      
+      if (comboArray.length === 0) {
+        try {
+          showToast("Clearing shortcut combo...", "info");
+          await setDoc(doc(firestore, "config", "admin_settings"), {
+            shortcutCombo: []
+          }, { merge: true });
+          showToast("Shortcut combo cleared successfully!", "success");
+        } catch (err) {
+          showToast("Failed to clear combo: " + getCleanErrorMessage(err), "error");
+        }
+      } else {
+        try {
+          showToast("Saving shortcut combo...", "info");
+          await setDoc(doc(firestore, "config", "admin_settings"), {
+            shortcutCombo: comboArray
+          }, { merge: true });
+          showToast("Shortcut combo saved successfully!", "success");
+        } catch (err) {
+          showToast("Failed to save combo: " + getCleanErrorMessage(err), "error");
+        }
+      }
+    });
+  }
 }
 
 // Landing page stats form configuration
@@ -439,12 +532,25 @@ function initRealtimeSync() {
 
   // Watch security configuration settings
   onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
+    let currentCombo = [];
     if (snapshot.exists()) {
-      signupEnabled = snapshot.data().signupEnabled !== false;
+      const data = snapshot.data();
+      signupEnabled = data.signupEnabled !== false;
+      currentCombo = data.shortcutCombo || [];
     } else {
       signupEnabled = true;
       if (currentUser) {
-        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true }).catch(err => console.log("Seeding config deferred:", err.message));
+        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true }, { merge: true }).catch(err => console.log("Seeding config deferred:", err.message));
+      }
+    }
+
+    // Update combo display
+    const comboDisplay = document.getElementById("admin-combo-display");
+    if (comboDisplay) {
+      if (currentCombo.length === 0) {
+        comboDisplay.innerHTML = `<span class="badge badge-info">None Set</span>`;
+      } else {
+        comboDisplay.innerHTML = currentCombo.map(k => `<kbd style="background: var(--bg-card); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: var(--text-main); font-family: monospace; text-transform: uppercase;">${k}</kbd>`).join(" + ");
       }
     }
 
@@ -532,8 +638,8 @@ function initRealtimeSync() {
     if (snapshot.empty && currentUser) {
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
-        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
-        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing HatchPoint. Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
         setDoc(doc(firestore, "legal", docObj.id), {
@@ -582,7 +688,7 @@ function initRealtimeSync() {
       if (currentUser) {
         setDoc(doc(firestore, "config", "ticketing_settings"), {
           ticketingEnabled: false,
-          eventTitle: "TechX Grand Finale Pitch Day",
+          eventTitle: "HatchPoint Grand Finale Pitch Day",
           eventDate: "August 15, 2026 @ 09:00 AM",
           eventVenue: "KNUST Great Hall",
           ticketLimit: 500,
@@ -1233,12 +1339,15 @@ if (exportCSVBtn) {
     ];
 
     const rows = allProjects.map(p => {
+      // Prevent massive base64 strings from crashing the CSV
+      const safeUrl = p.conceptNoteUrl ? (p.conceptNoteUrl.startsWith('data:') ? 'Base64 Encoded (View in App)' : p.conceptNoteUrl) : '';
+
       const basic = [
         p.teamName, p.title, p.track, p.status, p.averageScore || 'N/A',
         p.members ? p.members[0] : '', p.emails ? p.emails[0] : '', p.contacts ? p.contacts[0] : '',
         p.members ? p.members[1] : '', p.emails ? p.emails[1] : '', p.contacts ? p.contacts[1] : '',
         p.members ? p.members[2] : '', p.emails ? p.emails[2] : '', p.contacts ? p.contacts[2] : '',
-        p.conceptNoteName || '', p.conceptNoteUrl || '',
+        p.conceptNoteName || '', safeUrl,
         p.timestamp ? new Date(p.timestamp).toLocaleString() : ''
       ];
       
@@ -1250,7 +1359,7 @@ if (exportCSVBtn) {
     const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `techx_registrations_${Date.now()}.csv`);
+    link.setAttribute("download", `hatchpoint_registrations_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1266,8 +1375,8 @@ async function seedDefaultsIfEmpty() {
     if (legalSnap.empty) {
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
-        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing the TechX Challenge.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
-        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@techxchallenge.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+        { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing HatchPoint. Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
         await setDoc(doc(firestore, "legal", docObj.id), {

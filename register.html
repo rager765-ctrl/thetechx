@@ -3,22 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Team Registration | The TechX Challenge</title>
-  <meta name="description" content="Register your team of 3 members and submit your concept note for The TechX Challenge.">
+  <title>Team Registration | HatchPoint. Nyansapo Edition</title>
+  <meta name="description" content="Register your team of 3 members and submit your concept note for HatchPoint. Nyansapo Edition.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="background-color: var(--bg-app); min-height: 100vh; display: flex; flex-direction: column;">
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
 
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="container">
       <div style="display: flex; align-items: center; gap: 12px;">
         <a href="index.html" class="logo" id="nav-logo">
-          <div class="logo-icon"><i class="fa-solid fa-code"></i></div>
-          <span>Tech<span class="text-gradient">X</span></span>
+          <div class="logo-icon">
+            <svg class="custom-tag-icon" viewBox="0 0 24 24">
+              <polyline points="8 7 3 12 8 17"></polyline>
+              <line x1="15" y1="4" x2="9" y2="20"></line>
+              <polyline points="16 7 21 12 16 17"></polyline>
+            </svg>
+          </div>
+          <span>Hatch<span class="logo-text-accent">Point</span></span>
         </a>
         <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
@@ -45,7 +51,7 @@
       </div>
       <div class="rules-modal-body">
         <p class="rules-modal-intro">
-          Welcome to The TechX Challenge! Before you can proceed to the team registration form, please carefully review the following guidelines:
+          Welcome to HatchPoint. Nyansapo Edition! Before you can proceed to the team registration form, please carefully review the following guidelines:
         </p>
         <div class="rules-list">
           <div class="rules-item">
@@ -209,7 +215,7 @@
                 <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
               </div>
               <span class="file-upload-label" id="file-upload-label">Click to browse or drag &amp; drop</span>
-              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 1 MB</span>
+              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 2.5 MB</span>
             </div>
 
             <!-- Selected file info chip (hidden until file chosen) -->
@@ -248,7 +254,7 @@
   <!-- Footer Section -->
   <footer id="footer-section" style="margin-top: auto;">
     <div class="container" style="text-align: center; padding: 20px 0; border-top: 1px solid var(--border);">
-      <div>&copy; 2026 The TechX Challenge. All rights reserved.</div>
+      <div>&copy; 2026 HatchPoint. Nyansapo Edition. All rights reserved.</div>
     </div>
   </footer>
 
