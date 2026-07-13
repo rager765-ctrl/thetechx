@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // 1. Firebase Initialization & Config
 const firebaseConfig = {
@@ -873,29 +873,13 @@ function initRealtimeSync() {
       allResources.push({ id: d.id, ...d.data() });
     });
     
-    // Seed default resources if collection is empty
+    // Provide default visual resources if collection is empty (do not write to DB to avoid permission errors)
     if (snapshot.empty) {
-      const defaultResources = [
-        { title: "HatchPoint Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", timestamp: 1 },
-        { title: "Pitch Deck PowerPoint Template", icon: "fa-file-powerpoint", type: "PPTX Presentation", size: "4.8 MB", desc: "Use our approved slide outline for Demo Day to structure your problem, solution, and model.", timestamp: 2 },
-        { title: "Judging Scorecard Rubric Details", icon: "fa-clipboard-check", type: "PDF Document", size: "800 KB", desc: "A comprehensive breakdown of how judges rate Innovation, Execution, Impact, and UX.", timestamp: 3 }
+      allResources = [
+        { id: "default-1", title: "HatchPoint Official Rules & Guidelines", icon: "fa-file-pdf", type: "PDF Document", size: "1.2 MB", desc: "Download the complete terms, criteria weights, and technical guidelines.", timestamp: 1, link: "" },
+        { id: "default-2", title: "Pitch Deck PowerPoint Template", icon: "fa-file-powerpoint", type: "PPTX Presentation", size: "4.8 MB", desc: "Use our approved slide outline for Demo Day to structure your problem, solution, and model.", timestamp: 2, link: "" },
+        { id: "default-3", title: "Judging Scorecard Rubric Details", icon: "fa-clipboard-check", type: "PDF Document", size: "800 KB", desc: "A comprehensive breakdown of how judges rate Innovation, Execution, Impact, and UX.", timestamp: 3, link: "" }
       ];
-      try {
-        for (const res of defaultResources) {
-          const id = res.title.toLowerCase().replace(/[^a-z0-9]/g, "-");
-          await setDoc(doc(firestore, "resources", id), {
-            title: res.title,
-            icon: res.icon,
-            type: res.type,
-            size: res.size,
-            desc: res.desc,
-            link: "", // Seed with empty link first
-            timestamp: Date.now() + res.timestamp
-          });
-        }
-      } catch (err) {
-        console.error("Failed seeding resources:", err);
-      }
     }
     
     allResources.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -1239,7 +1223,7 @@ async function submitPublicTicketBooking(event) {
     submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
     showToast("Processing booking...", "info");
     
-    const { getFirestore, doc, setDoc, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+    const { getFirestore, doc, setDoc, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     const db = getFirestore();
     
     // Fetch all current tickets to determine seat sequence

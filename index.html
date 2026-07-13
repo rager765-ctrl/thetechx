@@ -31,9 +31,19 @@
 
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
+  
+  <!-- Preconnect and Preload Critical Assets -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap">
+  <link rel="preload" href="styles.css" as="style">
+  
   <link rel="stylesheet" href="styles.css">
-  <!-- FontAwesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Defer Non-Critical CSS (FontAwesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
   <!-- JSON-LD Structured Data for Google Search Rich Results -->
   <script type="application/ld+json">
@@ -91,9 +101,9 @@
         </a>
         <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 1px; height: 24px; background: var(--border); display: inline-block;"></div>
-          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; object-fit: contain;">
+          <img src="logo_knust.png" alt="KNUST Logo" style="height: 24px; width: auto; object-fit: contain;" width="70" height="24">
           <div style="width: 1px; height: 16px; background: var(--border);"></div>
-          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; object-fit: contain;">
+          <img src="logo_ksb.png" alt="KSB Logo" style="height: 24px; width: auto; object-fit: contain;" width="70" height="24">
         </div>
       </div>
       
@@ -148,9 +158,9 @@
                 <div class="hero-tags-wrapper" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
                   <span class="hero-tag" style="margin-bottom: 0;"><i class="fa-solid fa-circle-nodes"></i> Registration is open!</span>
                   <span class="hero-tag page-logos" style="margin-bottom: 0; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); display: inline-flex; align-items: center; gap: 10px;">
-                    <img src="logo_knust.png" alt="KNUST Logo" style="height: 18px; object-fit: contain;">
+                    <img src="logo_knust.png" alt="KNUST Logo" style="height: 18px; width: auto; object-fit: contain;" width="52" height="18" loading="lazy">
                     <div style="width: 1px; height: 12px; background: rgba(255, 255, 255, 0.2);"></div>
-                    <img src="logo_ksb.png" alt="KSB Logo" style="height: 18px; object-fit: contain;">
+                    <img src="logo_ksb.png" alt="KSB Logo" style="height: 18px; width: auto; object-fit: contain;" width="52" height="18" loading="lazy">
                   </span>
                 </div>
                 <h1>Innovate. Build.<br><span class="text-gradient">Compete.</span></h1>
@@ -186,7 +196,7 @@
               </div>
               <div class="hero-image-container">
                 <div class="hero-image-wrapper">
-                  <img src="hero_techx.png" alt="HatchPoint Hackathon Collaboration" class="hero-image">
+                  <img src="hero_techx.png" alt="HatchPoint Hackathon Collaboration" class="hero-image" fetchpriority="high" loading="eager" width="600" height="400">
                 </div>
                 <div class="hero-stats-badge">
                   <div class="stat-item">
@@ -236,7 +246,7 @@
               
               <div class="hero-image-container dribbble-image-container">
                 <div class="hero-image-wrapper dribbble-image-wrapper">
-                  <img src="hero_touch.png" alt="HatchPoint Digital Integration" class="hero-image">
+                  <img src="hero_touch.png" alt="HatchPoint Digital Integration" class="hero-image" fetchpriority="high" loading="eager" width="600" height="400">
                 </div>
               </div>
             </div>
@@ -624,9 +634,9 @@
           </a>
           <p>Building the next generation of industry innovations and connecting creators with opportunity.</p>
           <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px;">
-            <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; object-fit: contain; filter: brightness(0) invert(1);">
+            <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; width: auto; object-fit: contain; filter: brightness(0) invert(1);" width="60" height="20" loading="lazy">
             <div style="width: 1px; height: 14px; background: rgba(255, 255, 255, 0.2);"></div>
-            <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; object-fit: contain; filter: brightness(0) invert(1);">
+            <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; width: auto; object-fit: contain; filter: brightness(0) invert(1);" width="60" height="20" loading="lazy">
           </div>
         </div>
         <div>
