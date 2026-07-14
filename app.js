@@ -788,6 +788,76 @@ function initRealtimeSync() {
     startCountdown();
   });
 
+  onSnapshot(doc(firestore, "config", "registration_form"), (snapshot) => {
+    const regTag = document.getElementById("registration-status-tag");
+    const navBtn = document.getElementById("nav-register-btn");
+    const mobileNavBtn = document.getElementById("mobile-register-btn");
+    const mobileBottomNavBtn = document.getElementById("mobile-bottom-register-btn");
+    
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      
+      if (regTag) {
+        if (data.hideRegistrationTag) {
+          regTag.style.display = 'none';
+        } else {
+          regTag.style.display = 'inline-flex';
+          if (data.registrationClosed) {
+            regTag.innerHTML = '<i class="fa-solid fa-lock"></i> Registration closed';
+            regTag.style.backgroundColor = '#fee2e2'; // var(--danger-light) alternative if not defined
+            regTag.style.color = '#ef4444'; // var(--danger) alternative
+            regTag.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+          } else {
+            regTag.innerHTML = '<i class="fa-solid fa-circle-nodes"></i> Registration is open!';
+            regTag.style.backgroundColor = 'var(--primary-light)';
+            regTag.style.color = 'var(--primary)';
+            regTag.style.borderColor = 'rgba(37, 99, 235, 0.1)';
+          }
+        }
+      }
+
+      if (data.swapNavToLeaderboard) {
+        if (navBtn) {
+          navBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> View Leaderboard';
+          navBtn.href = "leaderboard.html";
+          navBtn.removeAttribute("data-view");
+          navBtn.onclick = null;
+        }
+        if (mobileNavBtn) {
+          mobileNavBtn.innerHTML = 'View Leaderboard';
+          mobileNavBtn.href = "leaderboard.html";
+          mobileNavBtn.removeAttribute("data-view");
+          mobileNavBtn.onclick = null;
+        }
+        if (mobileBottomNavBtn) {
+          mobileBottomNavBtn.innerHTML = '<i class="fa-solid fa-trophy"></i><span>Leaderboard</span>';
+          mobileBottomNavBtn.href = "leaderboard.html";
+          mobileBottomNavBtn.removeAttribute("data-view");
+          mobileBottomNavBtn.onclick = null;
+        }
+      } else {
+        if (navBtn) {
+          navBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Register Now';
+          navBtn.href = "register.html";
+          navBtn.removeAttribute("data-view");
+          navBtn.onclick = null;
+        }
+        if (mobileNavBtn) {
+          mobileNavBtn.innerHTML = 'Register Now';
+          mobileNavBtn.href = "register.html";
+          mobileNavBtn.removeAttribute("data-view");
+          mobileNavBtn.onclick = null;
+        }
+        if (mobileBottomNavBtn) {
+          mobileBottomNavBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>Register</span>';
+          mobileBottomNavBtn.href = "register.html";
+          mobileBottomNavBtn.removeAttribute("data-view");
+          mobileBottomNavBtn.onclick = null;
+        }
+      }
+    }
+  });
+
   onSnapshot(collection(firestore, "prizes"), async (snapshot) => {
     allPrizes = [];
     snapshot.forEach(d => {

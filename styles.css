@@ -386,7 +386,7 @@ img {
   background: radial-gradient(circle at 90% 10%, rgba(224, 231, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%),
               radial-gradient(circle at 10% 80%, rgba(240, 253, 250, 0.4) 0%, rgba(255, 255, 255, 0) 60%);
   overflow: hidden;
-  padding: 100px 0;
+  padding: 60px 0;
 }
 
 /* Hero Carousel Slider Styles */
@@ -620,12 +620,13 @@ img {
 
 .hero-image-wrapper {
   position: relative;
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
-  padding: 12px;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--border);
-  overflow: hidden;
+  padding: 4px;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .hero-image {
@@ -633,7 +634,7 @@ img {
   width: 100%;
   object-fit: cover;
   aspect-ratio: 4/3;
-  background-color: #e2e8f0;
+  display: block;
 }
 
 .hero-stats-badge {

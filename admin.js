@@ -517,16 +517,28 @@ function initRealtimeSync() {
 
   onSnapshot(doc(firestore, "config", "registration_form"), (snapshot) => {
     let registrationClosed = false;
+    let hideRegistrationTag = false;
+    let swapNavToLeaderboard = false;
     if (snapshot.exists()) {
       const data = snapshot.data();
       activeCustomFields = data.customFields || [];
       registrationClosed = data.registrationClosed || false;
+      hideRegistrationTag = data.hideRegistrationTag || false;
+      swapNavToLeaderboard = data.swapNavToLeaderboard || false;
     } else {
       activeCustomFields = [];
     }
     const closedCheckbox = document.getElementById("admin-registration-closed");
     if (closedCheckbox) {
       closedCheckbox.checked = registrationClosed;
+    }
+    const hideCheckbox = document.getElementById("admin-registration-hide-tag");
+    if (hideCheckbox) {
+      hideCheckbox.checked = hideRegistrationTag;
+    }
+    const swapNavCheckbox = document.getElementById("admin-registration-swap-nav");
+    if (swapNavCheckbox) {
+      swapNavCheckbox.checked = swapNavToLeaderboard;
     }
     if (activeAdminTab === "form-config") {
       renderAdminCustomFieldsList();
@@ -1298,6 +1310,8 @@ if (deadlineForm) {
   deadlineForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const closed = document.getElementById("admin-registration-closed").checked;
+    const hideTag = document.getElementById("admin-registration-hide-tag") ? document.getElementById("admin-registration-hide-tag").checked : false;
+    const swapNav = document.getElementById("admin-registration-swap-nav") ? document.getElementById("admin-registration-swap-nav").checked : false;
     const saveBtn = document.getElementById("admin-save-deadline-btn");
     const originalBtnHTML = saveBtn.innerHTML;
 
@@ -1306,7 +1320,9 @@ if (deadlineForm) {
       saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
       showToast("Updating registration deadline status...", "info");
       await setDoc(doc(firestore, "config", "registration_form"), {
-        registrationClosed: closed
+        registrationClosed: closed,
+        hideRegistrationTag: hideTag,
+        swapNavToLeaderboard: swapNav
       }, { merge: true });
       showToast("Registration status updated successfully!", "success");
     } catch (err) {
