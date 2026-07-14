@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, onSnapshot, addDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // 1. Firebase Config
@@ -21,6 +21,32 @@ const storage = getStorage(app);
 document.addEventListener("gesturestart", (e) => {
   e.preventDefault();
 });
+
+// Analytics Tracking
+function trackSiteAnalytics() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isShareClick = urlParams.has("ref") && urlParams.get("ref") === "share";
+  
+  // Track Global Page Views
+  setDoc(doc(firestore, "analytics", "traffic"), {
+    total_page_views: increment(1)
+  }, { merge: true }).catch(err => console.warn("Analytics Error:", err));
+
+  // Log Detailed View
+  addDoc(collection(firestore, "analytics", "traffic", "visits"), {
+    path: window.location.pathname,
+    timestamp: serverTimestamp(),
+    isShareClick: isShareClick
+  }).catch(err => console.warn("Detailed Analytics Error:", err));
+
+  // Track Clicks from Shared Links
+  if (isShareClick) {
+    setDoc(doc(firestore, "analytics", "traffic"), {
+      shared_link_clicks: increment(1)
+    }, { merge: true }).catch(err => console.warn("Analytics Error:", err));
+  }
+}
+window.addEventListener("DOMContentLoaded", trackSiteAnalytics);
 
 
 
