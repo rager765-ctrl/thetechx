@@ -120,6 +120,27 @@ function playNotificationSound() {
   }
 }
 
+function requestDesktopNotification() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "denied" && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+}
+
+function sendDesktopNotification(title, message) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, {
+      body: message,
+      icon: 'favicon.png'
+    });
+  }
+}
+
+// Request permission on first click
+document.addEventListener('click', () => {
+  requestDesktopNotification();
+}, { once: true });
+
 // Error Message Cleaner
 function getCleanErrorMessage(err) {
   if (!err) return "An unknown error occurred.";
@@ -503,8 +524,10 @@ let isInitialProjectsLoad = true;
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
-          showToast(`New Application: ${data.project_name || "A new team"} just registered!`, "success");
+          const msg = `New Application: ${data.project_name || "A new team"} just registered!`;
+          showToast(msg, "success");
           playNotificationSound();
+          sendDesktopNotification("HatchPoint Registration", msg);
         }
       });
     }
@@ -3175,8 +3198,10 @@ function initSupportSync() {
         if (change.type === "added") {
           const data = change.doc.data();
           // Toasts for incoming messages
-          showToast(`New Message: ${data.name} says "${data.message.substring(0, 30)}..."`, "info");
+          const msg = `New Message: ${data.name} says "${data.message.substring(0, 30)}..."`;
+          showToast(msg, "info");
           playNotificationSound();
+          sendDesktopNotification("HatchBot Support", msg);
         }
       });
     }
