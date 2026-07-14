@@ -463,12 +463,23 @@ adminTabItems.forEach(item => {
 
 // Realtime Observers
 function initRealtimeSync() {
+let isInitialProjectsLoad = true;
   onSnapshot(collection(firestore, "projects"), (snapshot) => {
+    if (!isInitialProjectsLoad) {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          showToast(`New Application: ${data.project_name || "A new team"} just registered!`, "success");
+        }
+      });
+    }
+
     allProjects = [];
     snapshot.forEach(d => {
       allProjects.push({ id: d.id, ...d.data() });
     });
     renderAdminDashboard();
+    isInitialProjectsLoad = false;
   });
 
   onSnapshot(collection(firestore, "news"), (snapshot) => {
@@ -3120,14 +3131,26 @@ initRealtimeSync();
 
 // Support Chat Realtime Sync
 let supportMessages = [];
+let isInitialMessagesLoad = true;
 function initSupportSync() {
   const q = query(collection(firestore, "support_messages"), orderBy("timestamp", "desc"));
   onSnapshot(q, (snapshot) => {
+    if (!isInitialMessagesLoad) {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          // Toasts for incoming messages
+          showToast(`New Message: ${data.name} says "${data.message.substring(0, 30)}..."`, "info");
+        }
+      });
+    }
+
     supportMessages = [];
     snapshot.forEach(docSnap => {
       supportMessages.push({ id: docSnap.id, ...docSnap.data() });
     });
     renderSupportMessages();
+    isInitialMessagesLoad = false;
   });
 }
 initSupportSync();
