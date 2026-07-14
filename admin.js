@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, addDoc, onSnapshot, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, addDoc, onSnapshot, deleteDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // 1. Firebase Config
@@ -573,17 +573,30 @@ function initRealtimeSync() {
     }
   });
 
-  // Watch security configuration settings
+    // Watch security configuration settings
   onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
     let currentCombo = [];
+    let isSponsorsHidden = false;
     if (snapshot.exists()) {
       const data = snapshot.data();
       signupEnabled = data.signupEnabled !== false;
       currentCombo = data.shortcutCombo || [];
+      isSponsorsHidden = data.hideSponsors === true;
     } else {
       signupEnabled = true;
       if (currentUser) {
-        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true }, { merge: true }).catch(err => console.log("Seeding config deferred:", err.message));
+        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true, hideSponsors: false }, { merge: true }).catch(err => console.log("Seeding config deferred:", err.message));
+      }
+    }
+
+    const toggleSponsorsBtn = document.getElementById("toggle-sponsors-section-btn");
+    if (toggleSponsorsBtn) {
+      if (isSponsorsHidden) {
+        toggleSponsorsBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Show Sponsors Section';
+        toggleSponsorsBtn.classList.replace("btn-outline", "btn-primary");
+      } else {
+        toggleSponsorsBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Hide Sponsors Section';
+        toggleSponsorsBtn.classList.replace("btn-primary", "btn-outline");
       }
     }
 
@@ -3102,3 +3115,242 @@ if (shareLeaderboardBtn) {
 
 // Initialize realtime database connections
 initRealtimeSync();
+
+// Support Chat Realtime Sync
+let supportMessages = [];
+function initSupportSync() {
+  const q = query(collection(firestore, "support_messages"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    supportMessages = [];
+    snapshot.forEach(docSnap => {
+      supportMessages.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderSupportMessages();
+  });
+}
+initSupportSync();
+
+function renderSupportMessages() {
+  const container = document.getElementById("support-messages-container");
+  if (!container) return;
+
+  if (supportMessages.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-check-circle" style="font-size: 24px; color: var(--success);"></i><p>Inbox zero! No pending messages.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = supportMessages.map(msg => {
+    const isUnread = msg.status !== "replied";
+    const date = msg.timestamp ? msg.timestamp.toDate().toLocaleString() : "Just now";
+    let rawNum = msg.whatsapp.replace(/[^0-9]/g, '');
+    if (rawNum.startsWith('0') && rawNum.length === 10) {
+      rawNum = '233' + rawNum.substring(1);
+    }
+    const waLink = `https://wa.me/${rawNum}?text=${encodeURIComponent("Hello " + msg.name + ", this is HatchPoint Support. Regarding your message: '" + msg.message + "' - ")}`;
+    
+    return `
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm); ${isUnread ? 'border-left: 4px solid var(--primary);' : ''}">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div>
+            <h4 style="margin: 0; font-size: 15px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+              ${msg.name} ${isUnread ? '<span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">NEW</span>' : ''}
+            </h4>
+            <div style="color: var(--text-light); font-size: 12px; margin-top: 4px;">
+              <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> ${msg.whatsapp} &bull; ${date}
+            </div>
+          </div>
+          ${isUnread ? `
+            <button class="btn btn-primary btn-sm mark-replied-btn" data-id="${msg.id}" style="padding: 4px 10px; font-size: 11px;">
+              <i class="fa-solid fa-check"></i> Mark Replied
+            </button>
+          ` : `
+            <span style="font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-check-double"></i> Replied</span>
+          `}
+        </div>
+        <div style="background: var(--bg-body); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-main); line-height: 1.5; white-space: pre-wrap;">${msg.message}</div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <a href="${waLink}" target="_blank" class="btn btn-outline btn-sm" style="font-size: 12px; border-color: #25D366; color: #25D366;">
+            <i class="fa-brands fa-whatsapp"></i> Reply on WhatsApp
+          </a>
+          <button class="btn btn-outline btn-sm delete-chat-btn" data-id="${msg.id}" style="font-size: 12px; border-color: var(--danger); color: var(--danger);">
+            <i class="fa-solid fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Attach event listeners for marking as replied
+  container.querySelectorAll('.mark-replied-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.getAttribute('data-id');
+      try {
+        await setDoc(doc(firestore, "support_messages", id), { status: "replied" }, { merge: true });
+        showToast("Marked as replied!", "success");
+      } catch (err) {
+        showToast("Error updating status.", "error");
+      }
+    });
+  });
+
+  // Attach event listeners for individual deletion
+  container.querySelectorAll('.delete-chat-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      if (!confirm("Delete this message?")) return;
+      const id = e.currentTarget.getAttribute('data-id');
+      try {
+        await deleteDoc(doc(firestore, "support_messages", id));
+        showToast("Message deleted.", "success");
+      } catch (err) {
+        showToast("Error deleting message.", "error");
+      }
+    });
+  });
+}
+
+// Bulk delete all support chats
+document.addEventListener("DOMContentLoaded", () => {
+  const deleteAllBtn = document.getElementById("admin-delete-all-chats-btn");
+  if (deleteAllBtn) {
+    deleteAllBtn.addEventListener("click", async () => {
+      if (supportMessages.length === 0) {
+        showToast("No messages to delete.", "info");
+        return;
+      }
+      if (!confirm("Are you sure you want to delete ALL support messages? This cannot be undone.")) return;
+      
+      try {
+        showToast("Deleting messages...", "info");
+        for (const msg of supportMessages) {
+          await deleteDoc(doc(firestore, "support_messages", msg.id));
+        }
+        showToast("All messages deleted successfully!", "success");
+      } catch (err) {
+        console.error("Bulk delete error:", err);
+        showToast("Failed to delete some messages.", "error");
+      }
+    });
+  }
+});
+
+// SPONSORS LOGIC
+const sponsorForm = document.getElementById("admin-sponsor-form");
+if (sponsorForm) {
+  sponsorForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("admin-sponsor-name").value.trim();
+    const url = document.getElementById("admin-sponsor-url").value.trim();
+    const logoFile = document.getElementById("admin-sponsor-logo").files[0];
+    const btn = document.getElementById("admin-sponsor-submit-btn");
+
+    if (!name || !logoFile) return;
+
+    try {
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+      btn.disabled = true;
+
+      // Compress and Read image as base64
+      const logoUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 400;
+            const scale = Math.min(MAX_WIDTH / img.width, 1);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/png', 0.8));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(logoFile);
+      });
+
+      // Save to Firestore
+      await addDoc(collection(firestore, "sponsors"), {
+        name,
+        url,
+        logoUrl,
+        timestamp: serverTimestamp()
+      });
+
+      showToast("Sponsor added successfully!", "success");
+      sponsorForm.reset();
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      showToast("Error adding sponsor.", "error");
+      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload Sponsor';
+      btn.disabled = false;
+    }
+  });
+}
+
+// SPONSORS TOGGLE LOGIC
+const toggleSponsorsBtn = document.getElementById("toggle-sponsors-section-btn");
+if (toggleSponsorsBtn) {
+  toggleSponsorsBtn.addEventListener("click", async () => {
+    const isCurrentlyHidden = toggleSponsorsBtn.innerHTML.includes("Show");
+    try {
+      toggleSponsorsBtn.disabled = true;
+      await setDoc(doc(firestore, "config", "admin_settings"), {
+        hideSponsors: !isCurrentlyHidden
+      }, { merge: true });
+      showToast(isCurrentlyHidden ? "Sponsors section is now visible." : "Sponsors section is now hidden.", "success");
+    } catch (err) {
+      showToast("Failed to toggle sponsors section.", "error");
+    } finally {
+      toggleSponsorsBtn.disabled = false;
+    }
+  });
+}
+
+function initSponsorsSync() {
+  const q = query(collection(firestore, "sponsors"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const list = document.getElementById("admin-sponsors-list");
+    if (!list) return;
+
+    if (snapshot.empty) {
+      list.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>No sponsors found.</p></div>`;
+      return;
+    }
+
+    let html = '';
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      html += `
+        <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; position: relative;">
+          <img src="${data.logoUrl}" alt="${data.name}" style="width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px;">
+          <h4 style="font-size: 13px; margin: 0 0 8px 0; color: var(--text-main);">${data.name}</h4>
+          <button class="btn btn-outline btn-sm delete-sponsor-btn" data-id="${docSnap.id}" style="width: 100%; font-size: 11px; color: var(--danger); border-color: var(--danger);">
+            <i class="fa-solid fa-trash"></i> Delete
+          </button>
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+
+    list.querySelectorAll('.delete-sponsor-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if (!confirm("Delete this sponsor?")) return;
+        const id = e.currentTarget.getAttribute('data-id');
+        try {
+          await deleteDoc(doc(firestore, "sponsors", id));
+          showToast("Sponsor deleted.", "success");
+        } catch (err) {
+          showToast("Error deleting sponsor.", "error");
+        }
+      });
+    });
+  });
+}
+initSponsorsSync();

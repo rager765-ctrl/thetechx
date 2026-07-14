@@ -1597,8 +1597,15 @@ let adminShortcutCombo = JSON.parse(localStorage.getItem("adminShortcutCombo") |
 let pressedGlobalKeys = new Set();
 onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
   if (snapshot.exists()) {
-    adminShortcutCombo = snapshot.data().shortcutCombo || [];
+    const data = snapshot.data();
+    adminShortcutCombo = data.shortcutCombo || [];
     localStorage.setItem("adminShortcutCombo", JSON.stringify(adminShortcutCombo));
+    
+    // Hide/Show Sponsors Section
+    const sponsorsSection = document.getElementById("sponsors");
+    if (sponsorsSection) {
+      sponsorsSection.style.display = data.hideSponsors ? "none" : "block";
+    }
   }
 });
 
@@ -1640,3 +1647,195 @@ function trackSiteAnalytics() {
 }
 // Run analytics on page load
 window.addEventListener("DOMContentLoaded", trackSiteAnalytics);
+
+// SUPPORT CHAT WIDGET LOGIC
+document.addEventListener("DOMContentLoaded", () => {
+  const chatBtn = document.getElementById("support-chat-btn");
+  const chatModal = document.getElementById("support-chat-modal");
+  const closeBtn = document.getElementById("close-support-chat");
+  const chatForm = document.getElementById("support-chat-form");
+  const successMsg = document.getElementById("chat-success-msg");
+
+  if (!chatBtn || !chatModal || !chatForm) return;
+
+  chatBtn.addEventListener("click", () => {
+    chatModal.classList.toggle("active");
+  });
+
+  closeBtn.addEventListener("click", () => {
+    chatModal.classList.remove("active");
+  });
+
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("chat-name").value.trim();
+    const whatsapp = document.getElementById("chat-whatsapp").value.trim();
+    const message = document.getElementById("chat-message").value.trim();
+
+    if (!name || !whatsapp || !message) return;
+
+    try {
+      const btn = chatForm.querySelector("button[type='submit']");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+      btn.disabled = true;
+
+      await addDoc(collection(firestore, "support_messages"), {
+        name,
+        whatsapp,
+        message,
+        status: "unread",
+        timestamp: serverTimestamp()
+      });
+
+      chatForm.style.display = "none";
+      successMsg.style.display = "block";
+
+      setTimeout(() => {
+        chatModal.classList.remove("active");
+        setTimeout(() => {
+          chatForm.reset();
+          chatForm.style.display = "block";
+          successMsg.style.display = "none";
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 300);
+      }, 3000);
+
+    } catch (err) {
+      console.error("Support message error:", err);
+      alert("Failed to send message. Please try again.");
+      chatForm.querySelector("button[type='submit']").disabled = false;
+    }
+  });
+});
+
+// LOAD SPONSORS
+document.addEventListener("DOMContentLoaded", () => {
+  const sponsorsGrid = document.getElementById("public-sponsors-grid");
+  if (!sponsorsGrid) return;
+
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({ getDocs, collection, query, orderBy }) => {
+    const q = query(collection(firestore, "sponsors"), orderBy("timestamp", "desc"));
+    getDocs(q).then(snapshot => {
+      if (snapshot.empty) {
+        sponsorsGrid.innerHTML = `<p style="color: var(--text-light);">We are currently accepting sponsors!</p>`;
+        return;
+      }
+      let html = '';
+      let index = 0;
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const baseZIndex = snapshot.size - index;
+        const marginLeft = index === 0 ? '0' : '-20px';
+        const innerContent = `<img src="${data.logoUrl}" alt="${data.name}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 4px solid #fff; transition: transform 0.3s ease;">`;
+        
+        if (data.url) {
+          html += `
+            <a href="${data.url}" target="_blank" rel="noopener noreferrer" style="background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-left: ${marginLeft}; z-index: ${baseZIndex}; position: relative; transition: z-index 0s, transform 0.3s ease;" onmouseover="this.style.zIndex='1000'; this.style.transform='translateY(-5px)'" onmouseout="this.style.zIndex='${baseZIndex}'; this.style.transform='translateY(0)'">
+              ${innerContent}
+            </a>
+          `;
+        } else {
+          html += `
+            <div style="background: transparent; display: flex; align-items: center; justify-content: center; margin-left: ${marginLeft}; z-index: ${baseZIndex}; position: relative; transition: z-index 0s, transform 0.3s ease;" onmouseover="this.style.zIndex='1000'; this.style.transform='translateY(-5px)'" onmouseout="this.style.zIndex='${baseZIndex}'; this.style.transform='translateY(0)'">
+              ${innerContent}
+            </div>
+          `;
+        }
+        index++;
+      });
+      sponsorsGrid.innerHTML = html;
+    }).catch(err => {
+      console.error("Failed to load sponsors:", err);
+      sponsorsGrid.innerHTML = `<p style="color: var(--text-light);">Unable to load sponsors at this time.</p>`;
+    });
+  });
+});
+
+// 3D MATRIX BINARY ANIMATION
+function initMatrixAnimation() {
+  const canvas = document.getElementById("matrix-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  
+  let width, height;
+  function resize() {
+    width = canvas.offsetWidth;
+    height = canvas.offsetHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const particles = [];
+  const maxParticles = window.innerWidth < 768 ? 20 : 45;
+  
+  class MatrixParticle {
+    constructor() {
+      this.reset(true);
+    }
+    
+    reset(initial = false) {
+      this.x = Math.random() * width;
+      this.y = initial ? Math.random() * height : height + Math.random() * 100;
+      this.speed = Math.random() * 1.5 + 0.5;
+      this.val = Math.random() > 0.5 ? '1' : '0';
+      this.size = Math.random() * 10 + 8;
+      this.alpha = Math.random() * 0.3 + 0.05;
+      this.trailLength = Math.random() * 150 + 50;
+    }
+    
+    update() {
+      this.y -= this.speed;
+      if (Math.random() < 0.03) {
+        this.val = Math.random() > 0.5 ? '1' : '0'; // Glitch effect
+      }
+      if (this.y < -this.trailLength) {
+        this.reset();
+      }
+    }
+    
+    draw(ctx) {
+      // Draw glowing trail
+      const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.trailLength);
+      gradient.addColorStop(0, `rgba(37, 99, 235, ${this.alpha * 0.5})`);
+      gradient.addColorStop(1, `rgba(37, 99, 235, 0)`);
+      
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x, this.y + this.trailLength);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Draw binary character
+      ctx.font = `bold ${this.size}px monospace`;
+      ctx.fillStyle = `rgba(37, 99, 235, ${this.alpha + 0.2})`;
+      ctx.shadowColor = 'rgba(37, 99, 235, 0.3)';
+      ctx.shadowBlur = 3;
+      ctx.fillText(this.val, this.x - this.size/3, this.y);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  for (let i = 0; i < maxParticles; i++) {
+    particles.push(new MatrixParticle());
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach(p => {
+      p.update();
+      p.draw(ctx);
+    });
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initMatrixAnimation();
+});

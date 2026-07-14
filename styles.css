@@ -258,6 +258,95 @@ img {
   color: white;
 }
 
+/* SUPPORT CHAT WIDGET */
+#support-chat-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chat-btn {
+  width: 56px;
+  height: 56px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chat-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+}
+
+.chat-modal {
+  width: 320px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  overflow: hidden;
+  display: none; /* hidden by default */
+  flex-direction: column;
+  transform-origin: bottom right;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-modal.active {
+  display: flex;
+}
+
+.chat-modal-header {
+  background: linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.9)), url('nav_pattern.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-modal-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.chat-modal-header button:hover {
+  opacity: 1;
+}
+
+.chat-modal-body {
+  padding: 16px;
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 768px) {
+  #support-chat-container {
+    bottom: 80px; /* Above mobile nav */
+    right: 16px;
+  }
+}
+
 .btn-primary:hover {
   background-color: var(--primary-hover);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
@@ -1303,9 +1392,21 @@ footer h4 {
   left: 0;
   width: 260px;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden; /* Lock the drawer from scrolling */
   z-index: 100;
   transition: transform 0.3s ease;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+.portal-sidebar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
+.portal-sidebar-inner::-webkit-scrollbar {
+  display: none;
+}
+.portal-sidebar-inner {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .portal-sidebar::before {

@@ -659,3 +659,11 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
   pressedGlobalKeys.delete(e.key.toLowerCase());
 });
+
+// Mobile tap support for track tooltip
+const trackInfoIcon = document.getElementById("track-info-icon");
+if (trackInfoIcon) {
+  trackInfoIcon.addEventListener("click", () => {
+    showToast("Tracks allow you to align your project with a specific industry theme for specialized judging and prizes. If your innovation doesn't fit a specific category, select 'Open Track'.", "info");
+  });
+}

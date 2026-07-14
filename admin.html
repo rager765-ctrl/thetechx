@@ -114,43 +114,47 @@
     <div class="portal-layout" style="flex: 1;">
       <!-- Sidebar -->
       <aside class="portal-sidebar">
-        <div class="sidebar-top">
-          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
-            <a href="index.html" class="logo">
-              <div class="logo-icon">
-                <img src="favicon.png" alt="HatchPoint Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px;">
+        <div class="portal-sidebar-inner" style="overflow-y: auto; display: flex; flex-direction: column; justify-content: space-between; height: 100%; position: relative; z-index: 2;">
+          <div class="sidebar-top">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+              <a href="index.html" class="logo">
+                <div class="logo-icon">
+                  <img src="favicon.png" alt="HatchPoint Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px;">
+                </div>
+                <span>Hatch<span class="logo-text-accent">Point</span></span>
+              </a>
+              <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 1px; height: 20px; background: var(--border); display: inline-block;"></div>
+                <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; object-fit: contain;">
+                <div style="width: 1px; height: 14px; background: var(--border);"></div>
+                <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; object-fit: contain;">
               </div>
-              <span>Hatch<span class="logo-text-accent">Point</span></span>
-            </a>
-            <div class="nav-logos" style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 1px; height: 20px; background: var(--border); display: inline-block;"></div>
-              <img src="logo_knust.png" alt="KNUST Logo" style="height: 20px; object-fit: contain;">
-              <div style="width: 1px; height: 14px; background: var(--border);"></div>
-              <img src="logo_ksb.png" alt="KSB Logo" style="height: 20px; object-fit: contain;">
             </div>
-          </div>
-          <div class="portal-user-profile">
-            <div class="avatar" style="background-color: var(--secondary-light); color: var(--secondary);">AD</div>
-            <div class="user-info">
-              <span class="user-name">Admin Coordinator</span>
-              <span class="user-role">Lead Organizer</span>
+            <div class="portal-user-profile">
+              <div class="avatar" style="background-color: var(--secondary-light); color: var(--secondary);">AD</div>
+              <div class="user-info">
+                <span class="user-name">Admin Coordinator</span>
+                <span class="user-role">Lead Organizer</span>
+              </div>
             </div>
+            <ul class="sidebar-menu">
+              <li class="sidebar-item active" data-admin-tab="overview"><i class="fa-solid fa-chart-pie"></i> Analytics Overview</li>
+              <li class="sidebar-item" data-admin-tab="applicants"><i class="fa-solid fa-id-card"></i> Applicants</li>
+              <li class="sidebar-item" data-admin-tab="news-compose"><i class="fa-solid fa-pen-nib"></i> Compose News</li>
+              <li class="sidebar-item" data-admin-tab="form-config"><i class="fa-solid fa-sliders"></i> Form Configurator</li>
+              <li class="sidebar-item" data-admin-tab="tracks-config"><i class="fa-solid fa-network-wired"></i> Manage Tracks</li>
+              <li class="sidebar-item" data-admin-tab="features-config"><i class="fa-solid fa-star"></i> Manage Features</li>
+              <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
+              <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
+              <li class="sidebar-item" data-admin-tab="legal-config"><i class="fa-solid fa-gavel"></i> Manage Legal</li>
+              <li class="sidebar-item" data-admin-tab="resources-config"><i class="fa-solid fa-folder-open"></i> Manage Resources</li>
+              <li class="sidebar-item" data-admin-tab="tickets-config"><i class="fa-solid fa-ticket"></i> Manage Tickets</li>
+              <li class="sidebar-item" data-admin-tab="sponsors-config"><i class="fa-solid fa-handshake"></i> Manage Sponsors</li>
+              <li class="sidebar-item" data-admin-tab="support-chat"><i class="fa-solid fa-comments"></i> Support Chat</li>
+            </ul>
           </div>
-          <ul class="sidebar-menu">
-            <li class="sidebar-item active" data-admin-tab="overview"><i class="fa-solid fa-chart-pie"></i> Analytics Overview</li>
-            <li class="sidebar-item" data-admin-tab="applicants"><i class="fa-solid fa-id-card"></i> Applicants</li>
-            <li class="sidebar-item" data-admin-tab="news-compose"><i class="fa-solid fa-pen-nib"></i> Compose News</li>
-            <li class="sidebar-item" data-admin-tab="form-config"><i class="fa-solid fa-sliders"></i> Form Configurator</li>
-            <li class="sidebar-item" data-admin-tab="tracks-config"><i class="fa-solid fa-network-wired"></i> Manage Tracks</li>
-            <li class="sidebar-item" data-admin-tab="features-config"><i class="fa-solid fa-star"></i> Manage Features</li>
-            <li class="sidebar-item" data-admin-tab="timeline-config"><i class="fa-solid fa-clock-rotate-left"></i> Manage Timeline</li>
-            <li class="sidebar-item" data-admin-tab="rewards-config"><i class="fa-solid fa-gift"></i> Manage Rewards</li>
-            <li class="sidebar-item" data-admin-tab="legal-config"><i class="fa-solid fa-gavel"></i> Manage Legal</li>
-            <li class="sidebar-item" data-admin-tab="resources-config"><i class="fa-solid fa-folder-open"></i> Manage Resources</li>
-            <li class="sidebar-item" data-admin-tab="tickets-config"><i class="fa-solid fa-ticket"></i> Manage Tickets</li>
-          </ul>
+          <button class="sidebar-item" id="admin-logout-btn" style="color: var(--danger); width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; margin-bottom: 24px;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
         </div>
-        <button class="sidebar-item" id="admin-logout-btn" style="color: var(--danger); width: 100%; border: none; background: transparent; cursor: pointer; text-align: left;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
       </aside>
 
       <!-- Right Content Area -->
@@ -929,6 +933,71 @@
             <!-- Seating Map Grid -->
             <div id="admin-auditorium-map" style="padding: 24px; overflow-x: auto; background: var(--bg-app); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; position: relative;">
               <!-- Dynamic seating row loops in Javascript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: SPONSORS -->
+        <div class="admin-tab-content" id="admin-tab-sponsors-config">
+          <div class="portal-header">
+            <div>
+              <h1 class="portal-title">Manage Sponsors</h1>
+              <p class="portal-subtitle">Upload and manage sponsor logos for the public homepage.</p>
+            </div>
+            <div>
+              <button id="toggle-sponsors-section-btn" class="btn btn-outline" style="background: white;">
+                <i class="fa-solid fa-eye"></i> Hide Sponsors Section
+              </button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom: 24px;">
+            <h3>Add New Sponsor</h3>
+            <form id="admin-sponsor-form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+              <div>
+                <label>Sponsor Name</label>
+                <input type="text" id="admin-sponsor-name" class="form-control" placeholder="e.g. Acme Corp" required>
+              </div>
+              <div>
+                <label>Sponsor Website URL (Optional)</label>
+                <input type="url" id="admin-sponsor-url" class="form-control" placeholder="https://www.example.com">
+              </div>
+              <div>
+                <label>Sponsor Logo (Image)</label>
+                <input type="file" id="admin-sponsor-logo" class="form-control" accept="image/*" required>
+              </div>
+              <button type="submit" class="btn btn-primary" id="admin-sponsor-submit-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Sponsor</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Active Sponsors</h3>
+            <div id="admin-sponsors-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 16px;">
+              <div class="empty-state" style="grid-column: 1 / -1;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                <p>Loading sponsors...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: SUPPORT CHAT -->
+        <div class="admin-tab-content" id="admin-tab-support-chat">
+          <div class="portal-header">
+            <div>
+              <h1 class="portal-title">Support & Feedback</h1>
+              <p class="portal-subtitle">Manage user inquiries and respond directly via WhatsApp.</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; margin-top: 0; display: flex; align-items: center; justify-content: space-between;">
+              <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-inbox" style="color: var(--primary);"></i> Inbound Messages</h3>
+              <button id="admin-delete-all-chats-btn" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash-can"></i> Delete All</button>
+            </div>
+            <div id="support-messages-container" style="display: flex; flex-direction: column; gap: 16px;">
+              <div class="empty-state">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                <p>Loading messages...</p>
+              </div>
             </div>
           </div>
         </div>
