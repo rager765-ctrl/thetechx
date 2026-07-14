@@ -86,6 +86,40 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
+function playNotificationSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    // First chime
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.3);
+    
+    // Second chime
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.15);
+    gain2.gain.setValueAtTime(0.1, ctx.currentTime + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.15);
+    osc2.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    console.log("Audio not supported or interaction required");
+  }
+}
+
 // Error Message Cleaner
 function getCleanErrorMessage(err) {
   if (!err) return "An unknown error occurred.";
@@ -470,6 +504,7 @@ let isInitialProjectsLoad = true;
         if (change.type === "added") {
           const data = change.doc.data();
           showToast(`New Application: ${data.project_name || "A new team"} just registered!`, "success");
+          playNotificationSound();
         }
       });
     }
@@ -3141,6 +3176,7 @@ function initSupportSync() {
           const data = change.doc.data();
           // Toasts for incoming messages
           showToast(`New Message: ${data.name} says "${data.message.substring(0, 30)}..."`, "info");
+          playNotificationSound();
         }
       });
     }
