@@ -108,6 +108,9 @@
 
   <!-- Dashboard view (Shown only to admins) -->
   <div id="admin-dashboard-view" style="display: none; flex: 1; flex-direction: column;">
+    <!-- Floating Drawer Toggle -->
+    <button id="admin-drawer-toggle" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px;"><i class="fa-solid fa-bars"></i></button>
+
     <div class="portal-layout" style="flex: 1;">
       <!-- Sidebar -->
       <aside class="portal-sidebar">
@@ -156,7 +159,11 @@
         <div class="admin-tab-content active" id="admin-tab-overview">
           <div class="portal-header">
             <h2>Ecosystem Analytics</h2>
-            <button class="btn btn-secondary btn-sm" id="admin-export-btn"><i class="fa-solid fa-file-csv"></i> Export CSV Data</button>
+            <div>
+              <button class="btn btn-outline btn-sm" id="admin-copy-share-btn" style="color: var(--primary); border-color: var(--primary); margin-right: 8px;"><i class="fa-solid fa-link"></i> Copy Share Link</button>
+              <button class="btn btn-outline btn-sm" id="admin-reset-traffic-btn" style="color: var(--warning); border-color: var(--warning); margin-right: 8px;"><i class="fa-solid fa-rotate-left"></i> Reset Traffic</button>
+              <button class="btn btn-secondary btn-sm" id="admin-export-btn"><i class="fa-solid fa-file-csv"></i> Export CSV Data</button>
+            </div>
           </div>
 
           <!-- Stats -->
@@ -176,6 +183,15 @@
             <div class="analytic-card">
               <div class="analytic-num" id="admin-stat-tracks">0</div>
               <div class="analytic-title">Active tracks</div>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-page-views">0</div>
+              <div class="analytic-title">Total Page Views</div>
+              <button class="btn btn-outline btn-sm" id="admin-view-traffic-btn" style="margin-top: 12px; width: 100%; font-size: 11px; padding: 4px;">View More</button>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-num" id="admin-stat-shared-clicks">0</div>
+              <div class="analytic-title">Shared Link Clicks</div>
             </div>
           </div>
 
@@ -247,8 +263,21 @@
                   </select>
                 </div>
                 <div class="form-group" id="admin-stats-manual-group" style="display: none; flex: 1;">
-                  <label for="admin-stats-participants-override">Manual Override Value</label>
+                  <label for="admin-stats-participants-override">Participants Override Value</label>
                   <input type="text" id="admin-stats-participants-override" class="form-control" placeholder="e.g. 1,240+">
+                </div>
+              </div>
+              <div class="form-row" style="margin-top: 16px;">
+                <div class="form-group" style="flex: 1;">
+                  <label for="admin-stats-submissions-mode">Submissions Count Mode</label>
+                  <select id="admin-stats-submissions-mode" class="form-control" required>
+                    <option value="dynamic">Dynamic (Calculate from Database)</option>
+                    <option value="manual">Manual Override</option>
+                  </select>
+                </div>
+                <div class="form-group" id="admin-stats-submissions-manual-group" style="display: none; flex: 1;">
+                  <label for="admin-stats-submissions-override">Submissions Override Value</label>
+                  <input type="text" id="admin-stats-submissions-override" class="form-control" placeholder="e.g. 150+">
                 </div>
               </div>
               <div class="form-group" style="margin-top: 16px;">

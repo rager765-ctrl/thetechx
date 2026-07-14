@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, addDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, addDoc, onSnapshot, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // 1. Firebase Config
@@ -384,10 +384,21 @@ const adminLandingStatsForm = document.getElementById("admin-landing-stats-form"
 const adminStatsPartMode = document.getElementById("admin-stats-participants-mode");
 const adminStatsManualGroup = document.getElementById("admin-stats-manual-group");
 
+const adminStatsSubsMode = document.getElementById("admin-stats-submissions-mode");
+const adminStatsSubsManualGroup = document.getElementById("admin-stats-submissions-manual-group");
+
 if (adminStatsPartMode) {
   adminStatsPartMode.addEventListener("change", () => {
     if (adminStatsManualGroup) {
       adminStatsManualGroup.style.display = adminStatsPartMode.value === "manual" ? "block" : "none";
+    }
+  });
+}
+
+if (adminStatsSubsMode) {
+  adminStatsSubsMode.addEventListener("change", () => {
+    if (adminStatsSubsManualGroup) {
+      adminStatsSubsManualGroup.style.display = adminStatsSubsMode.value === "manual" ? "block" : "none";
     }
   });
 }
@@ -397,6 +408,10 @@ if (adminLandingStatsForm) {
     e.preventDefault();
     const mode = document.getElementById("admin-stats-participants-mode").value;
     const overrideVal = document.getElementById("admin-stats-participants-override").value.trim();
+    
+    const subsMode = document.getElementById("admin-stats-submissions-mode").value;
+    const subsOverrideVal = document.getElementById("admin-stats-submissions-override").value.trim();
+    
     const countdownVal = document.getElementById("admin-stats-countdown-date").value;
     const showCountdown = document.getElementById("admin-stats-show-countdown").checked;
     const showLeaderboard = document.getElementById("admin-stats-show-leaderboard").checked;
@@ -406,6 +421,8 @@ if (adminLandingStatsForm) {
       await setDoc(doc(firestore, "config", "landing_stats"), {
         participantsMode: mode,
         participantsOverride: overrideVal,
+        submissionsMode: subsMode,
+        submissionsOverride: subsOverrideVal,
         countdownDate: countdownVal,
         showCountdown: showCountdown,
         showLeaderboardWidget: showLeaderboard,
@@ -545,6 +562,17 @@ function initRealtimeSync() {
     }
   });
 
+  // Watch Traffic Analytics
+  onSnapshot(doc(firestore, "analytics", "traffic"), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const pageViewsEl = document.getElementById("admin-stat-page-views");
+      const sharedClicksEl = document.getElementById("admin-stat-shared-clicks");
+      if (pageViewsEl) pageViewsEl.textContent = data.total_page_views || 0;
+      if (sharedClicksEl) sharedClicksEl.textContent = data.shared_link_clicks || 0;
+    }
+  });
+
   // Watch security configuration settings
   onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
     let currentCombo = [];
@@ -603,16 +631,28 @@ function initRealtimeSync() {
       const overrideInput = document.getElementById("admin-stats-participants-override");
       const dateInput = document.getElementById("admin-stats-countdown-date");
       const manualGroup = document.getElementById("admin-stats-manual-group");
+      
+      const subsModeSelect = document.getElementById("admin-stats-submissions-mode");
+      const subsOverrideInput = document.getElementById("admin-stats-submissions-override");
+      const subsManualGroup = document.getElementById("admin-stats-submissions-manual-group");
+
       const showCountdownCheck = document.getElementById("admin-stats-show-countdown");
       const showLeaderboardCheck = document.getElementById("admin-stats-show-leaderboard");
 
       if (modeSelect) modeSelect.value = data.participantsMode || "dynamic";
       if (overrideInput) overrideInput.value = data.participantsOverride || "";
+      
+      if (subsModeSelect) subsModeSelect.value = data.submissionsMode || "dynamic";
+      if (subsOverrideInput) subsOverrideInput.value = data.submissionsOverride || "";
+
       if (dateInput) dateInput.value = data.countdownDate || "";
       if (showCountdownCheck) showCountdownCheck.checked = data.showCountdown !== false;
       if (showLeaderboardCheck) showLeaderboardCheck.checked = data.showLeaderboardWidget !== false;
       if (manualGroup) {
         manualGroup.style.display = (data.participantsMode === "manual") ? "block" : "none";
+      }
+      if (subsManualGroup) {
+        subsManualGroup.style.display = (data.submissionsMode === "manual") ? "block" : "none";
       }
     } else {
       // Default initialization
@@ -623,8 +663,11 @@ function initRealtimeSync() {
         setDoc(doc(firestore, "config", "landing_stats"), {
           participantsMode: "dynamic",
           participantsOverride: "1,240+",
+          submissionsMode: "dynamic",
+          submissionsOverride: "150+",
           countdownDate: defaultDateStr,
           showCountdown: true,
+          showLeaderboardWidget: true,
           timestamp: Date.now()
         }).catch(() => {});
       }
@@ -807,7 +850,7 @@ function renderAdminDashboard() {
 
     tableBody.innerHTML = allProjects.map(p => {
       const statusClass = `badge badge-${p.status === 'Approved' ? 'success' : p.status === 'Pending' ? 'warning' : 'info'}`;
-      const scoreText = p.averageScore ? `${p.averageScore}/10` : `<span style="color: var(--text-light); font-size: 11px;">Not Graded</span>`;
+      const scoreText = p.averageScore ? `${p.averageScore}/100` : `<span style="color: var(--text-light); font-size: 11px;">Not Graded</span>`;
       
       const trackObj = allTracks.find(t => t.id === p.track);
       const trackName = trackObj ? trackObj.name : p.track;
@@ -1093,26 +1136,26 @@ function adminViewProjectDetails(projId) {
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Innovation (25%)</label>
-              <input type="number" id="grade-innovation" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.innovation || ''}" required>
+              <input type="number" id="grade-innovation" min="0" max="25" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.innovation || ''}" oninput="if(parseFloat(this.value) > 25) this.value = 25; if(parseFloat(this.value) < 0) this.value = 0;" required>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Technical Execution (25%)</label>
-              <input type="number" id="grade-technical" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.technical || ''}" required>
+              <input type="number" id="grade-technical" min="0" max="25" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.technical || ''}" oninput="if(parseFloat(this.value) > 25) this.value = 25; if(parseFloat(this.value) < 0) this.value = 0;" required>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Impact &amp; Viability (25%)</label>
-              <input type="number" id="grade-impact" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.impact || ''}" required>
+              <input type="number" id="grade-impact" min="0" max="25" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.impact || ''}" oninput="if(parseFloat(this.value) > 25) this.value = 25; if(parseFloat(this.value) < 0) this.value = 0;" required>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Design &amp; UX (25%)</label>
-              <input type="number" id="grade-design" min="1" max="10" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.design || ''}" required>
+              <input type="number" id="grade-design" min="0" max="25" step="0.5" class="form-control" style="font-size: 13px; padding: 6px 10px;" value="${proj.scores?.design || ''}" oninput="if(parseFloat(this.value) > 25) this.value = 25; if(parseFloat(this.value) < 0) this.value = 0;" required>
             </div>
           </div>
           
           <div style="border-top: 1px dashed var(--border); padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Current Grade:</span>
-              <strong id="grade-average-display" style="font-size: 16px; color: var(--primary);">${proj.averageScore ? proj.averageScore + '/10' : 'Not Graded'}</strong>
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Current Score:</span>
+              <strong id="grade-average-display" style="font-size: 16px; color: var(--primary);">${proj.averageScore ? proj.averageScore + '/100' : 'Not Graded'}</strong>
             </div>
             <button type="submit" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; cursor: pointer;"><i class="fa-solid fa-floppy-disk"></i> Save Scores</button>
           </div>
@@ -1330,6 +1373,91 @@ if (deadlineForm) {
     } finally {
       saveBtn.disabled = false;
       saveBtn.innerHTML = originalBtnHTML;
+    }
+  });
+}
+
+// Copy Share Link
+const copyShareBtn = document.getElementById("admin-copy-share-btn");
+if (copyShareBtn) {
+  copyShareBtn.addEventListener("click", () => {
+    const url = window.location.origin + window.location.pathname.replace("admin.html", "index.html") + "?ref=share";
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("Share link copied to clipboard!", "success");
+    }).catch(err => {
+      showToast("Failed to copy link.", "error");
+    });
+  });
+}
+
+// Drawer Toggle Logic
+const drawerToggle = document.getElementById("admin-drawer-toggle");
+const portalSidebar = document.querySelector(".portal-sidebar");
+const portalLayout = document.querySelector(".portal-layout");
+
+if (drawerToggle && portalSidebar && portalLayout) {
+  drawerToggle.addEventListener("click", () => {
+    portalSidebar.classList.toggle("hidden");
+    portalLayout.classList.toggle("drawer-hidden");
+  });
+}
+
+// Reset Traffic Data
+const resetTrafficBtn = document.getElementById("admin-reset-traffic-btn");
+if (resetTrafficBtn) {
+  resetTrafficBtn.addEventListener("click", async () => {
+    if (confirm("Are you sure you want to reset all traffic stats to zero? This action cannot be undone.")) {
+      try {
+        await setDoc(doc(firestore, "analytics", "traffic"), {
+          total_page_views: 0,
+          shared_link_clicks: 0
+        }, { merge: true });
+        showToast("Traffic stats reset successfully.", "success");
+      } catch (err) {
+        showToast("Failed to reset traffic: " + getCleanErrorMessage(err), "error");
+      }
+    }
+  });
+}
+
+// View Traffic Details
+const viewTrafficBtn = document.getElementById("admin-view-traffic-btn");
+if (viewTrafficBtn) {
+  viewTrafficBtn.addEventListener("click", async () => {
+    try {
+      showToast("Fetching traffic logs...", "info");
+      const q = query(collection(firestore, "analytics", "traffic", "visits"), orderBy("timestamp", "desc"), limit(50));
+      const snap = await getDocs(q);
+      
+      let html = `<div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 8px;">`;
+      if (snap.empty) {
+        html += `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">No recent traffic logs found.</div>`;
+      } else {
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          const time = data.timestamp ? data.timestamp.toDate().toLocaleString() : "Just now";
+          const isShare = data.isShareClick ? `<span class="badge badge-success" style="font-size: 10px; padding: 2px 4px; margin-left: 6px;">Share Link</span>` : '';
+          
+          html += `
+            <div style="background: var(--bg-app); border: 1px solid var(--border); padding: 10px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-main); word-break: break-all;">${data.path || '/'} ${isShare}</div>
+              <div style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-clock"></i> ${time}</div>
+            </div>
+          `;
+        });
+      }
+      html += `</div>`;
+      
+      modalTitle.textContent = "Recent Page Views (Last 50)";
+      modalBody.innerHTML = html;
+      infoModal.classList.add("open");
+      // Add small delay then hide toast
+      setTimeout(() => {
+        const toast = document.getElementById("toast");
+        if(toast) toast.classList.remove("show");
+      }, 500);
+    } catch (err) {
+      showToast("Failed to fetch traffic logs: " + getCleanErrorMessage(err), "error");
     }
   });
 }
@@ -2624,7 +2752,17 @@ async function adminSaveGrades(event, projId) {
     return;
   }
   
-  const average = parseFloat(((innovation + technical + impact + design) / 4).toFixed(1));
+  if (innovation > 25 || technical > 25 || impact > 25 || design > 25) {
+    showToast("Scores cannot exceed 25 for any category.", "error");
+    return;
+  }
+
+  if (innovation < 0 || technical < 0 || impact < 0 || design < 0) {
+    showToast("Scores cannot be negative.", "error");
+    return;
+  }
+  
+  const average = parseFloat((innovation + technical + impact + design).toFixed(1));
   
   try {
     showToast("Saving project grades...", "info");
@@ -2639,7 +2777,7 @@ async function adminSaveGrades(event, projId) {
     });
     
     const avgDisplay = document.getElementById("grade-average-display");
-    if (avgDisplay) avgDisplay.textContent = `${average}/10`;
+    if (avgDisplay) avgDisplay.textContent = `${average}/100`;
     
     showToast("Grades saved successfully!", "success");
   } catch (err) {

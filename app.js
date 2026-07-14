@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // 1. Firebase Initialization & Config
 const firebaseConfig = {
@@ -424,6 +424,15 @@ function updateLandingHeaderStats() {
     const sum = allProjects.reduce((acc, p) => acc + (p.members ? p.members.length : 0), 0);
     partsVal.textContent = sum > 0 ? `${sum}+` : "0";
   }
+
+  const subsVal = document.getElementById("stat-submissions");
+  if (subsVal) {
+    if (landingStatsConfig.submissionsMode === "manual") {
+      subsVal.textContent = landingStatsConfig.submissionsOverride || "0";
+    } else {
+      subsVal.textContent = allProjects.length > 0 ? `${allProjects.length}+` : "0";
+    }
+  }
 }
 
 function startCountdown() {
@@ -680,7 +689,7 @@ function renderShowcase() {
 
   container.innerHTML = projects.map(proj => {
     const trackObj = INITIAL_TRACKS.find(t => t.id === proj.track);
-    const scoreBadge = proj.averageScore ? `<div class="showcase-award-badge"><i class="fa-solid fa-star"></i> Score: ${proj.averageScore}/10</div>` : '';
+    const scoreBadge = proj.averageScore ? `<div class="showcase-award-badge"><i class="fa-solid fa-star"></i> Score: ${proj.averageScore}/100</div>` : '';
     
     return `
       <div class="showcase-card">
@@ -1604,3 +1613,30 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
   pressedGlobalKeys.delete(e.key.toLowerCase());
 });
+
+// Analytics Tracking
+function trackSiteAnalytics() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isShareClick = urlParams.has("ref") && urlParams.get("ref") === "share";
+  
+  // Track Global Page Views
+  setDoc(doc(firestore, "analytics", "traffic"), {
+    total_page_views: increment(1)
+  }, { merge: true }).catch(err => console.warn("Analytics Error:", err));
+
+  // Log Detailed View
+  addDoc(collection(firestore, "analytics", "traffic", "visits"), {
+    path: window.location.pathname,
+    timestamp: serverTimestamp(),
+    isShareClick: isShareClick
+  }).catch(err => console.warn("Detailed Analytics Error:", err));
+
+  // Track Clicks from Shared Links
+  if (isShareClick) {
+    setDoc(doc(firestore, "analytics", "traffic"), {
+      shared_link_clicks: increment(1)
+    }, { merge: true }).catch(err => console.warn("Analytics Error:", err));
+  }
+}
+// Run analytics on page load
+window.addEventListener("DOMContentLoaded", trackSiteAnalytics);
