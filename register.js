@@ -117,6 +117,8 @@ function renderPublicCustomFields() {
             <label for="custom-field-${field.key}">${field.label}</label>
             ${field.type === 'text'
               ? `<textarea id="custom-field-${field.key}" class="form-control" required placeholder="Enter ${field.label.toLowerCase()}" rows="3" style="resize: vertical; min-height: 80px;"></textarea>`
+              : field.type === 'file'
+              ? `<input type="file" id="custom-field-${field.key}" class="form-control" required accept=".docx,.pdf,.zip" style="padding-top: 8px;">`
               : `<input type="${field.type}" id="custom-field-${field.key}" class="form-control" required placeholder="Enter ${field.label.toLowerCase()}">`
             }
           </div>
@@ -204,7 +206,11 @@ getCachedData("tracks_cache").then(cachedTracks => {
   }
 });
 
-getCachedData("form_config_cache").then(cachedConfig => {
+const urlParams = new URLSearchParams(window.location.search);
+const targetFormId = urlParams.get("formId");
+const formCacheKey = targetFormId ? `form_config_cache_${targetFormId}` : "form_config_cache";
+
+getCachedData(formCacheKey).then(cachedConfig => {
   if (cachedConfig) {
     activeCustomFields = cachedConfig.customFields || [];
     window.registrationClosed = cachedConfig.registrationClosed || false;
@@ -217,15 +223,40 @@ onSnapshot(doc(firestore, "config", "registration_form"), (snapshot) => {
   let registrationClosed = false;
   if (snapshot.exists()) {
     const data = snapshot.data();
-    activeCustomFields = data.customFields || [];
+    if (!targetFormId) {
+      activeCustomFields = data.customFields || [];
+    }
     registrationClosed = data.registrationClosed || false;
-    setCachedData("form_config_cache", data);
+    
+    if (!targetFormId) {
+      setCachedData(formCacheKey, data);
+    } else {
+      // Still cache global registration status separately if needed,
+      // but the main concern is window.registrationClosed
+    }
   } else {
-    activeCustomFields = [];
+    if (!targetFormId) {
+      activeCustomFields = [];
+    }
   }
   window.registrationClosed = registrationClosed;
-  renderPublicCustomFields();
+  if (!targetFormId) renderPublicCustomFields();
 });
+
+if (targetFormId) {
+  onSnapshot(doc(firestore, "forms", targetFormId), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      activeCustomFields = data.customFields || [];
+      // Inherit global registrationClosed
+      data.registrationClosed = window.registrationClosed;
+      setCachedData(formCacheKey, data);
+    } else {
+      activeCustomFields = [];
+    }
+    renderPublicCustomFields();
+  });
+}
 
 // Watch challenge tracks dynamically
 onSnapshot(collection(firestore, "tracks"), (snapshot) => {
@@ -319,12 +350,36 @@ if (teamRegistrationForm) {
       }
 
       const customFields = {};
-      activeCustomFields.forEach(field => {
+      for (const field of activeCustomFields) {
         const inputEl = document.getElementById(`custom-field-${field.key}`);
         if (inputEl) {
-          customFields[field.label] = inputEl.value.trim();
+          if (field.type === 'file') {
+            if (inputEl.files && inputEl.files.length > 0) {
+              const customFile = inputEl.files[0];
+              const maxFileSize = 4 * 1024 * 1024; // 4MB limit for custom files
+              if (customFile.size > maxFileSize) {
+                throw new Error(`File for "${field.label}" is too large. Max allowed size is 4MB.`);
+              }
+              showToast(`Compressing ${field.label}...`, "info");
+              const compressedBuffer = await compressFileGzip(customFile);
+              if (compressedBuffer) {
+                customFields[field.label] = await bufferToBase64Gzip(compressedBuffer);
+              } else {
+                customFields[field.label] = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = () => reject(new Error(`File reading failed for ${field.label}.`));
+                  reader.readAsDataURL(customFile);
+                });
+              }
+            } else {
+              customFields[field.label] = ""; // Should be blocked by HTML 'required' attribute anyway
+            }
+          } else {
+            customFields[field.label] = inputEl.value.trim();
+          }
         }
-      });
+      }
       
       // File encoding logic
       showToast("Compressing and encoding proposal file...", "info");

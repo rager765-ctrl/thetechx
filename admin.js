@@ -39,7 +39,10 @@ let allLegal = [];
 let allResources = [];
 let allTickets = [];
 let ticketingConfig = null;
-let activeCustomFields = [];
+let activeCustomFields = []; // The fields for the currently edited form
+let globalCustomFields = []; // The fields for the main registration_form
+let allFormTemplates = [];
+let currentEditingFormId = null;
 let activeAdminTab = "overview";
 let signupEnabled = true;
 
@@ -609,26 +612,46 @@ let isInitialProjectsLoad = true;
     let swapNavToLeaderboard = false;
     if (snapshot.exists()) {
       const data = snapshot.data();
-      activeCustomFields = data.customFields || [];
+      globalCustomFields = data.customFields || [];
+      if (currentEditingFormId === null) {
+        activeCustomFields = globalCustomFields;
+      }
       registrationClosed = data.registrationClosed || false;
       hideRegistrationTag = data.hideRegistrationTag || false;
       swapNavToLeaderboard = data.swapNavToLeaderboard || false;
     } else {
-      activeCustomFields = [];
+      globalCustomFields = [];
+      if (currentEditingFormId === null) {
+        activeCustomFields = [];
+      }
     }
     const closedCheckbox = document.getElementById("admin-registration-closed");
-    if (closedCheckbox) {
-      closedCheckbox.checked = registrationClosed;
-    }
+    if (closedCheckbox) closedCheckbox.checked = registrationClosed;
     const hideCheckbox = document.getElementById("admin-registration-hide-tag");
-    if (hideCheckbox) {
-      hideCheckbox.checked = hideRegistrationTag;
-    }
+    if (hideCheckbox) hideCheckbox.checked = hideRegistrationTag;
     const swapNavCheckbox = document.getElementById("admin-registration-swap-nav");
-    if (swapNavCheckbox) {
-      swapNavCheckbox.checked = swapNavToLeaderboard;
-    }
+    if (swapNavCheckbox) swapNavCheckbox.checked = swapNavToLeaderboard;
+    
     if (activeAdminTab === "form-config") {
+      renderAdminCustomFieldsList();
+    }
+  });
+
+  // Watch Form Templates
+  onSnapshot(collection(firestore, "forms"), (snapshot) => {
+    allFormTemplates = [];
+    snapshot.forEach(docSnap => {
+      allFormTemplates.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    allFormTemplates.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+    if (currentEditingFormId !== null) {
+      const editingForm = allFormTemplates.find(f => f.id === currentEditingFormId);
+      activeCustomFields = editingForm ? (editingForm.customFields || []) : [];
+    }
+    
+    if (activeAdminTab === "form-config") {
+      renderAdminFormsList();
       renderAdminCustomFieldsList();
     }
   });
@@ -783,7 +806,7 @@ let isInitialProjectsLoad = true;
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
-        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KNUST School of Business administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
         setDoc(doc(firestore, "legal", docObj.id), {
@@ -1101,9 +1124,16 @@ async function adminDeleteCustomField(fieldKey) {
   const updatedFields = activeCustomFields.filter(f => f.key !== fieldKey);
   try {
     showToast("Deleting field configuration...", "info");
-    await setDoc(doc(firestore, "config", "registration_form"), {
-      customFields: updatedFields
-    }, { merge: true });
+    if (currentEditingFormId === null) {
+      await setDoc(doc(firestore, "config", "registration_form"), {
+        customFields: updatedFields
+      }, { merge: true });
+    } else {
+      await setDoc(doc(firestore, "forms", currentEditingFormId), {
+        customFields: updatedFields,
+        timestamp: Date.now()
+      }, { merge: true });
+    }
     showToast("Custom field removed successfully!", "success");
   } catch (err) {
     showToast("Deletion failed: " + getCleanErrorMessage(err), "error");
@@ -1142,12 +1172,18 @@ function adminViewProjectDetails(projId) {
     ? `<div style="margin-top: 6px;"><button type="button" onclick="downloadConceptNote('${proj.id}')" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; border: 1px solid var(--border);"><i class="fa-solid fa-file-arrow-down"></i> Read &amp; Download</button></div>`
     : `<div style="font-size: 11px; color: var(--text-light); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> No download URL available</div>`;
 
-  const customFieldsHTML = Object.entries(proj.customFields || {}).map(([key, val]) => `
-    <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
-      <div style="font-size: 12px; color: var(--text-light); text-transform: uppercase;">${key}</div>
-      <div style="font-size: 14px; color: var(--text-main); font-weight: 500; white-space: pre-wrap; word-break: break-word;">${val || 'N/A'}</div>
-    </div>
-  `).join("");
+  const customFieldsHTML = Object.entries(proj.customFields || {}).map(([key, val]) => {
+    let displayVal = val || 'N/A';
+    if (typeof val === 'string' && val.startsWith('data:')) {
+      displayVal = `<button type="button" onclick="downloadCustomFieldFile('${proj.id}', '${key.replace(/'/g, "\\'")}')" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; border: 1px solid var(--border);"><i class="fa-solid fa-file-arrow-down"></i> Download File</button>`;
+    }
+    return `
+      <div style="margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+        <div style="font-size: 12px; color: var(--text-light); text-transform: uppercase;">${key}</div>
+        <div style="font-size: 14px; color: var(--text-main); font-weight: 500; white-space: pre-wrap; word-break: break-word;">${displayVal}</div>
+      </div>
+    `;
+  }).join("");
 
   const membersHTML = (proj.members || []).map((m, idx) => `
     <div style="border: 1px solid var(--border); padding: 10px; border-radius: var(--radius-sm); background: var(--bg-app);">
@@ -1420,14 +1456,140 @@ if (addFieldForm) {
     const updatedFields = [...activeCustomFields, { key, label, type }];
     try {
       showToast("Saving custom field...", "info");
-      await setDoc(doc(firestore, "config", "registration_form"), {
-        customFields: updatedFields
-      }, { merge: true });
+      if (currentEditingFormId === null) {
+        await setDoc(doc(firestore, "config", "registration_form"), {
+          customFields: updatedFields
+        }, { merge: true });
+      } else {
+        await setDoc(doc(firestore, "forms", currentEditingFormId), {
+          customFields: updatedFields,
+          timestamp: Date.now()
+        }, { merge: true });
+      }
       showToast("Custom field added successfully!", "success");
       addFieldForm.reset();
     } catch (err) {
       showToast("Failed to save field: " + getCleanErrorMessage(err), "error");
     }
+  });
+}
+
+// Form Templates Management
+const createFormTemplateForm = document.getElementById("admin-create-form-template");
+if (createFormTemplateForm) {
+  createFormTemplateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const titleInput = document.getElementById("admin-new-form-title");
+    const title = titleInput.value.trim();
+    if (!title) return;
+    
+    const id = title.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now().toString().substring(8);
+    
+    try {
+      showToast("Creating form template...", "info");
+      await setDoc(doc(firestore, "forms", id), {
+        title,
+        customFields: [],
+        timestamp: Date.now()
+      });
+      showToast("Template created successfully!", "success");
+      createFormTemplateForm.reset();
+    } catch (err) {
+      showToast("Failed to create template: " + err.message, "error");
+    }
+  });
+}
+
+function renderAdminFormsList() {
+  const container = document.getElementById("admin-forms-list");
+  if (!container) return;
+  
+  if (allFormTemplates.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="padding: 16px;"><p style="margin: 0; font-size: 13px;">No form templates created yet.</p></div>`;
+    return;
+  }
+  
+  container.innerHTML = allFormTemplates.map(form => {
+    const isEditing = currentEditingFormId === form.id;
+    return `
+      <div style="border: 1px solid ${isEditing ? 'var(--primary)' : 'var(--border)'}; padding: 12px; border-radius: var(--radius-sm); background: ${isEditing ? 'var(--primary-light)' : 'var(--bg-app)'}; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+        <div>
+          <div style="font-weight: 600; font-size: 14px; color: ${isEditing ? 'var(--primary)' : 'var(--text-main)'};">${form.title} ${isEditing ? '(Editing)' : ''}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${form.customFields ? form.customFields.length : 0} fields configured</div>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="btn ${isEditing ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="adminEditFormFields('${form.id}')" style="font-size: 11px; padding: 4px 10px;"><i class="fa-solid fa-pen-to-square"></i> Edit Fields</button>
+          <button class="btn btn-outline btn-sm" onclick="adminSetDefaultForm('${form.id}')" style="color: var(--success); border-color: var(--success); font-size: 11px; padding: 4px 10px;" title="Swap this to be the main form on register.html"><i class="fa-solid fa-rotate"></i> Set as Active</button>
+          <button class="btn btn-outline btn-sm" onclick="adminCopyFormLink('${form.id}')" style="color: var(--accent); border-color: var(--accent); font-size: 11px; padding: 4px 10px;"><i class="fa-solid fa-link"></i> Link</button>
+          <button class="btn btn-outline btn-sm" onclick="adminDeleteFormTemplate('${form.id}')" style="color: var(--danger); border-color: var(--danger); font-size: 11px; padding: 4px 10px;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.adminEditFormFields = function(formId) {
+  currentEditingFormId = formId;
+  const form = allFormTemplates.find(f => f.id === formId);
+  if (form) {
+    document.getElementById("admin-fields-list-title").textContent = `Editing Fields: ${form.title}`;
+    document.getElementById("admin-reset-editor-btn").style.display = "inline-flex";
+    activeCustomFields = form.customFields || [];
+    renderAdminCustomFieldsList();
+    renderAdminFormsList(); // Update highlight
+  }
+};
+
+window.adminSetDefaultForm = async function(formId) {
+  const form = allFormTemplates.find(f => f.id === formId);
+  if (!form) return;
+  if (!confirm(`Are you sure you want to swap the active global form to "${form.title}"? This will overwrite the main registration form's fields.`)) return;
+  
+  try {
+    showToast("Updating global registration form...", "info");
+    await setDoc(doc(firestore, "config", "registration_form"), {
+      customFields: form.customFields || []
+    }, { merge: true });
+    showToast(`Form swapped! "${form.title}" is now the active main form.`, "success");
+  } catch (err) {
+    showToast("Failed to update active form: " + err.message, "error");
+  }
+};
+
+window.adminCopyFormLink = function(formId) {
+  const url = new URL(window.location.origin + "/register.html");
+  url.searchParams.set("formId", formId);
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    showToast("Direct form link copied to clipboard!", "success");
+  }).catch(err => {
+    showToast("Failed to copy link. Check console.", "error");
+    console.error(err);
+  });
+};
+
+window.adminDeleteFormTemplate = async function(formId) {
+  if (!confirm("Are you sure you want to delete this form template? Links to this form will no longer work.")) return;
+  try {
+    showToast("Deleting form template...", "info");
+    await deleteDoc(doc(firestore, "forms", formId));
+    if (currentEditingFormId === formId) {
+      document.getElementById("admin-reset-editor-btn").click();
+    }
+    showToast("Form template deleted.", "success");
+  } catch (err) {
+    showToast("Failed to delete form template: " + err.message, "error");
+  }
+};
+
+const resetEditorBtn = document.getElementById("admin-reset-editor-btn");
+if (resetEditorBtn) {
+  resetEditorBtn.addEventListener("click", () => {
+    currentEditingFormId = null;
+    document.getElementById("admin-fields-list-title").textContent = "Active Custom Fields (Global Form)";
+    resetEditorBtn.style.display = "none";
+    activeCustomFields = globalCustomFields;
+    renderAdminCustomFieldsList();
+    renderAdminFormsList(); // Remove highlight
   });
 }
 
@@ -1612,7 +1774,7 @@ async function seedDefaultsIfEmpty() {
       const defaultLegal = [
         { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
-        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB administration desk.", timestamp: Date.now() + 2 }
+        { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KNUST School of Business administration desk.", timestamp: Date.now() + 2 }
       ];
       for (const docObj of defaultLegal) {
         await setDoc(doc(firestore, "legal", docObj.id), {
@@ -2633,6 +2795,49 @@ async function downloadConceptNote(projId) {
 
 window.downloadConceptNote = downloadConceptNote;
 
+// Download custom field file
+async function downloadCustomFieldFile(projId, fieldLabel) {
+  const proj = allProjects.find(p => p.id === projId);
+  if (!proj || !proj.customFields || !proj.customFields[fieldLabel]) {
+    showToast("File not found.", "error");
+    return;
+  }
+  
+  const url = proj.customFields[fieldLabel];
+  const fileName = `${fieldLabel.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_file`;
+  
+  try {
+    showToast("Preparing file...", "info");
+    
+    let downloadUrl;
+    let blob;
+    if (url.startsWith("data:application/gzip;base64,")) {
+      const buffer = await decompressFileGzip(url);
+      blob = new Blob([buffer], { type: "application/octet-stream" });
+      downloadUrl = URL.createObjectURL(blob);
+    } else {
+      downloadUrl = url;
+    }
+    
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    if (blob) {
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+    }
+    showToast("Download started successfully!", "success");
+  } catch (err) {
+    console.error("Decompression failed:", err);
+    showToast("Failed to prepare file: " + err.message, "error");
+  }
+}
+
+window.downloadCustomFieldFile = downloadCustomFieldFile;
+
 // Helper: Compress file to gzip buffer (reusable helper)
 async function compressFileGzip(file) {
   if (typeof CompressionStream === "undefined") {
@@ -2683,6 +2888,7 @@ function renderAdminResourcesList() {
           <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">${res.desc || ''}</p>
           <div style="display: flex; gap: 8px; margin-top: 4px; border-top: 1px dashed var(--border); padding-top: 8px; justify-content: flex-end; align-items: center;">
             ${res.link ? `<span style="font-size: 11px; color: var(--success); margin-right: auto;"><i class="fa-solid fa-cloud-arrow-up"></i> File Uploaded</span>` : `<span style="font-size: 11px; color: var(--text-light); margin-right: auto;">No file linked</span>`}
+            <button class="btn btn-secondary btn-sm" onclick="adminEditResource('${res.id}')" style="padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
             <button class="btn btn-outline btn-sm" onclick="adminDeleteResource('${res.id}')" style="color: var(--danger); border-color: var(--danger); padding: 4px 10px; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
           </div>
         </div>
@@ -2714,17 +2920,18 @@ function renderAdminResourcesList() {
   }
 }
 
-// Resource Form Submission (Gzip Upload)
+// Resource Form Submission (Gzip Upload & Edit)
 const adminResourceForm = document.getElementById("admin-resource-form");
 if (adminResourceForm) {
   adminResourceForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = document.getElementById("admin-resource-title").value.trim();
     const desc = document.getElementById("admin-resource-desc").value.trim();
+    const editId = document.getElementById("admin-resource-edit-id").value;
     const fileInput = document.getElementById("admin-resource-file");
     const file = fileInput ? fileInput.files[0] : null;
 
-    if (!file) {
+    if (!editId && !file) {
       showToast("Please select a file to upload.", "error");
       return;
     }
@@ -2732,72 +2939,84 @@ if (adminResourceForm) {
     const saveBtn = document.getElementById("admin-resource-save-btn");
     if (saveBtn) {
       saveBtn.disabled = true;
-      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     }
 
     try {
-      showToast("Compressing and uploading resource...", "info");
+      showToast("Saving resource...", "info");
       
-      const fileExt = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
       let icon = "fa-file";
       let type = "Document";
-      
-      if (fileExt === ".pdf") {
-        icon = "fa-file-pdf";
-        type = "PDF Document";
-      } else if (fileExt === ".pptx") {
-        icon = "fa-file-powerpoint";
-        type = "PPTX Presentation";
-      } else if (fileExt === ".docx") {
-        icon = "fa-file-word";
-        type = "Word Document";
-      } else if (fileExt === ".zip") {
-        icon = "fa-file-zipper";
-        type = "ZIP Archive";
-      } else if (fileExt === ".xlsx" || fileExt === ".xls") {
-        icon = "fa-file-excel";
-        type = "Excel Spreadsheet";
-      } else if ([".png", ".jpg", ".jpeg"].includes(fileExt)) {
-        icon = "fa-image";
-        type = "Image Asset";
-      }
-
       let sizeStr = "";
-      if (file.size >= 1024 * 1024) {
-        sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
-      } else {
-        sizeStr = `${(file.size / 1024).toFixed(0)} KB`;
-      }
-
       let fileDataUrl = "";
-      const compressedBuffer = await compressFileGzip(file);
-      if (compressedBuffer) {
-        fileDataUrl = await bufferToBase64Gzip(compressedBuffer);
-      } else {
-        fileDataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+      
+      if (file) {
+        const fileExt = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+        if (fileExt === ".pdf") {
+          icon = "fa-file-pdf";
+          type = "PDF Document";
+        } else if (fileExt === ".pptx") {
+          icon = "fa-file-powerpoint";
+          type = "PPTX Presentation";
+        } else if (fileExt === ".docx") {
+          icon = "fa-file-word";
+          type = "Word Document";
+        } else if (fileExt === ".zip") {
+          icon = "fa-file-zipper";
+          type = "ZIP Archive";
+        } else if (fileExt === ".xlsx" || fileExt === ".xls") {
+          icon = "fa-file-excel";
+          type = "Excel Spreadsheet";
+        } else if ([".png", ".jpg", ".jpeg"].includes(fileExt)) {
+          icon = "fa-image";
+          type = "Image Asset";
+        }
+
+        if (file.size >= 1024 * 1024) {
+          sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+        } else {
+          sizeStr = `${(file.size / 1024).toFixed(0)} KB`;
+        }
+
+        const compressedBuffer = await compressFileGzip(file);
+        if (compressedBuffer) {
+          fileDataUrl = await bufferToBase64Gzip(compressedBuffer);
+        } else {
+          fileDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
       }
 
-      const id = title.toLowerCase().replace(/[^a-z0-9]/g, "-");
-      await setDoc(doc(firestore, "resources", id), {
+      const id = editId || title.toLowerCase().replace(/[^a-z0-9]/g, "-");
+      
+      const updateData = {
         title,
         desc,
-        icon,
-        type,
-        size: sizeStr,
-        link: fileDataUrl,
         timestamp: Date.now()
-      });
+      };
+      
+      if (file) {
+        updateData.icon = icon;
+        updateData.type = type;
+        updateData.size = sizeStr;
+        updateData.link = fileDataUrl;
+      }
+      
+      await setDoc(doc(firestore, "resources", id), updateData, { merge: true });
 
-      showToast("Resource uploaded and published!", "success");
+      showToast("Resource saved and published!", "success");
       adminResourceForm.reset();
+      document.getElementById("admin-resource-edit-id").value = "";
+      document.getElementById("admin-resource-current-file").style.display = "none";
+      const cancelBtn = document.getElementById("admin-resource-cancel-btn");
+      if (cancelBtn) cancelBtn.style.display = "none";
     } catch (err) {
       console.error(err);
-      showToast("Failed to upload: " + err.message, "error");
+      showToast("Failed to save: " + err.message, "error");
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -2805,6 +3024,39 @@ if (adminResourceForm) {
       }
     }
   });
+}
+
+const adminResourceCancelBtn = document.getElementById("admin-resource-cancel-btn");
+if (adminResourceCancelBtn) {
+  adminResourceCancelBtn.addEventListener("click", () => {
+    if (adminResourceForm) adminResourceForm.reset();
+    document.getElementById("admin-resource-edit-id").value = "";
+    document.getElementById("admin-resource-current-file").style.display = "none";
+    adminResourceCancelBtn.style.display = "none";
+    const saveBtn = document.getElementById("admin-resource-save-btn");
+    if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload & Publish';
+  });
+}
+
+function adminEditResource(resId) {
+  const res = allResources.find(r => r.id === resId);
+  if (!res) return;
+
+  document.getElementById("admin-resource-edit-id").value = res.id;
+  document.getElementById("admin-resource-title").value = res.title;
+  document.getElementById("admin-resource-desc").value = res.desc;
+  
+  const currentFileStatus = document.getElementById("admin-resource-current-file");
+  if (currentFileStatus) {
+    currentFileStatus.style.display = "block";
+    currentFileStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> File attached (${res.type || 'Document'} - ${res.size || 'N/A'}). Uploading a new file will replace it.`;
+  }
+  
+  if (adminResourceCancelBtn) adminResourceCancelBtn.style.display = "inline-block";
+  const saveBtn = document.getElementById("admin-resource-save-btn");
+  if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Resource';
+  
+  window.scrollTo({ top: adminResourceForm.offsetTop - 100, behavior: 'smooth' });
 }
 
 // Delete Resource
@@ -2822,6 +3074,7 @@ async function adminDeleteResource(resId) {
 }
 
 window.adminDeleteResource = adminDeleteResource;
+window.adminEditResource = adminEditResource;
 
 // Save evaluation scores & grades
 async function adminSaveGrades(event, projId) {
@@ -3440,3 +3693,67 @@ function initSponsorsSync() {
   });
 }
 initSponsorsSync();
+
+// Global Card UI Collapsable Toggles
+document.addEventListener("DOMContentLoaded", () => {
+  const adminTabCards = document.querySelectorAll('.admin-tab-content .card');
+  
+  adminTabCards.forEach(card => {
+    const form = card.querySelector('form');
+    let h3 = card.querySelector('h3');
+    
+    // Only collapse cards that have a header and a form inside
+    if (form && h3) {
+      const headerDiv = document.createElement('div');
+      headerDiv.style.display = 'flex';
+      headerDiv.style.justifyContent = 'space-between';
+      headerDiv.style.alignItems = 'center';
+      headerDiv.style.cursor = 'pointer';
+      
+      card.insertBefore(headerDiv, card.firstChild);
+      
+      headerDiv.appendChild(h3);
+      h3.style.margin = '0';
+      
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'btn btn-outline btn-sm';
+      toggleBtn.style.border = 'none';
+      toggleBtn.style.background = 'transparent';
+      toggleBtn.style.padding = '4px 8px';
+      toggleBtn.style.color = 'var(--text-light)';
+      toggleBtn.innerHTML = '<i class="fa-solid fa-sliders" style="font-size: 16px;"></i>';
+      headerDiv.appendChild(toggleBtn);
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.style.display = 'none'; // Hidden by default
+      contentDiv.style.flexDirection = 'column';
+      contentDiv.style.gap = card.style.gap || '16px';
+      contentDiv.style.marginTop = '16px';
+      
+      // Move all children except the headerDiv into the contentDiv
+      Array.from(card.children).forEach(child => {
+        if (child !== headerDiv && child !== contentDiv) {
+          contentDiv.appendChild(child);
+        }
+      });
+      card.appendChild(contentDiv);
+      
+      const toggleContent = () => {
+        if (contentDiv.style.display === 'none') {
+          contentDiv.style.display = 'flex';
+          toggleBtn.style.color = 'var(--primary)';
+        } else {
+          contentDiv.style.display = 'none';
+          toggleBtn.style.color = 'var(--text-light)';
+        }
+      };
+      
+      headerDiv.addEventListener('click', toggleContent);
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleContent();
+      });
+    }
+  });
+});

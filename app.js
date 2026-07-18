@@ -384,19 +384,22 @@ async function setCachedData(key, value) {
   }
 }
 
-// Toggle landing page live countdown timer visibility and the Register Now button underneath
+// Toggle landing page live countdown timer visibility
 function toggleCountdownAndRegisterBtnVisibility() {
   if (!landingStatsConfig) return;
   const cdWidget = document.getElementById("hero-countdown");
-  const regBtn = document.getElementById("hero-register-btn");
+  const cdText = document.getElementById("hero-countdown-text");
   const lbWidget = document.getElementById("floating-leaderboard-widget");
+  const dribbbleDays = document.getElementById("dribbble-days-stat");
   
   if (landingStatsConfig.showCountdown === false) {
     if (cdWidget) cdWidget.style.display = "none";
-    if (regBtn) regBtn.style.display = "inline-flex";
+    if (cdText) cdText.style.display = "none";
+    if (dribbbleDays) dribbbleDays.style.display = "none";
   } else {
     if (cdWidget) cdWidget.style.display = "inline-flex";
-    if (regBtn) regBtn.style.display = "none";
+    if (cdText) cdText.style.display = "flex";
+    if (dribbbleDays) dribbbleDays.style.display = "flex";
   }
 
   if (lbWidget) {
@@ -505,10 +508,35 @@ function renderLandingPrizes() {
     return;
   }
 
-  container.innerHTML = allPrizes.map(p => {
-    const isGrand = p.popular === true;
+  let displayPrizes = [...allPrizes];
+  
+  // Sort numerically by rank (e.g., "1st", "2nd", "3rd")
+  displayPrizes.sort((a, b) => {
+    const aRank = parseInt(a.rank) || 99;
+    const bRank = parseInt(b.rank) || 99;
+    return aRank - bRank;
+  });
+
+  // Positional Podium Arrangement for 3 items (2nd, 1st, 3rd)
+  if (displayPrizes.length >= 3) {
+    const first = displayPrizes[0];
+    const second = displayPrizes[1];
+    const third = displayPrizes[2];
+    
+    // Rearrange to place 1st in the middle
+    displayPrizes[0] = second;
+    displayPrizes[1] = first;
+    displayPrizes[2] = third;
+    
+    container.style.alignItems = "center";
+  }
+
+  container.innerHTML = displayPrizes.map((p, idx) => {
+    const isGrand = p.popular === true || p.rank === "1st Place" || parseInt(p.rank) === 1 || (displayPrizes.length >= 3 && idx === 1);
+    const podiumStyle = (displayPrizes.length >= 3 && idx === 1) ? 'transform: scale(1.08); z-index: 2; box-shadow: var(--shadow-xl); border: 2px solid var(--primary);' : 'z-index: 1; opacity: 0.95;';
+    
     return `
-      <div class="card prize-card ${isGrand ? 'grand' : ''}">
+      <div class="card prize-card ${isGrand ? 'grand' : ''}" style="${podiumStyle} transition: all 0.3s ease;">
         <div class="prize-rank">${p.rank || ''}</div>
         <div class="prize-amount">${p.amount || ''}</div>
         <p>${p.desc || ''}</p>
@@ -804,6 +832,7 @@ function initRealtimeSync() {
     const navBtn = document.getElementById("nav-register-btn");
     const mobileNavBtn = document.getElementById("mobile-register-btn");
     const mobileBottomNavBtn = document.getElementById("mobile-bottom-register-btn");
+    const heroRegBtn = document.getElementById("hero-register-btn");
     
     if (snapshot.exists()) {
       const data = snapshot.data();
@@ -811,8 +840,10 @@ function initRealtimeSync() {
       if (regTag) {
         if (data.hideRegistrationTag) {
           regTag.style.display = 'none';
+          if (heroRegBtn) heroRegBtn.style.display = 'none';
         } else {
           regTag.style.display = 'inline-flex';
+          if (heroRegBtn) heroRegBtn.style.display = 'inline-flex';
           if (data.registrationClosed) {
             regTag.innerHTML = '<i class="fa-solid fa-lock"></i> Registration closed';
             regTag.style.backgroundColor = '#fee2e2'; // var(--danger-light) alternative if not defined

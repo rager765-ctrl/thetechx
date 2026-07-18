@@ -404,6 +404,19 @@
             <h2>Registration Form Configurator</h2>
           </div>
           
+          <!-- Form Templates Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-list-check"></i> Form Templates</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Create multiple form configurations. You can swap templates to be the active main form, or share direct links to specific templates.</p>
+            <form id="admin-create-form-template" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+              <input type="text" id="admin-new-form-title" class="form-control" placeholder="e.g. Mentor Registration Form" required style="flex: 1; min-width: 250px;">
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Template</button>
+            </form>
+            <div id="admin-forms-list" style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="empty-state"><i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i><p>Loading templates...</p></div>
+            </div>
+          </div>
+
           <div class="grid-2" style="align-items: start;">
             <!-- Column 1: Config & Deadline -->
             <div style="display: flex; flex-direction: column; gap: 24px;">
@@ -425,6 +438,7 @@
                       <option value="url">URL Link</option>
                       <option value="number">Number</option>
                       <option value="email">Email</option>
+                      <option value="file">File Upload (.docx, .pdf, .zip)</option>
                     </select>
                   </div>
                   <button type="submit" class="btn btn-primary btn-block">Add Field</button>
@@ -463,7 +477,10 @@
 
             <!-- Active Fields Card -->
             <div class="card">
-              <h3 style="margin-bottom: 16px;">Active Custom Fields</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="admin-fields-list-title">Active Custom Fields (Global Form)</h3>
+                <button class="btn btn-outline btn-sm" id="admin-reset-editor-btn" style="display: none; font-size: 11px;"><i class="fa-solid fa-rotate-left"></i> Back to Global</button>
+              </div>
               <div id="admin-active-fields-list" style="display: flex; flex-direction: column; gap: 12px;">
                 <!-- Dynamic fields loaded from Firebase config doc -->
               </div>
@@ -775,6 +792,7 @@
             <div class="card">
               <h3 style="margin-bottom: 16px;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload New Resource</h3>
               <form id="admin-resource-form">
+                <input type="hidden" id="admin-resource-edit-id" value="">
                 <div class="form-group">
                   <label for="admin-resource-title">Resource Title</label>
                   <input type="text" id="admin-resource-title" class="form-control" placeholder="e.g. HatchPoint Official Rules & Guidelines" required>
@@ -785,10 +803,12 @@
                 </div>
                 <div class="form-group">
                   <label for="admin-resource-file">Upload File <span style="font-weight: 400; color: var(--text-light);">(DOCX, PPTX, PDF, ZIP, XLSX, PNG, JPG; Max 4MB)</span></label>
-                  <input type="file" id="admin-resource-file" class="form-control" accept=".docx,.pptx,.pdf,.zip,.xlsx,.xls,.png,.jpg" required>
+                  <input type="file" id="admin-resource-file" class="form-control" accept=".docx,.pptx,.pdf,.zip,.xlsx,.xls,.png,.jpg">
+                  <span id="admin-resource-current-file" style="font-size: 11px; color: var(--success); display: none; margin-top: 4px;"></span>
                 </div>
-                <div style="margin-top: 16px;">
-                  <button type="submit" class="btn btn-primary btn-block" id="admin-resource-save-btn"><i class="fa-solid fa-upload"></i> Upload & Publish</button>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary" style="flex: 1;" id="admin-resource-save-btn"><i class="fa-solid fa-upload"></i> Upload & Publish</button>
+                  <button type="button" class="btn btn-secondary" style="display: none;" id="admin-resource-cancel-btn"><i class="fa-solid fa-xmark"></i> Cancel</button>
                 </div>
               </form>
             </div>
