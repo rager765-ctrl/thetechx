@@ -492,7 +492,14 @@ function startCountdown() {
     if (cdDays) cdDays.textContent = days.toString().padStart(2, '0');
     if (cdHours) cdHours.textContent = hours.toString().padStart(2, '0');
     if (cdMinutes) cdMinutes.textContent = minutes.toString().padStart(2, '0');
-    if (cdSeconds) cdSeconds.textContent = seconds.toString().padStart(2, '0');
+    if (cdSeconds) {
+      cdSeconds.textContent = seconds.toString().padStart(2, '0');
+      // Pulse tick animation on every second
+      cdSeconds.classList.remove('tick');
+      void cdSeconds.offsetWidth; // reflow to restart animation
+      cdSeconds.classList.add('tick');
+      setTimeout(() => cdSeconds.classList.remove('tick'), 150);
+    }
   };
   updateCountdown();
   window.countdownIntervalId = setInterval(updateCountdown, 1000);

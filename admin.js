@@ -3696,64 +3696,45 @@ initSponsorsSync();
 
 // Global Card UI Collapsable Toggles
 document.addEventListener("DOMContentLoaded", () => {
-  const adminTabCards = document.querySelectorAll('.admin-tab-content .card');
-  
+  // Exclude the overview tab — those cards are analytics displays, not settings forms
+  const adminTabCards = document.querySelectorAll('.admin-tab-content:not(#admin-tab-overview):not(#admin-tab-applicants) .card');
+
   adminTabCards.forEach(card => {
     const form = card.querySelector('form');
-    let h3 = card.querySelector('h3');
-    
-    // Only collapse cards that have a header and a form inside
-    if (form && h3) {
-      const headerDiv = document.createElement('div');
-      headerDiv.style.display = 'flex';
-      headerDiv.style.justifyContent = 'space-between';
-      headerDiv.style.alignItems = 'center';
-      headerDiv.style.cursor = 'pointer';
-      
-      card.insertBefore(headerDiv, card.firstChild);
-      
-      headerDiv.appendChild(h3);
-      h3.style.margin = '0';
-      
-      const toggleBtn = document.createElement('button');
-      toggleBtn.type = 'button';
-      toggleBtn.className = 'btn btn-outline btn-sm';
-      toggleBtn.style.border = 'none';
-      toggleBtn.style.background = 'transparent';
-      toggleBtn.style.padding = '4px 8px';
-      toggleBtn.style.color = 'var(--text-light)';
-      toggleBtn.innerHTML = '<i class="fa-solid fa-sliders" style="font-size: 16px;"></i>';
-      headerDiv.appendChild(toggleBtn);
-      
-      const contentDiv = document.createElement('div');
-      contentDiv.style.display = 'none'; // Hidden by default
-      contentDiv.style.flexDirection = 'column';
-      contentDiv.style.gap = card.style.gap || '16px';
-      contentDiv.style.marginTop = '16px';
-      
-      // Move all children except the headerDiv into the contentDiv
-      Array.from(card.children).forEach(child => {
-        if (child !== headerDiv && child !== contentDiv) {
-          contentDiv.appendChild(child);
-        }
-      });
-      card.appendChild(contentDiv);
-      
-      const toggleContent = () => {
-        if (contentDiv.style.display === 'none') {
-          contentDiv.style.display = 'flex';
-          toggleBtn.style.color = 'var(--primary)';
-        } else {
-          contentDiv.style.display = 'none';
-          toggleBtn.style.color = 'var(--text-light)';
-        }
-      };
-      
-      headerDiv.addEventListener('click', toggleContent);
-      toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleContent();
-      });
-    }
+    const h3 = card.querySelector(':scope > h3');
+
+    // Only collapse cards that directly have an h3 and a form
+    if (!form || !h3) return;
+
+    // Wrap h3 in a header row
+    const headerRow = document.createElement('div');
+    headerRow.className = 'card-collapse-header';
+
+    // Insert headerRow before h3
+    card.insertBefore(headerRow, h3);
+    headerRow.appendChild(h3);
+    h3.style.margin = '0';
+
+    // Create toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.title = 'Expand / Collapse';
+    toggleBtn.innerHTML = '<i class="fa-solid fa-sliders"></i>';
+    toggleBtn.className = 'card-collapse-btn';
+    headerRow.appendChild(toggleBtn);
+
+    // Start collapsed
+    card.classList.add('card-collapsed');
+
+    const toggleContent = () => {
+      const isCollapsed = card.classList.toggle('card-collapsed');
+      toggleBtn.style.color = isCollapsed ? 'var(--text-light)' : 'var(--primary)';
+    };
+
+    headerRow.addEventListener('click', toggleContent);
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleContent();
+    });
   });
 });
