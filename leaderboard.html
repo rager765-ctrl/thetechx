@@ -119,6 +119,60 @@
       color: var(--border);
       margin-bottom: 16px;
     }
+
+    /* ── Shortlisted badge ────────────────────────── */
+    .team-rank {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      font-size: 10px;
+      font-weight: 700;
+      color: #16a34a;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Mobile close button ──────────────────────── */
+    .lb-mobile-close {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .lb-mobile-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        background: var(--text-main);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 14px 32px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        text-decoration: none;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+      .lb-mobile-close:active {
+        transform: translateX(-50%) scale(0.96);
+      }
+      /* extra bottom padding so last card isn't hidden behind button */
+      .leaderboard-container {
+        padding-bottom: 100px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -151,6 +205,11 @@
       <p>Loading shortlisted teams...</p>
     </div>
   </div>
+
+  <!-- Mobile close / back button -->
+  <a href="index.html" class="lb-mobile-close">
+    <i class="fa-solid fa-xmark"></i> Close
+  </a>
 
   <footer style="margin-top: auto; padding: 24px 20px; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; background: transparent;">
     &copy; 2026 The HatchPoint Innovations Challenge: Nyansapo Edition. All rights reserved.
@@ -210,7 +269,7 @@
               <div class="team-avatar">${initial}</div>
               <div class="team-info">
                 <div class="team-name">${team.teamName}</div>
-                <div class="team-rank">Shortlisted Team</div>
+                <div class="team-rank"><i class="fa-solid fa-circle-check"></i> Shortlisted</div>
               </div>
             </div>
           `;
