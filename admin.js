@@ -1230,7 +1230,13 @@ function adminViewProjectDetails(projId) {
         </div>
       </div>
 
-      <!-- Row 2: Team Members (Horizontal grid) -->
+      <!-- Row 2: Project Summary Note -->
+      <div>
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--secondary);"><i class="fa-solid fa-align-left"></i> Project Summary Note</h4>
+        <div style="background: var(--bg-app); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.6; font-size: 13.5px; color: var(--text-main); white-space: pre-wrap; word-break: break-word;">${proj.summaryNote || '<span style="color: var(--text-light); font-style: italic;">No summary note provided.</span>'}</div>
+      </div>
+
+      <!-- Row 3: Team Members (Horizontal grid) -->
       <div>
         <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--accent);"><i class="fa-solid fa-users"></i> Team Members (3 slots)</h4>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
@@ -1238,7 +1244,7 @@ function adminViewProjectDetails(projId) {
         </div>
       </div>
 
-      <!-- Row 3: Custom Fields / Additional Details (Horizontal grid) -->
+      <!-- Row 4: Custom Fields / Additional Details (Horizontal grid) -->
       ${proj.customFields && Object.keys(proj.customFields).length > 0 ? `
       <div>
         <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--secondary);"><i class="fa-solid fa-list-check"></i> Additional Details</h4>
@@ -1248,7 +1254,7 @@ function adminViewProjectDetails(projId) {
       </div>
       ` : ''}
 
-      <!-- Row 4: Evaluation & Grading (Horizontal layout) -->
+      <!-- Row 5: Evaluation & Grading (Horizontal layout) -->
       <div>
         <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--warning);"><i class="fa-solid fa-graduation-cap"></i> Evaluation &amp; Grading</h4>
         <form id="admin-grade-form" onsubmit="adminSaveGrades(event, '${proj.id}')" style="background: var(--bg-app); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px;">
