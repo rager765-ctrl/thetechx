@@ -512,7 +512,11 @@ adminTabItems.forEach(item => {
     const targetContent = document.getElementById(`admin-tab-${tabName}`);
     if (targetContent) {
       targetContent.classList.add("active");
-      targetContent.style.display = "block";
+      if (tabName === "applicants") {
+        targetContent.style.display = "flex";
+      } else {
+        targetContent.style.display = "block";
+      }
     }
     
     renderAdminDashboard();
