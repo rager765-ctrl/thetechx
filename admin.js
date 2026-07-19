@@ -960,7 +960,7 @@ function renderAdminDashboard() {
       const scoreText = p.averageScore ? `${p.averageScore}/100` : `<span style="color: var(--text-light); font-size: 11px;">Not Graded</span>`;
       
       const trackObj = allTracks.find(t => t.id === p.track);
-      const trackName = trackObj ? trackObj.name : p.track;
+      const trackName = trackObj ? trackObj.name : (p.track || "Open Track");
 
       let actionButtons = "";
       if (p.status === "Pending") {
@@ -1148,7 +1148,9 @@ function adminViewProjectDetails(projId) {
   const trackObj = allTracks.find(t => t.id === proj.track);
   const trackName = trackObj
     ? trackObj.name
-    : (proj.track || "Unknown").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    : proj.track
+      ? proj.track.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+      : "Open Track";
 
   // Derive file type from BOTH stored conceptNoteType AND the filename extension (filename wins if they disagree)
   const fileNameExt = (proj.conceptNoteName || "").split(".").pop().toLowerCase();
