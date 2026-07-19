@@ -1262,10 +1262,19 @@ function renderAdminDashboard() {
           <button class="btn btn-outline btn-sm" onclick="adminApproveProject('${p.id}', true)" style="color: var(--success); border-color: var(--success);"><i class="fa-solid fa-circle-check"></i> Approve</button>
           <button class="btn btn-outline btn-sm" onclick="adminApproveProject('${p.id}', false)" style="color: var(--danger); border-color: var(--danger);"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
         `;
+      } else if (p.status === "Rejected") {
+        actionButtons = `
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <button class="btn btn-outline btn-sm" onclick="adminApproveProject('${p.id}', true)" style="color: var(--success); border-color: var(--success);"><i class="fa-solid fa-circle-check"></i> Reapprove</button>
+            <button class="btn btn-outline btn-sm" onclick="adminDeleteProject('${p.id}')" style="color: var(--danger); border-color: var(--danger); padding: 2px 6px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; border-radius: 4px; border: 1px solid var(--danger);">
+              <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+          </div>
+        `;
       } else {
         actionButtons = `
           <div style="display: inline-flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; color: var(--text-light);"><i class="fa-solid fa-square-poll-vertical"></i> Logged</span>
+            <button class="btn btn-outline btn-sm" onclick="adminApproveProject('${p.id}', false)" style="color: var(--danger); border-color: var(--danger);"><i class="fa-solid fa-circle-xmark"></i> Reject</button>
             <button class="btn btn-outline btn-sm" onclick="adminDeleteProject('${p.id}')" style="color: var(--danger); border-color: var(--danger); padding: 2px 6px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; background: transparent; cursor: pointer; border-radius: 4px; border: 1px solid var(--danger);">
               <i class="fa-solid fa-trash-can"></i> Delete
             </button>
