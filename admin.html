@@ -306,8 +306,56 @@
           <div class="portal-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <h2>Applicant Manager</h2>
             <div style="display: flex; gap: 12px; align-items: center;">
+              <button class="btn btn-secondary btn-sm" id="admin-export-pdf-btn" style="font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
               <button class="btn btn-primary btn-sm" id="admin-share-leaderboard-btn" style="font-weight: 600;"><i class="fa-solid fa-trophy"></i> Share Leaderboard</button>
               <button class="btn btn-outline btn-sm" id="admin-delete-all-applicants-btn" style="color: var(--danger); border-color: var(--danger); font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Delete All Applicants</button>
+            </div>
+          </div>
+          
+          <!-- Filter Controls -->
+          <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; background: var(--bg-card); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <div style="flex: 2; min-width: 200px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="admin-search-input" style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600;">Search Team / Member</label>
+              <input type="text" id="admin-search-input" class="form-control" placeholder="Search by team, email or name..." style="font-size: 13px; padding: 8px 12px; height: 38px;">
+            </div>
+            
+            <div style="flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="admin-filter-time" style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600;">Submitted</label>
+              <select id="admin-filter-time" class="form-control" style="font-size: 13px; padding: 0 12px; height: 38px; cursor: pointer;">
+                <option value="all" selected>All Time</option>
+                <option value="1h">Past 1 Hour</option>
+                <option value="24h">Past 24 Hours</option>
+                <option value="7d">Past 7 Days</option>
+                <option value="30d">Past 30 Days</option>
+              </select>
+            </div>
+
+            <div style="flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="admin-filter-track" style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600;">Track</label>
+              <select id="admin-filter-track" class="form-control" style="font-size: 13px; padding: 0 12px; height: 38px; cursor: pointer;">
+                <option value="all" selected>All Tracks</option>
+                <option value="open">Open Track</option>
+              </select>
+            </div>
+
+            <div style="flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="admin-filter-status" style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600;">Status</label>
+              <select id="admin-filter-status" class="form-control" style="font-size: 13px; padding: 0 12px; height: 38px; cursor: pointer;">
+                <option value="all" selected>All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div style="flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="admin-sort-by" style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600;">Sort By</label>
+              <select id="admin-sort-by" class="form-control" style="font-size: 13px; padding: 0 12px; height: 38px; cursor: pointer;">
+                <option value="latest" selected>Latest Submission</option>
+                <option value="oldest">Oldest Submission</option>
+                <option value="score-desc">Highest Grade</option>
+                <option value="score-asc">Lowest Grade</option>
+              </select>
             </div>
           </div>
           

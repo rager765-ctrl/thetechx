@@ -519,6 +519,216 @@ adminTabItems.forEach(item => {
   });
 });
 
+// Bind Applicant Filters
+const searchInput = document.getElementById("admin-search-input");
+const filterTime = document.getElementById("admin-filter-time");
+const filterTrack = document.getElementById("admin-filter-track");
+const filterStatus = document.getElementById("admin-filter-status");
+const sortBy = document.getElementById("admin-sort-by");
+
+if (searchInput) searchInput.addEventListener("input", renderAdminDashboard);
+if (filterTime) filterTime.addEventListener("change", renderAdminDashboard);
+if (filterTrack) filterTrack.addEventListener("change", renderAdminDashboard);
+if (filterStatus) filterStatus.addEventListener("change", renderAdminDashboard);
+if (sortBy) sortBy.addEventListener("change", renderAdminDashboard);
+
+function exportApplicantsToPDF() {
+  const searchVal = (document.getElementById("admin-search-input")?.value || "").toLowerCase().trim();
+  const filterTimeVal = document.getElementById("admin-filter-time")?.value || "all";
+  const filterTrackVal = document.getElementById("admin-filter-track")?.value || "all";
+  const filterStatusVal = document.getElementById("admin-filter-status")?.value || "all";
+  const sortByVal = document.getElementById("admin-sort-by")?.value || "latest";
+
+  let filtered = [...allProjects];
+
+  if (searchVal) {
+    filtered = filtered.filter(p => {
+      const teamMatch = (p.teamName || "").toLowerCase().includes(searchVal);
+      const emailMatch = (p.leadEmail || "").toLowerCase().includes(searchVal);
+      const membersMatch = (p.members || []).some(m => (m || "").toLowerCase().includes(searchVal));
+      return teamMatch || emailMatch || membersMatch;
+    });
+  }
+
+  if (filterTimeVal !== "all") {
+    const now = Date.now();
+    let limitMs = 0;
+    if (filterTimeVal === "1h") limitMs = 60 * 60 * 1000;
+    else if (filterTimeVal === "24h") limitMs = 24 * 60 * 60 * 1000;
+    else if (filterTimeVal === "7d") limitMs = 7 * 24 * 60 * 60 * 1000;
+    else if (filterTimeVal === "30d") limitMs = 30 * 24 * 60 * 60 * 1000;
+
+    filtered = filtered.filter(p => p.timestamp && (now - p.timestamp) <= limitMs);
+  }
+
+  if (filterTrackVal !== "all") {
+    if (filterTrackVal === "open") {
+      filtered = filtered.filter(p => !p.track);
+    } else {
+      filtered = filtered.filter(p => p.track === filterTrackVal);
+    }
+  }
+
+  if (filterStatusVal !== "all") {
+    filtered = filtered.filter(p => p.status === filterStatusVal);
+  }
+
+  if (sortByVal === "latest") {
+    filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  } else if (sortByVal === "oldest") {
+    filtered.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  } else if (sortByVal === "score-desc") {
+    filtered.sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+  } else if (sortByVal === "score-asc") {
+    filtered.sort((a, b) => (a.averageScore || 0) - (b.averageScore || 0));
+  }
+
+  if (filtered.length === 0) {
+    showToast("No applicants to export.", "error");
+    return;
+  }
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showToast("Popup blocked! Please allow popups to export PDF.", "error");
+    return;
+  }
+
+  const rowsHtml = filtered.map((p, idx) => {
+    const trackObj = allTracks.find(t => t.id === p.track);
+    const trackName = trackObj ? trackObj.name : (p.track || "Open Track");
+    const scoreText = p.averageScore ? `${p.averageScore}/100` : "Not Graded";
+    return `
+      <tr>
+        <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
+        <td>
+          <div style="font-weight: 700; color: #0f172a;">${p.teamName}</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">ID: ${p.id}</div>
+        </td>
+        <td>
+          <div style="font-weight: 500;">${(p.members || []).join(", ")}</div>
+          <div style="font-size: 11px; color: #64748b;">${p.leadEmail}</div>
+        </td>
+        <td>${trackName}</td>
+        <td><span style="font-weight: 600; color: ${p.status === 'Approved' ? '#10b981' : p.status === 'Pending' ? '#f59e0b' : '#ef4444'};">${p.status}</span></td>
+        <td style="font-weight: 700; text-align: right;">${scoreText}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const content = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>HatchPoint Applicants Report</title>
+      <style>
+        body {
+          font-family: 'Inter', -apple-system, sans-serif;
+          color: #0f172a;
+          margin: 40px;
+          line-height: 1.5;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .title {
+          font-size: 24px;
+          font-weight: 800;
+          margin: 0;
+          color: #2563eb;
+        }
+        .meta {
+          font-size: 12px;
+          color: #64748b;
+          text-align: right;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        th, td {
+          border: 1px solid #e2e8f0;
+          padding: 10px 12px;
+          font-size: 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f8fafc;
+          font-weight: 700;
+          color: #475569;
+        }
+        tr:nth-child(even) {
+          background-color: #f8fafc;
+        }
+        .footer {
+          margin-top: 40px;
+          font-size: 11px;
+          color: #94a3b8;
+          text-align: center;
+          border-top: 1px solid #e2e8f0;
+          padding-top: 15px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div>
+          <h1 class="title">HatchPoint Applicants Report</h1>
+          <div style="font-size: 13px; color: #475569; margin-top: 4px;">Challenge Submissions & Status Log</div>
+        </div>
+        <div class="meta">
+          <div>Exported on: ${new Date().toLocaleString()}</div>
+          <div>Total Records: ${filtered.length}</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th>Project & Team Name</th>
+            <th>Competitors & Lead</th>
+            <th>Challenge Track</th>
+            <th>Status</th>
+            <th style="text-align: right;">Grade Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div class="footer">
+        HatchPoint Innovation Platform &bull; Official Admin Record Sheet &bull; Confidential
+      </div>
+
+      <script>
+        window.onload = function() {
+          window.print();
+          window.onafterprint = function() {
+            window.close();
+          };
+        }
+      <\/script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(content);
+  printWindow.document.close();
+}
+
+const exportPdfBtn = document.getElementById("admin-export-pdf-btn");
+if (exportPdfBtn) {
+  exportPdfBtn.addEventListener("click", exportApplicantsToPDF);
+}
+
 // Realtime Observers
 function initRealtimeSync() {
 let isInitialProjectsLoad = true;
@@ -568,6 +778,28 @@ let isInitialProjectsLoad = true;
     });
     
     allTracks.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    // Dynamic tracks dropdown filter population
+    const filterTrack = document.getElementById("admin-filter-track");
+    if (filterTrack) {
+      const currentSelected = filterTrack.value;
+      filterTrack.innerHTML = `
+        <option value="all">All Tracks</option>
+        <option value="open">Open Track</option>
+      `;
+      allTracks.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.name;
+        filterTrack.appendChild(opt);
+      });
+      if (currentSelected) {
+        filterTrack.value = currentSelected;
+      } else {
+        filterTrack.value = "all";
+      }
+    }
+
     renderAdminDashboard();
   });
 
@@ -955,7 +1187,69 @@ function renderAdminDashboard() {
       return;
     }
 
-    tableBody.innerHTML = allProjects.map(p => {
+    // 1. Get filter/sort values
+    const searchVal = (document.getElementById("admin-search-input")?.value || "").toLowerCase().trim();
+    const filterTimeVal = document.getElementById("admin-filter-time")?.value || "all";
+    const filterTrackVal = document.getElementById("admin-filter-track")?.value || "all";
+    const filterStatusVal = document.getElementById("admin-filter-status")?.value || "all";
+    const sortByVal = document.getElementById("admin-sort-by")?.value || "latest";
+
+    // 2. Filter projects
+    let filteredProjects = [...allProjects];
+
+    // Search filter (Team Name, Members, Lead Email)
+    if (searchVal) {
+      filteredProjects = filteredProjects.filter(p => {
+        const teamMatch = (p.teamName || "").toLowerCase().includes(searchVal);
+        const emailMatch = (p.leadEmail || "").toLowerCase().includes(searchVal);
+        const membersMatch = (p.members || []).some(m => (m || "").toLowerCase().includes(searchVal));
+        return teamMatch || emailMatch || membersMatch;
+      });
+    }
+
+    // Time filter
+    if (filterTimeVal !== "all") {
+      const now = Date.now();
+      let limitMs = 0;
+      if (filterTimeVal === "1h") limitMs = 60 * 60 * 1000;
+      else if (filterTimeVal === "24h") limitMs = 24 * 60 * 60 * 1000;
+      else if (filterTimeVal === "7d") limitMs = 7 * 24 * 60 * 60 * 1000;
+      else if (filterTimeVal === "30d") limitMs = 30 * 24 * 60 * 60 * 1000;
+
+      filteredProjects = filteredProjects.filter(p => p.timestamp && (now - p.timestamp) <= limitMs);
+    }
+
+    // Track filter
+    if (filterTrackVal !== "all") {
+      if (filterTrackVal === "open") {
+        filteredProjects = filteredProjects.filter(p => !p.track);
+      } else {
+        filteredProjects = filteredProjects.filter(p => p.track === filterTrackVal);
+      }
+    }
+
+    // Status filter
+    if (filterStatusVal !== "all") {
+      filteredProjects = filteredProjects.filter(p => p.status === filterStatusVal);
+    }
+
+    // 3. Sort projects
+    if (sortByVal === "latest") {
+      filteredProjects.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    } else if (sortByVal === "oldest") {
+      filteredProjects.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    } else if (sortByVal === "score-desc") {
+      filteredProjects.sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+    } else if (sortByVal === "score-asc") {
+      filteredProjects.sort((a, b) => (a.averageScore || 0) - (b.averageScore || 0));
+    }
+
+    if (filteredProjects.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 40px;">No matching applicants found.</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = filteredProjects.map(p => {
       const statusClass = `badge badge-${p.status === 'Approved' ? 'success' : p.status === 'Pending' ? 'warning' : 'info'}`;
       const scoreText = p.averageScore ? `${p.averageScore}/100` : `<span style="color: var(--text-light); font-size: 11px;">Not Graded</span>`;
       

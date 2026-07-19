@@ -943,6 +943,7 @@ function initRealtimeSync() {
   // Watch ticketing settings
   onSnapshot(doc(firestore, "config", "ticketing_settings"), (snapshot) => {
     const floatingAction = document.getElementById("floating-ticket-action");
+    const supportChat = document.getElementById("support-chat-container");
     if (!floatingAction) return;
 
     if (snapshot.exists()) {
@@ -950,11 +951,14 @@ function initRealtimeSync() {
       window.ticketingConfig = data;
       if (data.ticketingEnabled === true) {
         floatingAction.style.display = "flex";
+        if (supportChat) supportChat.classList.add("ticket-visible");
       } else {
         floatingAction.style.display = "none";
+        if (supportChat) supportChat.classList.remove("ticket-visible");
       }
     } else {
       floatingAction.style.display = "none";
+      if (supportChat) supportChat.classList.remove("ticket-visible");
     }
   });
 

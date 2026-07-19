@@ -267,6 +267,11 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#support-chat-container.ticket-visible {
+  bottom: 108px;
 }
 
 .chat-btn {
@@ -344,6 +349,9 @@ img {
   #support-chat-container {
     bottom: 80px; /* Above mobile nav */
     right: 16px;
+  }
+  #support-chat-container.ticket-visible {
+    bottom: 152px;
   }
 }
 
@@ -1339,13 +1347,22 @@ footer h4 {
   opacity: 0.8;
 }
 
-.form-group select {
+select.form-control {
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 16px;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 32px !important;
+}
+
+select.form-control option {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px;
 }
 
 .btn-block {
