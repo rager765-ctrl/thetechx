@@ -2304,6 +2304,7 @@ select.form-control option {
   gap: 6px;
   padding: 32px 24px 28px;
   transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 /* ---- Icon wrap with animated ring ---- */

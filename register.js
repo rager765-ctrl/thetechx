@@ -327,27 +327,25 @@ if (teamRegistrationForm) {
         throw new Error("Team name already exists.");
       }
 
-      const members = [document.getElementById("reg-m1-name").value.trim()];
-      const emails = [document.getElementById("reg-m1-email").value.trim().toLowerCase()];
-      const contacts = [document.getElementById("reg-m1-contact").value.trim()];
-
-      const m2Name = document.getElementById("reg-m2-name").value.trim();
-      const m2Email = document.getElementById("reg-m2-email").value.trim().toLowerCase();
+      const m1Contact = document.getElementById("reg-m1-contact").value.trim();
       const m2Contact = document.getElementById("reg-m2-contact").value.trim();
-      if (m2Name && m2Email) {
-        members.push(m2Name);
-        emails.push(m2Email);
-        contacts.push(m2Contact === "+233" ? "" : m2Contact);
-      }
-
-      const m3Name = document.getElementById("reg-m3-name").value.trim();
-      const m3Email = document.getElementById("reg-m3-email").value.trim().toLowerCase();
       const m3Contact = document.getElementById("reg-m3-contact").value.trim();
-      if (m3Name && m3Email) {
-        members.push(m3Name);
-        emails.push(m3Email);
-        contacts.push(m3Contact === "+233" ? "" : m3Contact);
-      }
+
+      const members = [
+        document.getElementById("reg-m1-name").value.trim(),
+        document.getElementById("reg-m2-name").value.trim(),
+        document.getElementById("reg-m3-name").value.trim()
+      ];
+      const emails = [
+        document.getElementById("reg-m1-email").value.trim().toLowerCase(),
+        document.getElementById("reg-m2-email").value.trim().toLowerCase(),
+        document.getElementById("reg-m3-email").value.trim().toLowerCase()
+      ];
+      const contacts = [
+        m1Contact === "+233" ? "" : m1Contact,
+        m2Contact === "+233" ? "" : m2Contact,
+        m3Contact === "+233" ? "" : m3Contact
+      ];
 
       const customFields = {};
       for (const field of activeCustomFields) {
@@ -601,6 +599,14 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   if (fileInput && uploadZone) {
+    // Open file selection when clicking the drop zone (fixes iOS Safari tap issue)
+    uploadZone.addEventListener("click", (e) => {
+      if (uploadZone.classList.contains("file-selected")) return;
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
+
     fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
       if (file) {
