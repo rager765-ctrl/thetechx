@@ -391,15 +391,24 @@ function toggleCountdownAndRegisterBtnVisibility() {
   const cdText = document.getElementById("hero-countdown-text");
   const lbWidget = document.getElementById("floating-leaderboard-widget");
   const dribbbleDays = document.getElementById("dribbble-days-stat");
+  const heroRegBtn = document.getElementById("hero-register-btn");
   
   if (landingStatsConfig.showCountdown === false) {
     if (cdWidget) cdWidget.style.display = "none";
     if (cdText) cdText.style.display = "none";
     if (dribbbleDays) dribbbleDays.style.display = "none";
+    // Show hero register button on mobile when countdown is hidden
+    if (heroRegBtn && heroRegBtn.style.display !== "none") {
+      heroRegBtn.style.removeProperty("display");
+    }
   } else {
     if (cdWidget) cdWidget.style.display = "inline-flex";
     if (cdText) cdText.style.display = "flex";
     if (dribbbleDays) dribbbleDays.style.display = "flex";
+    // Hide hero register button on mobile when countdown is visible (avoid duplication)
+    if (window.innerWidth <= 768 && heroRegBtn) {
+      heroRegBtn.style.display = "none";
+    }
   }
 
   if (lbWidget) {
@@ -844,17 +853,17 @@ function initRealtimeSync() {
     if (snapshot.exists()) {
       const data = snapshot.data();
       
-      if (regTag) {
-        if (data.hideRegistrationTag) {
-          regTag.style.display = 'none';
-          if (heroRegBtn) heroRegBtn.style.display = 'none';
-        } else {
+      // --- Registration tag + hero button visibility ---
+      if (data.hideRegistrationTag) {
+        if (regTag) regTag.style.display = 'none';
+        if (heroRegBtn) heroRegBtn.style.display = 'none';
+      } else {
+        if (regTag) {
           regTag.style.display = 'inline-flex';
-          if (heroRegBtn) heroRegBtn.style.display = 'inline-flex';
           if (data.registrationClosed) {
             regTag.innerHTML = '<i class="fa-solid fa-lock"></i> Registration closed';
-            regTag.style.backgroundColor = '#fee2e2'; // var(--danger-light) alternative if not defined
-            regTag.style.color = '#ef4444'; // var(--danger) alternative
+            regTag.style.backgroundColor = '#fee2e2';
+            regTag.style.color = '#ef4444';
             regTag.style.borderColor = 'rgba(239, 68, 68, 0.2)';
           } else {
             regTag.innerHTML = '<i class="fa-solid fa-circle-nodes"></i> Registration is open!';
@@ -863,8 +872,21 @@ function initRealtimeSync() {
             regTag.style.borderColor = 'rgba(37, 99, 235, 0.1)';
           }
         }
+        // Show hero button only if countdown is hidden (on mobile it would otherwise be duplicated)
+        if (heroRegBtn) {
+          const countdownHidden = landingStatsConfig && landingStatsConfig.showCountdown === false;
+          if (data.swapNavToLeaderboard) {
+            // Hide hero register btn and show nothing (leaderboard swap covers it via nav)
+            heroRegBtn.style.display = 'none';
+          } else if (window.innerWidth <= 768 && !countdownHidden) {
+            heroRegBtn.style.display = 'none';
+          } else {
+            heroRegBtn.style.removeProperty('display');
+          }
+        }
       }
 
+      // --- Nav & bottom bar swap ---
       if (data.swapNavToLeaderboard) {
         if (navBtn) {
           navBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> View Leaderboard';

@@ -3383,9 +3383,6 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
-  #hero-register-btn {
-    display: none !important;
-  }
   .countdown-widget {
     margin: 0 auto 28px auto;
     align-self: center;
