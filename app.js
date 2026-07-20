@@ -548,7 +548,7 @@ function renderLandingPrizes() {
   }
 
   container.innerHTML = displayPrizes.map((p, idx) => {
-    const isGrand = p.popular === true || p.rank === "1st Place" || parseInt(p.rank) === 1 || (displayPrizes.length >= 3 && idx === 1);
+    const isGrand = p.popular === true;
     const podiumStyle = (displayPrizes.length >= 3 && idx === 1) ? 'transform: scale(1.08); z-index: 2; box-shadow: var(--shadow-xl); border: 2px solid var(--primary);' : 'z-index: 1; opacity: 0.95;';
     
     return `
