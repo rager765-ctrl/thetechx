@@ -503,6 +503,8 @@ img {
 .hero-slider-wrapper {
   position: relative;
   width: 100%;
+  /* Reserve height so absolute-positioned slides don't collapse the container */
+  min-height: 520px;
 }
 
 .hero-slide {
@@ -514,13 +516,27 @@ img {
   visibility: hidden;
   transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
   z-index: 1;
+  pointer-events: none;
 }
 
 .hero-slide.active {
-  position: relative;
+  position: absolute;
   opacity: 1;
   visibility: visible;
   z-index: 2;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .hero-slider-wrapper {
+    min-height: 720px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-slider-wrapper {
+    min-height: 860px;
+  }
 }
 
 /* Dots navigation */
