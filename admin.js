@@ -475,6 +475,7 @@ if (adminLandingStatsForm) {
     const countdownVal = document.getElementById("admin-stats-countdown-date").value;
     const showCountdown = document.getElementById("admin-stats-show-countdown").checked;
     const showLeaderboard = document.getElementById("admin-stats-show-leaderboard").checked;
+    const showPrizes = document.getElementById("admin-stats-show-prizes") ? document.getElementById("admin-stats-show-prizes").checked : true;
 
     try {
       showToast("Saving header statistics configuration...", "info");
@@ -488,6 +489,11 @@ if (adminLandingStatsForm) {
         showLeaderboardWidget: showLeaderboard,
         timestamp: Date.now()
       });
+
+      await setDoc(doc(firestore, "config", "admin_settings"), {
+        hidePrizes: !showPrizes
+      }, { merge: true });
+
       showToast("Header statistics saved successfully!", "success");
     } catch (err) {
       showToast("Failed to save header configuration: " + getCleanErrorMessage(err), "error");
@@ -907,15 +913,17 @@ let isInitialProjectsLoad = true;
   onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
     let currentCombo = [];
     let isSponsorsHidden = false;
+    let isPrizesHidden = false;
     if (snapshot.exists()) {
       const data = snapshot.data();
       signupEnabled = data.signupEnabled !== false;
       currentCombo = data.shortcutCombo || [];
       isSponsorsHidden = data.hideSponsors === true;
+      isPrizesHidden = data.hidePrizes === true;
     } else {
       signupEnabled = true;
       if (currentUser) {
-        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true, hideSponsors: false }, { merge: true }).catch(err => console.log("Seeding config deferred:", err.message));
+        setDoc(doc(firestore, "config", "admin_settings"), { signupEnabled: true, hideSponsors: false, hidePrizes: false }, { merge: true }).catch(err => console.log("Seeding config deferred:", err.message));
       }
     }
 
@@ -928,6 +936,22 @@ let isInitialProjectsLoad = true;
         toggleSponsorsBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Hide Sponsors Section';
         toggleSponsorsBtn.classList.replace("btn-primary", "btn-outline");
       }
+    }
+
+    const togglePrizesBtn = document.getElementById("toggle-prizes-section-btn");
+    if (togglePrizesBtn) {
+      if (isPrizesHidden) {
+        togglePrizesBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Show Rewards Section';
+        togglePrizesBtn.classList.replace("btn-outline", "btn-primary");
+      } else {
+        togglePrizesBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Hide Rewards Section';
+        togglePrizesBtn.classList.replace("btn-primary", "btn-outline");
+      }
+    }
+
+    const adminStatsShowPrizes = document.getElementById("admin-stats-show-prizes");
+    if (adminStatsShowPrizes) {
+      adminStatsShowPrizes.checked = !isPrizesHidden;
     }
 
     // Update combo display
@@ -3967,6 +3991,25 @@ if (toggleSponsorsBtn) {
       showToast("Failed to toggle sponsors section.", "error");
     } finally {
       toggleSponsorsBtn.disabled = false;
+    }
+  });
+}
+
+// PRIZES / REWARDS TOGGLE LOGIC
+const togglePrizesBtn = document.getElementById("toggle-prizes-section-btn");
+if (togglePrizesBtn) {
+  togglePrizesBtn.addEventListener("click", async () => {
+    const isCurrentlyHidden = togglePrizesBtn.innerHTML.includes("Show");
+    try {
+      togglePrizesBtn.disabled = true;
+      await setDoc(doc(firestore, "config", "admin_settings"), {
+        hidePrizes: !isCurrentlyHidden
+      }, { merge: true });
+      showToast(isCurrentlyHidden ? "Rewards section is now visible on the landing page." : "Rewards section is now hidden from users.", "success");
+    } catch (err) {
+      showToast("Failed to toggle rewards section.", "error");
+    } finally {
+      togglePrizesBtn.disabled = false;
     }
   });
 }

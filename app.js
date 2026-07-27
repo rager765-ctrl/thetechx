@@ -1672,6 +1672,12 @@ onSnapshot(doc(firestore, "config", "admin_settings"), (snapshot) => {
     if (sponsorsSection) {
       sponsorsSection.style.display = data.hideSponsors ? "none" : "block";
     }
+
+    // Hide/Show Prizes & Rewards Section
+    const prizesSection = document.querySelector(".prizes-section");
+    if (prizesSection) {
+      prizesSection.style.display = data.hidePrizes ? "none" : "block";
+    }
   }
 });
 
