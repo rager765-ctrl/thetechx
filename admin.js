@@ -1040,7 +1040,7 @@ let isInitialProjectsLoad = true;
     // Seed default legal documents if empty
     if (snapshot.empty && currentUser) {
       const defaultLegal = [
-        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 3 to 5 members (minimum 3, maximum 5) enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB Innovations Lab administration desk.", timestamp: Date.now() + 2 }
       ];
@@ -1547,8 +1547,8 @@ function adminViewProjectDetails(projId) {
 
       <!-- Row 3: Team Members (Horizontal grid) -->
       <div>
-        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--accent);"><i class="fa-solid fa-users"></i> Team Members (3 slots)</h4>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <h4 style="margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; color: var(--accent);"><i class="fa-solid fa-users"></i> Team Members (${(proj.members || []).length} members)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
           ${membersHTML}
         </div>
       </div>
@@ -2047,6 +2047,8 @@ if (exportCSVBtn) {
       "Member 1 Name", "Member 1 Email", "Member 1 Contact",
       "Member 2 Name", "Member 2 Email", "Member 2 Contact",
       "Member 3 Name", "Member 3 Email", "Member 3 Contact",
+      "Member 4 Name", "Member 4 Email", "Member 4 Contact",
+      "Member 5 Name", "Member 5 Email", "Member 5 Contact",
       "Concept Note Name", "Concept Note URL", "Submission Date",
       ...customHeaders
     ];
@@ -2057,9 +2059,11 @@ if (exportCSVBtn) {
 
       const basic = [
         p.teamName, p.title, p.track, p.status, p.averageScore || 'N/A',
-        p.members ? p.members[0] : '', p.emails ? p.emails[0] : '', p.contacts ? p.contacts[0] : '',
-        p.members ? p.members[1] : '', p.emails ? p.emails[1] : '', p.contacts ? p.contacts[1] : '',
-        p.members ? p.members[2] : '', p.emails ? p.emails[2] : '', p.contacts ? p.contacts[2] : '',
+        p.members ? p.members[0] || '' : '', p.emails ? p.emails[0] || '' : '', p.contacts ? p.contacts[0] || '' : '',
+        p.members ? p.members[1] || '' : '', p.emails ? p.emails[1] || '' : '', p.contacts ? p.contacts[1] || '' : '',
+        p.members ? p.members[2] || '' : '', p.emails ? p.emails[2] || '' : '', p.contacts ? p.contacts[2] || '' : '',
+        p.members ? p.members[3] || '' : '', p.emails ? p.emails[3] || '' : '', p.contacts ? p.contacts[3] || '' : '',
+        p.members ? p.members[4] || '' : '', p.emails ? p.emails[4] || '' : '', p.contacts ? p.contacts[4] || '' : '',
         p.conceptNoteName || '', safeUrl,
         p.timestamp ? new Date(p.timestamp).toLocaleString() : ''
       ];
@@ -2087,7 +2091,7 @@ async function seedDefaultsIfEmpty() {
     const legalSnap = await getDocs(collection(firestore, "legal"));
     if (legalSnap.empty) {
       const defaultLegal = [
-        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist strictly of 3 members enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
+        { id: "terms", title: "Terms & Rules", content: "1. All submitted prototypes must be original and built during the hackathon period.\n2. Teams must consist of 3 to 5 members (minimum 3, maximum 5) enrolled at KNUST.\n3. The judges' decision is final and binding in all aspects of the challenge.", timestamp: Date.now() },
         { id: "privacy", title: "Privacy Policy", content: "1. We collect applicant email addresses, team names, and school information solely for organizing The HatchPoint Innovations Challenge: Nyansapo Edition.\n2. Your data is stored securely using Firebase Firestore.\n3. We do not share your private contact information with third-party advertisers.", timestamp: Date.now() + 1 },
         { id: "support", title: "Contact Support", content: "For technical queries, platform assistance, or registration edits, please contact support at support@hatchpoint.knust.edu.gh or visit the KSB Innovations Lab administration desk.", timestamp: Date.now() + 2 }
       ];

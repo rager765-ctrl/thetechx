@@ -1301,6 +1301,12 @@ footer h4 {
   background: var(--bg-app);
 }
 
+.registration-member-card .form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
 .custom-field-textarea-group {
   grid-column: span 2;
 }

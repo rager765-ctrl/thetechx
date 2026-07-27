@@ -7,7 +7,7 @@
   <meta name="google-site-verification" content="r86ry8TJMrzBwxZ9kA6YAYDc7mxfmMRz8oLlBJ1iLx0" />
   <title>Team Registration | The HatchPoint Innovations Challenge: Nyansapo Edition</title>
   <meta name="description"
-    content="Register your team of 3 members and submit your concept note for The HatchPoint Innovations Challenge: Nyansapo Edition.">
+    content="Register your team of 3 to 5 members and submit your concept note for The HatchPoint Innovations Challenge: Nyansapo Edition.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- FontAwesome for icons -->
@@ -86,7 +86,7 @@
             </div>
             <div class="rules-item-content">
               <h4>Team Formation</h4>
-              <p>Registration is open to all. Teams must consist strictly of three (3) members. Academic/institutional
+              <p>Registration is open to all. Teams must consist of 3 to 5 members (minimum 3, maximum 5). Academic/institutional
                 email accounts should be used where applicable.</p>
             </div>
           </div>
@@ -147,67 +147,81 @@
           </div>
         </div>
 
-        <!-- Member 1 (Lead) -->
-        <div class="registration-member-card">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-user-gear"></i>
-            Member 1 (Team Lead)</h4>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-m1-name">Full Name</label>
-              <input type="text" id="reg-m1-name" class="form-control" placeholder="Abena Osei" required>
+        <!-- Dynamic Team Members Container -->
+        <div id="members-container">
+          <!-- Member 1 (Lead) -->
+          <div class="registration-member-card" id="member-card-1">
+            <h4 class="member-card-title" style="margin-bottom: 12px; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-user-gear"></i>
+              Member 1 (Team Lead)</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-m1-name">Full Name</label>
+                <input type="text" id="reg-m1-name" class="form-control" placeholder="Abena Osei" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m1-email">Email Address</label>
+                <input type="email" id="reg-m1-email" class="form-control" placeholder="abena.osei@gmail.com" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m1-contact">Contact Number</label>
+                <input type="tel" id="reg-m1-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
+                  required>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="reg-m1-email">Email Address</label>
-              <input type="email" id="reg-m1-email" class="form-control" placeholder="abena.osei@gmail.com" required>
+          </div>
+
+          <!-- Member 2 -->
+          <div class="registration-member-card" id="member-card-2">
+            <h4 class="member-card-title" style="margin-bottom: 12px; font-size: 14px; color: var(--secondary); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-user"></i>
+              Member 2</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-m2-name">Full Name</label>
+                <input type="text" id="reg-m2-name" class="form-control" placeholder="Kofi Mensah" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m2-email">Email Address</label>
+                <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@gmail.com" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m2-contact">Contact Number</label>
+                <input type="tel" id="reg-m2-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
+                  required>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="reg-m1-contact">Contact Number</label>
-              <input type="tel" id="reg-m1-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
-                required>
+          </div>
+
+          <!-- Member 3 -->
+          <div class="registration-member-card" id="member-card-3">
+            <h4 class="member-card-title" style="margin-bottom: 12px; font-size: 14px; color: var(--accent); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-user"></i>
+              Member 3</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-m3-name">Full Name</label>
+                <input type="text" id="reg-m3-name" class="form-control" placeholder="Kwame Asante" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m3-email">Email Address</label>
+                <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@gmail.com" required>
+              </div>
+              <div class="form-group">
+                <label for="reg-m3-contact">Contact Number</label>
+                <input type="tel" id="reg-m3-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
+                  required>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Member 2 -->
-        <div class="registration-member-card">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--secondary);"><i class="fa-solid fa-user"></i>
-            Member 2</h4>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-m2-name">Full Name</label>
-              <input type="text" id="reg-m2-name" class="form-control" placeholder="Kofi Mensah" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-m2-email">Email Address</label>
-              <input type="email" id="reg-m2-email" class="form-control" placeholder="kofi.mensah@gmail.com" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-m2-contact">Contact Number</label>
-              <input type="tel" id="reg-m2-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
-                required>
-            </div>
+        <!-- Dynamic Team Member Controls -->
+        <div class="team-members-controls" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding: 12px 16px; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--primary); border-radius: var(--radius-md);">
+          <div style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-users" style="color: var(--primary);"></i>
+            <span>Team Members: <strong id="member-count-badge" style="color: var(--primary); font-weight: 700;">3</strong> / 5 (Min: 3, Max: 5)</span>
           </div>
-        </div>
-
-        <!-- Member 3 -->
-        <div class="registration-member-card">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);"><i class="fa-solid fa-user"></i>
-            Member 3</h4>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-m3-name">Full Name</label>
-              <input type="text" id="reg-m3-name" class="form-control" placeholder="Kwame Asante" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-m3-email">Email Address</label>
-              <input type="email" id="reg-m3-email" class="form-control" placeholder="kwame.asante@gmail.com" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-m3-contact">Contact Number</label>
-              <input type="tel" id="reg-m3-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567"
-                required>
-            </div>
-          </div>
+          <button type="button" id="btn-add-member" style="background: var(--primary); color: white; border: none; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: var(--shadow-xs);">
+            <i class="fa-solid fa-user-plus"></i> Add Team Member
+          </button>
         </div>
 
         <!-- Project Summary Note (Max 1000 words) -->
@@ -229,6 +243,12 @@
           <label for="reg-concept-note">Proposal Document <span
               style="font-weight: 400; color: var(--text-light);">(DOCX, PPTX, or PDF)</span></label>
 
+          <!-- Format Notice Banner -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 10px 14px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid var(--primary); border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-main); line-height: 1.4;">
+            <i class="fa-solid fa-circle-info" style="color: var(--primary); flex-shrink: 0; font-size: 14px;"></i>
+            <span><strong>Notice:</strong> We strongly encourage uploading your proposal document in <strong>.DOCX</strong> format for optimal review (.pptx and .pdf are also accepted).</span>
+          </div>
+
           <!-- Drop Zone -->
           <div class="file-upload-zone" id="file-upload-zone">
             <input type="file" id="reg-concept-note" accept=".docx,.pptx,.pdf" required>
@@ -240,8 +260,7 @@
                 <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
               </div>
               <span class="file-upload-label" id="file-upload-label">Click to browse or drag &amp; drop</span>
-              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp;
-                Max 2.5 MB</span>
+              <span class="file-upload-hint"><strong style="color: var(--primary);">.docx (Encouraged)</strong> &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 2.5 MB</span>
             </div>
 
             <!-- Selected file info chip (hidden until file chosen) -->

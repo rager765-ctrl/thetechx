@@ -327,25 +327,40 @@ if (teamRegistrationForm) {
         throw new Error("Team name already exists.");
       }
 
-      const m1Contact = document.getElementById("reg-m1-contact").value.trim();
-      const m2Contact = document.getElementById("reg-m2-contact").value.trim();
-      const m3Contact = document.getElementById("reg-m3-contact").value.trim();
+      const membersContainer = document.getElementById("members-container");
+      const memberCards = membersContainer ? membersContainer.querySelectorAll(".registration-member-card") : document.querySelectorAll(".registration-member-card");
+      
+      const members = [];
+      const emails = [];
+      const contacts = [];
 
-      const members = [
-        document.getElementById("reg-m1-name").value.trim(),
-        document.getElementById("reg-m2-name").value.trim(),
-        document.getElementById("reg-m3-name").value.trim()
-      ];
-      const emails = [
-        document.getElementById("reg-m1-email").value.trim().toLowerCase(),
-        document.getElementById("reg-m2-email").value.trim().toLowerCase(),
-        document.getElementById("reg-m3-email").value.trim().toLowerCase()
-      ];
-      const contacts = [
-        m1Contact === "+233" ? "" : m1Contact,
-        m2Contact === "+233" ? "" : m2Contact,
-        m3Contact === "+233" ? "" : m3Contact
-      ];
+      memberCards.forEach((card) => {
+        const inputs = card.querySelectorAll("input");
+        if (inputs.length >= 3) {
+          const nameVal = inputs[0].value.trim();
+          const emailVal = inputs[1].value.trim().toLowerCase();
+          let contactVal = inputs[2].value.trim();
+          if (contactVal === "+233") contactVal = "";
+
+          if (nameVal && emailVal) {
+            members.push(nameVal);
+            emails.push(emailVal);
+            contacts.push(contactVal);
+          }
+        }
+      });
+
+      if (members.length < 3) {
+        throw new Error("A minimum of 3 team members is required for registration.");
+      }
+      if (members.length > 5) {
+        throw new Error("A maximum of 5 team members is allowed per team.");
+      }
+
+      const uniqueEmails = new Set(emails);
+      if (uniqueEmails.size !== emails.length) {
+        throw new Error("Each team member must have a unique email address.");
+      }
 
       const customFields = {};
       for (const field of activeCustomFields) {
@@ -730,3 +745,133 @@ if (trackInfoIcon) {
     showToast("Tracks allow you to align your project with a specific industry theme for specialized judging and prizes. If your innovation doesn't fit a specific category, select 'Open Track'.", "info");
   });
 }
+
+// --- Dynamic Team Member Management (3 to 5 members) ---
+const maxMembers = 5;
+const minMembers = 3;
+
+function updateMemberCountUI() {
+  const membersContainer = document.getElementById("members-container");
+  const btnAddMember = document.getElementById("btn-add-member");
+  const memberCountBadge = document.getElementById("member-count-badge");
+  
+  if (!membersContainer) return;
+  const cards = membersContainer.querySelectorAll(".registration-member-card");
+  const count = cards.length;
+
+  if (memberCountBadge) {
+    memberCountBadge.textContent = count;
+  }
+
+  if (btnAddMember) {
+    if (count >= maxMembers) {
+      btnAddMember.style.display = "none";
+    } else {
+      btnAddMember.style.display = "inline-flex";
+    }
+  }
+
+  cards.forEach((card, idx) => {
+    const num = idx + 1;
+    card.id = `member-card-${num}`;
+    
+    const headerTitle = card.querySelector(".member-card-title");
+    if (headerTitle) {
+      if (num === 1) {
+        headerTitle.innerHTML = '<i class="fa-solid fa-user-gear"></i> Member 1 (Team Lead)';
+        headerTitle.style.color = "var(--primary)";
+      } else {
+        const colors = ["var(--secondary)", "var(--accent)", "#8b5cf6", "#ec4899"];
+        const col = colors[(num - 2) % colors.length];
+        headerTitle.innerHTML = `<i class="fa-solid fa-user"></i> Member ${num}`;
+        headerTitle.style.color = col;
+      }
+    }
+
+    let removeBtn = card.querySelector(".btn-remove-member");
+    if (num > minMembers) {
+      if (!removeBtn) {
+        const headerDiv = card.querySelector(".member-card-header") || card.querySelector("h4");
+        if (headerDiv) {
+          if (headerDiv.tagName.toLowerCase() === "h4") {
+            const wrap = document.createElement("div");
+            wrap.className = "member-card-header";
+            wrap.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;";
+            headerDiv.parentNode.insertBefore(wrap, headerDiv);
+            wrap.appendChild(headerDiv);
+            headerDiv.style.marginBottom = "0";
+            removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "btn-remove-member";
+            removeBtn.style.cssText = "background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 12px; cursor: pointer; padding: 4px 10px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;";
+            removeBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Remove';
+            wrap.appendChild(removeBtn);
+          }
+        }
+      }
+      if (removeBtn) {
+        removeBtn.style.display = "inline-flex";
+        removeBtn.onclick = function() { removeMemberCard(num); };
+      }
+    } else {
+      if (removeBtn) {
+        removeBtn.style.display = "none";
+      }
+    }
+  });
+}
+
+window.removeMemberCard = function(memberNum) {
+  const card = document.getElementById(`member-card-${memberNum}`);
+  if (card) {
+    card.remove();
+    updateMemberCountUI();
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAddMember = document.getElementById("btn-add-member");
+  const membersContainer = document.getElementById("members-container");
+
+  if (btnAddMember && membersContainer) {
+    btnAddMember.addEventListener("click", () => {
+      const cards = membersContainer.querySelectorAll(".registration-member-card");
+      if (cards.length >= maxMembers) {
+        if (typeof showToast === 'function') showToast("Maximum of 5 members allowed per team.", "warning");
+        return;
+      }
+      const newNum = cards.length + 1;
+      const newCard = document.createElement("div");
+      newCard.className = "registration-member-card";
+      newCard.id = `member-card-${newNum}`;
+      newCard.innerHTML = `
+        <div class="member-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 class="member-card-title" style="margin: 0; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-user"></i> Member ${newNum}
+          </h4>
+          <button type="button" class="btn-remove-member" onclick="removeMemberCard(${newNum})" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 12px; cursor: pointer; padding: 4px 10px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+            <i class="fa-solid fa-trash-can"></i> Remove
+          </button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-m${newNum}-name">Full Name</label>
+            <input type="text" id="reg-m${newNum}-name" class="form-control" placeholder="Member ${newNum} Full Name" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-m${newNum}-email">Email Address</label>
+            <input type="email" id="reg-m${newNum}-email" class="form-control" placeholder="member${newNum}@gmail.com" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-m${newNum}-contact">Contact Number</label>
+            <input type="tel" id="reg-m${newNum}-contact" class="form-control" value="+233 " placeholder="+233 24 123 4567" required>
+          </div>
+        </div>
+      `;
+      membersContainer.appendChild(newCard);
+      updateMemberCountUI();
+    });
+  }
+
+  updateMemberCountUI();
+});
