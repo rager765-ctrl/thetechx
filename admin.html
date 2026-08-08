@@ -1041,6 +1041,10 @@
               <div>
                 <label>Sponsor Logo (Image)</label>
                 <input type="file" id="admin-sponsor-logo" class="form-control" accept="image/*" required>
+                <div id="admin-sponsor-logo-preview" style="display: none; margin-top: 10px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: var(--radius-sm); padding: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.12); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
+                  <span style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 6px; font-weight: 500;">Logo Contrast Preview</span>
+                  <img id="admin-sponsor-logo-preview-img" style="max-height: 80px; max-width: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">
+                </div>
               </div>
               <button type="submit" class="btn btn-primary" id="admin-sponsor-submit-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Sponsor</button>
             </form>

@@ -1896,7 +1896,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = docSnap.data();
         const baseZIndex = snapshot.size - index;
         const marginLeft = index === 0 ? '0' : '-20px';
-        const innerContent = `<img src="${data.logoUrl}" alt="${data.name}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); border: 4px solid #fff; transition: transform 0.3s ease;">`;
+        const innerContent = `
+          <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center; padding: 14px; border: 4px solid #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); transition: transform 0.3s ease;">
+            <img src="${data.logoUrl}" alt="${data.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+          </div>
+        `;
         
         if (data.url) {
           html += `
