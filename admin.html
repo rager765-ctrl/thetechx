@@ -1061,10 +1061,96 @@
           <div class="portal-header">
             <div>
               <h1 class="portal-title">Support & Feedback</h1>
-              <p class="portal-subtitle">Manage user inquiries and respond directly via WhatsApp.</p>
+              <p class="portal-subtitle">Manage user inquiries, configure floating WhatsApp community links, and respond to support messages.</p>
             </div>
           </div>
           
+          <!-- WHATSAPP FLOATING WIDGET CONFIGURATION -->
+          <div class="card" style="margin-bottom: 24px; border-top: 4px solid #25D366;">
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 16px;">
+                  <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 20px;"></i>
+                  Floating WhatsApp Group & Community Widget
+                </h3>
+                <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-light);">
+                  Configure the floating WhatsApp button displayed on the public site and embed your community group link.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="admin-wa-status-badge" class="badge" style="background: rgba(37, 211, 102, 0.15); color: #128C7E; font-size: 12px; padding: 4px 10px; font-weight: 600; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-circle" style="font-size: 8px; color: #25D366;"></i> Active
+                </span>
+              </div>
+            </div>
+
+            <form id="admin-whatsapp-config-form" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <!-- Toggle Widget Enabled -->
+                <div style="background: var(--bg-body, #f8fafc); padding: 14px 16px; border-radius: var(--radius-md, 10px); border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <label for="admin-wa-enabled" style="font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-main);">Enable Floating WhatsApp Button</label>
+                    <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-light);">Show floating logo widget on public website</p>
+                  </div>
+                  <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                    <input type="checkbox" id="admin-wa-enabled" checked style="opacity: 0; width: 0; height: 0;">
+                    <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 24px;"></span>
+                  </label>
+                </div>
+
+                <!-- Display Mode Selection -->
+                <div style="background: var(--bg-body, #f8fafc); padding: 14px 16px; border-radius: var(--radius-md, 10px); border: 1px solid var(--border, #e2e8f0);">
+                  <label for="admin-wa-mode" style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-main);">Click Behavior Mode</label>
+                  <select id="admin-wa-mode" class="form-control" style="font-size: 13px; padding: 8px 12px; border-radius: 6px;">
+                    <option value="popup">Interactive Popup Menu (Join Group + Chat Support)</option>
+                    <option value="direct">Direct Redirect to WhatsApp Group Link</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <!-- WhatsApp Group Link -->
+                <div>
+                  <label for="admin-wa-group-link" style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-main);">
+                    WhatsApp Group Link <span style="color: var(--danger);">*</span>
+                  </label>
+                  <div style="position: relative;">
+                    <i class="fa-solid fa-link" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 13px;"></i>
+                    <input type="url" id="admin-wa-group-link" class="form-control" placeholder="https://chat.whatsapp.com/YourGroupCode" required style="padding-left: 36px; font-size: 13px;">
+                  </div>
+                  <span style="font-size: 11px; color: var(--text-light); margin-top: 4px; display: block;">Paste your official WhatsApp group invite link here.</span>
+                </div>
+
+                <!-- Tooltip / Button Label -->
+                <div>
+                  <label for="admin-wa-label" style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-main);">
+                    Floating Logo Hover Label
+                  </label>
+                  <input type="text" id="admin-wa-label" class="form-control" placeholder="Join our WhatsApp Community" style="font-size: 13px;">
+                  <span style="font-size: 11px; color: var(--text-light); margin-top: 4px; display: block;">Tooltip shown when users hover over the floating WhatsApp logo.</span>
+                </div>
+              </div>
+
+              <!-- Community Welcome Description -->
+              <div>
+                <label for="admin-wa-welcome-text" style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-main);">
+                  Menu Popup Header & Description
+                </label>
+                <textarea id="admin-wa-welcome-text" class="form-control" rows="2" placeholder="Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!" style="font-size: 13px; resize: vertical;"></textarea>
+              </div>
+
+              <!-- Action Bar & Preview -->
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-light);">
+                  <i class="fa-solid fa-shield-halved" style="color: #25D366;"></i> Updates sync live to all online visitors instantly.
+                </div>
+                <button type="submit" id="admin-save-wa-btn" class="btn btn-primary" style="background: #25D366; border-color: #25D366; color: white; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-weight: 600;">
+                  <i class="fa-solid fa-floppy-disk"></i> Save WhatsApp Config
+                </button>
+              </div>
+            </form>
+          </div>
+
           <div class="card">
             <div style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; margin-top: 0; display: flex; align-items: center; justify-content: space-between;">
               <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-inbox" style="color: var(--primary);"></i> Inbound Messages</h3>

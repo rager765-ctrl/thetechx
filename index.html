@@ -817,6 +817,50 @@
         class="fa-solid fa-eye"></i> View</a>
   </div>
 
+  <!-- FLOATING WHATSAPP GROUP WIDGET -->
+  <div id="whatsapp-floating-widget" style="display: none;">
+    <!-- FLOATING POPUP MENU CARD -->
+    <div class="whatsapp-menu-popup" id="whatsapp-menu-popup">
+      <div class="whatsapp-popup-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="wa-header-icon-box">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: white;">Tech X WhatsApp Community</h4>
+            <span class="wa-online-status"><i class="fa-solid fa-circle"></i> Official Group</span>
+          </div>
+        </div>
+        <button id="close-whatsapp-popup" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="whatsapp-popup-body">
+        <p id="whatsapp-popup-text" style="font-size: 13px; color: #475569; margin: 0 0 14px; line-height: 1.5;">
+          Join our official WhatsApp group to connect with fellow participants, receive live event updates, and get instant answers!
+        </p>
+
+        <!-- CTA Direct Group Join Link -->
+        <a id="whatsapp-popup-join-btn" href="#" target="_blank" class="whatsapp-cta-btn">
+          <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i>
+          <span>Join WhatsApp Group</span>
+          <i class="fa-solid fa-arrow-right-long" style="margin-left: auto; font-size: 14px; opacity: 0.8;"></i>
+        </a>
+
+        <!-- Secondary Support Chat Trigger -->
+        <button id="whatsapp-trigger-support-chat" class="whatsapp-secondary-btn">
+          <i class="fa-solid fa-headset"></i> Send Direct Support Message
+        </button>
+      </div>
+    </div>
+
+    <!-- FLOATING WHATSAPP LOGO BUTTON -->
+    <div class="whatsapp-float-btn" id="whatsapp-float-btn" title="Join WhatsApp Group">
+      <div class="whatsapp-pulse-ring"></div>
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="whatsapp-tooltip-badge" id="whatsapp-tooltip-badge">Join Group</span>
+    </div>
+  </div>
+
   <!-- SUPPORT CHAT WIDGET -->
   <div id="support-chat-container">
     <div class="chat-btn" id="support-chat-btn">

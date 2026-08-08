@@ -3890,6 +3890,88 @@ function renderSupportMessages() {
   });
 }
 
+// WhatsApp Group Floating Widget Configuration Logic
+function initWhatsAppConfigSync() {
+  const docRef = doc(firestore, "settings", "whatsapp_widget");
+  onSnapshot(docRef, (docSnap) => {
+    const data = docSnap.exists() ? docSnap.data() : {};
+    
+    const enabledInput = document.getElementById("admin-wa-enabled");
+    const modeSelect = document.getElementById("admin-wa-mode");
+    const groupLinkInput = document.getElementById("admin-wa-group-link");
+    const labelInput = document.getElementById("admin-wa-label");
+    const welcomeInput = document.getElementById("admin-wa-welcome-text");
+    const statusBadge = document.getElementById("admin-wa-status-badge");
+
+    const isEnabled = data.enabled !== undefined ? data.enabled : true;
+    if (enabledInput) enabledInput.checked = isEnabled;
+    if (modeSelect) modeSelect.value = data.mode || "popup";
+    if (groupLinkInput) groupLinkInput.value = data.groupLink || "";
+    if (labelInput) labelInput.value = data.label || "Join our WhatsApp Community";
+    if (welcomeInput) welcomeInput.value = data.welcomeText || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+
+    if (statusBadge) {
+      if (isEnabled && data.groupLink) {
+        statusBadge.style.background = "rgba(37, 211, 102, 0.15)";
+        statusBadge.style.color = "#128C7E";
+        statusBadge.innerHTML = `<i class="fa-solid fa-circle" style="font-size: 8px; color: #25D366;"></i> Active`;
+      } else if (!isEnabled) {
+        statusBadge.style.background = "rgba(100, 116, 139, 0.15)";
+        statusBadge.style.color = "#64748b";
+        statusBadge.innerHTML = `<i class="fa-solid fa-circle" style="font-size: 8px; color: #94a3b8;"></i> Disabled`;
+      } else {
+        statusBadge.style.background = "rgba(234, 179, 8, 0.15)";
+        statusBadge.style.color = "#b45309";
+        statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 10px; color: #eab308;"></i> Link Missing`;
+      }
+    }
+  });
+}
+initWhatsAppConfigSync();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const waForm = document.getElementById("admin-whatsapp-config-form");
+  if (waForm) {
+    waForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const enabled = document.getElementById("admin-wa-enabled").checked;
+      const mode = document.getElementById("admin-wa-mode").value;
+      const groupLink = document.getElementById("admin-wa-group-link").value.trim();
+      const label = document.getElementById("admin-wa-label").value.trim() || "Join our WhatsApp Community";
+      const welcomeText = document.getElementById("admin-wa-welcome-text").value.trim() || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+
+      if (enabled && !groupLink) {
+        showToast("Please enter a valid WhatsApp Group Link.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("admin-save-wa-btn");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+      btn.disabled = true;
+
+      try {
+        await setDoc(doc(firestore, "settings", "whatsapp_widget"), {
+          enabled,
+          mode,
+          groupLink,
+          label,
+          welcomeText,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        showToast("WhatsApp Floating Widget settings updated successfully!", "success");
+      } catch (err) {
+        console.error("Error saving WhatsApp config:", err);
+        showToast("Failed to save settings. Please try again.", "error");
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+  }
+});
+
 // Bulk delete all support chats
 document.addEventListener("DOMContentLoaded", () => {
   const deleteAllBtn = document.getElementById("admin-delete-all-chats-btn");

@@ -1720,6 +1720,102 @@ function trackSiteAnalytics() {
 // Run analytics on page load
 window.addEventListener("DOMContentLoaded", trackSiteAnalytics);
 
+// WHATSAPP FLOATING WIDGET LOGIC
+document.addEventListener("DOMContentLoaded", () => {
+  const widgetContainer = document.getElementById("whatsapp-floating-widget");
+  const floatBtn = document.getElementById("whatsapp-float-btn");
+  const menuPopup = document.getElementById("whatsapp-menu-popup");
+  const closePopupBtn = document.getElementById("close-whatsapp-popup");
+  const joinGroupBtn = document.getElementById("whatsapp-popup-join-btn");
+  const popupText = document.getElementById("whatsapp-popup-text");
+  const tooltipBadge = document.getElementById("whatsapp-tooltip-badge");
+  const triggerSupportBtn = document.getElementById("whatsapp-trigger-support-chat");
+  const chatModal = document.getElementById("support-chat-modal");
+
+  if (!widgetContainer || !floatBtn) return;
+
+  let currentWaConfig = {
+    enabled: true,
+    mode: "popup",
+    groupLink: "",
+    label: "Join WhatsApp Group",
+    welcomeText: "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!"
+  };
+
+  // Sync with Firestore settings
+  try {
+    const docRef = doc(firestore, "settings", "whatsapp_widget");
+    onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        currentWaConfig = { ...currentWaConfig, ...data };
+      }
+      updateWhatsAppWidgetUI();
+    });
+  } catch (e) {
+    console.warn("Firestore WhatsApp sync fallback:", e);
+    updateWhatsAppWidgetUI();
+  }
+
+  function updateWhatsAppWidgetUI() {
+    if (currentWaConfig.enabled && currentWaConfig.groupLink) {
+      widgetContainer.style.display = "block";
+    } else {
+      widgetContainer.style.display = "none";
+      if (menuPopup) menuPopup.classList.remove("active");
+      return;
+    }
+
+    if (tooltipBadge) {
+      tooltipBadge.textContent = currentWaConfig.label || "Join Group";
+    }
+
+    if (popupText) {
+      popupText.textContent = currentWaConfig.welcomeText || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+    }
+
+    if (joinGroupBtn && currentWaConfig.groupLink) {
+      joinGroupBtn.href = currentWaConfig.groupLink;
+    }
+  }
+
+  // Toggle Popup or Direct Link on Floating Button Click
+  floatBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!currentWaConfig.groupLink) return;
+
+    if (currentWaConfig.mode === "direct") {
+      window.open(currentWaConfig.groupLink, "_blank", "noopener,noreferrer");
+    } else {
+      menuPopup.classList.toggle("active");
+    }
+  });
+
+  if (closePopupBtn) {
+    closePopupBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menuPopup.classList.remove("active");
+    });
+  }
+
+  // Close popup if clicking outside
+  document.addEventListener("click", (e) => {
+    if (menuPopup && menuPopup.classList.contains("active")) {
+      if (!menuPopup.contains(e.target) && !floatBtn.contains(e.target)) {
+        menuPopup.classList.remove("active");
+      }
+    }
+  });
+
+  // Support chat shortcut button inside WhatsApp popup
+  if (triggerSupportBtn) {
+    triggerSupportBtn.addEventListener("click", () => {
+      if (menuPopup) menuPopup.classList.remove("active");
+      if (chatModal) chatModal.classList.add("active");
+    });
+  }
+});
+
 // SUPPORT CHAT WIDGET LOGIC
 document.addEventListener("DOMContentLoaded", () => {
   const chatBtn = document.getElementById("support-chat-btn");
