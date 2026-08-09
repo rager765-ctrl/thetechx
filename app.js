@@ -584,7 +584,7 @@ function renderNewsFeed(filteredCategory = "all") {
 
   container.innerHTML = filtered.map(item => `
     <article class="news-card" data-id="${item.id}">
-      <img src="${images[item.img] || images.code}" alt="${item.title}" class="news-img">
+      <img src="${item.coverImage || images[item.img] || images.code}" alt="${item.title}" class="news-img">
       <div class="news-body">
         <div class="news-meta">
           <span class="news-category">${item.category}</span>
