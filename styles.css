@@ -267,7 +267,40 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* MIRRORED TO LEFT SIDE POSITION (DESKTOP & MOBILE WHEN TICKETING IS ON OR SET TO LEFT) */
+#whatsapp-floating-widget.ticket-visible,
+#whatsapp-floating-widget.position-left {
+  left: 24px;
+  right: auto;
+  align-items: flex-start;
+}
+
+#whatsapp-floating-widget.position-left:not(.ticket-visible) {
+  bottom: 24px;
+}
+
+#whatsapp-floating-widget.ticket-visible {
+  bottom: 108px;
+}
+
+#whatsapp-floating-widget.ticket-visible .whatsapp-menu-popup,
+#whatsapp-floating-widget.position-left .whatsapp-menu-popup {
+  transform-origin: bottom left;
+}
+
+#whatsapp-floating-widget.ticket-visible .whatsapp-tooltip-badge,
+#whatsapp-floating-widget.position-left .whatsapp-tooltip-badge {
+  left: 68px;
+  right: auto;
+}
+
+#whatsapp-floating-widget.ticket-visible .whatsapp-float-btn:hover .whatsapp-tooltip-badge,
+#whatsapp-floating-widget.position-left .whatsapp-float-btn:hover .whatsapp-tooltip-badge {
+  left: 64px;
+  right: auto;
 }
 
 .whatsapp-float-btn {
@@ -478,6 +511,17 @@ img {
   #whatsapp-floating-widget {
     bottom: 146px;
     right: 16px;
+  }
+  #whatsapp-floating-widget.ticket-visible,
+  #whatsapp-floating-widget.position-left {
+    left: 16px;
+    right: auto;
+  }
+  #whatsapp-floating-widget.ticket-visible {
+    bottom: 152px;
+  }
+  #whatsapp-floating-widget.position-left:not(.ticket-visible) {
+    bottom: 80px;
   }
 }
 

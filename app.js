@@ -966,6 +966,7 @@ function initRealtimeSync() {
   onSnapshot(doc(firestore, "config", "ticketing_settings"), (snapshot) => {
     const floatingAction = document.getElementById("floating-ticket-action");
     const supportChat = document.getElementById("support-chat-container");
+    const waWidget = document.getElementById("whatsapp-floating-widget");
     if (!floatingAction) return;
 
     if (snapshot.exists()) {
@@ -974,13 +975,20 @@ function initRealtimeSync() {
       if (data.ticketingEnabled === true) {
         floatingAction.style.display = "flex";
         if (supportChat) supportChat.classList.add("ticket-visible");
+        if (waWidget) waWidget.classList.add("ticket-visible");
       } else {
         floatingAction.style.display = "none";
         if (supportChat) supportChat.classList.remove("ticket-visible");
+        if (waWidget && (!window.currentWaConfig || window.currentWaConfig.position !== "left")) {
+          waWidget.classList.remove("ticket-visible");
+        }
       }
     } else {
       floatingAction.style.display = "none";
       if (supportChat) supportChat.classList.remove("ticket-visible");
+      if (waWidget && (!window.currentWaConfig || window.currentWaConfig.position !== "left")) {
+        waWidget.classList.remove("ticket-visible");
+      }
     }
   });
 
@@ -1758,12 +1766,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateWhatsAppWidgetUI() {
+    window.currentWaConfig = currentWaConfig;
     if (currentWaConfig.enabled && currentWaConfig.groupLink) {
       widgetContainer.style.display = "block";
     } else {
       widgetContainer.style.display = "none";
       if (menuPopup) menuPopup.classList.remove("active");
       return;
+    }
+
+    const isTicketingOn = window.ticketingConfig && window.ticketingConfig.ticketingEnabled === true;
+    const shouldMirrorLeft = currentWaConfig.position === "left" || (currentWaConfig.position !== "right" && isTicketingOn);
+    
+    if (shouldMirrorLeft) {
+      widgetContainer.classList.add("ticket-visible");
+    } else {
+      widgetContainer.classList.remove("ticket-visible");
     }
 
     if (tooltipBadge) {

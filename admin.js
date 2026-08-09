@@ -3898,6 +3898,7 @@ function initWhatsAppConfigSync() {
     
     const enabledInput = document.getElementById("admin-wa-enabled");
     const modeSelect = document.getElementById("admin-wa-mode");
+    const positionSelect = document.getElementById("admin-wa-position");
     const groupLinkInput = document.getElementById("admin-wa-group-link");
     const labelInput = document.getElementById("admin-wa-label");
     const welcomeInput = document.getElementById("admin-wa-welcome-text");
@@ -3906,6 +3907,7 @@ function initWhatsAppConfigSync() {
     const isEnabled = data.enabled !== undefined ? data.enabled : true;
     if (enabledInput) enabledInput.checked = isEnabled;
     if (modeSelect) modeSelect.value = data.mode || "popup";
+    if (positionSelect) positionSelect.value = data.position || "auto";
     if (groupLinkInput) groupLinkInput.value = data.groupLink || "";
     if (labelInput) labelInput.value = data.label || "Join our WhatsApp Community";
     if (welcomeInput) welcomeInput.value = data.welcomeText || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
@@ -3936,6 +3938,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const enabled = document.getElementById("admin-wa-enabled").checked;
       const mode = document.getElementById("admin-wa-mode").value;
+      const position = document.getElementById("admin-wa-position") ? document.getElementById("admin-wa-position").value : "auto";
       const groupLink = document.getElementById("admin-wa-group-link").value.trim();
       const label = document.getElementById("admin-wa-label").value.trim() || "Join our WhatsApp Community";
       const welcomeText = document.getElementById("admin-wa-welcome-text").value.trim() || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
@@ -3954,6 +3957,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await setDoc(doc(firestore, "settings", "whatsapp_widget"), {
           enabled,
           mode,
+          position,
           groupLink,
           label,
           welcomeText,
@@ -4000,6 +4004,26 @@ document.addEventListener("DOMContentLoaded", () => {
 // SPONSORS LOGIC
 const sponsorForm = document.getElementById("admin-sponsor-form");
 if (sponsorForm) {
+  const logoInput = document.getElementById("admin-sponsor-logo");
+  const previewBox = document.getElementById("admin-sponsor-logo-preview");
+  const previewImg = document.getElementById("admin-sponsor-logo-preview-img");
+
+  if (logoInput && previewBox && previewImg) {
+    logoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          previewImg.src = evt.target.result;
+          previewBox.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewBox.style.display = "none";
+      }
+    });
+  }
+
   sponsorForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("admin-sponsor-name").value.trim();
@@ -4047,6 +4071,7 @@ if (sponsorForm) {
 
       showToast("Sponsor added successfully!", "success");
       sponsorForm.reset();
+      if (previewBox) previewBox.style.display = "none";
       btn.innerHTML = originalText;
       btn.disabled = false;
     } catch (err) {
@@ -4111,9 +4136,11 @@ function initSponsorsSync() {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       html += `
-        <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; position: relative;">
-          <img src="${data.logoUrl}" alt="${data.name}" style="width: 100%; height: 80px; object-fit: contain; margin-bottom: 8px;">
-          <h4 style="font-size: 13px; margin: 0 0 8px 0; color: var(--text-main);">${data.name}</h4>
+        <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; position: relative; background: white;">
+          <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; justify-content: center; height: 90px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.12); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
+            <img src="${data.logoUrl}" alt="${data.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+          </div>
+          <h4 style="font-size: 13px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data.name}</h4>
           <button class="btn btn-outline btn-sm delete-sponsor-btn" data-id="${docSnap.id}" style="width: 100%; font-size: 11px; color: var(--danger); border-color: var(--danger);">
             <i class="fa-solid fa-trash"></i> Delete
           </button>
