@@ -197,82 +197,96 @@ document.querySelectorAll(".mobile-bottom-nav-item").forEach(item => {
   });
 });
 
-// === HIDE MOBILE BOTTOM NAV WHEN KEYBOARD IS ACTIVE ===
-function initMobileKeyboardNavHiding() {
+// === HIDE MOBILE BOTTOM NAV ON KEYBOARD ACTIVE & ON SCROLL (iOS Safari + Android Compatible) ===
+function initMobileNavAutoHiding() {
   const mobileNav = document.querySelector(".mobile-bottom-nav");
   if (!mobileNav) return;
 
   const isMobile = () => window.innerWidth <= 768;
 
-  function hideNav() {
+  const isInputEl = (el) => {
+    if (!el) return false;
+    const tag = el.tagName;
+    const type = (el.type || "").toLowerCase();
+    const isCtrl = tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+    const isExcl = ["checkbox", "radio", "submit", "button", "file", "color", "range"].includes(type);
+    return isCtrl && !isExcl;
+  };
+
+  function hideForKeyboard() {
     if (isMobile()) {
       document.body.classList.add("keyboard-active");
       mobileNav.classList.add("keyboard-hidden");
     }
   }
 
-  function showNav() {
+  function showFromKeyboard() {
     document.body.classList.remove("keyboard-active");
     mobileNav.classList.remove("keyboard-hidden");
   }
 
-  // Hide nav on focus of form controls
+  // 1. Focusin / Focusout listener across document
   document.addEventListener("focusin", (e) => {
-    const el = e.target;
-    if (!el) return;
-    const tag = el.tagName;
-    const type = (el.type || "").toLowerCase();
-    const isInputControl = (tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable);
-    const isExcluded = ["checkbox", "radio", "submit", "button", "file", "color", "range"].includes(type);
-
-    if (isInputControl && !isExcluded) {
-      hideNav();
-    }
+    if (isInputEl(e.target)) hideForKeyboard();
   }, true);
 
-  // Restore nav on blur
-  document.addEventListener("focusout", (e) => {
-    const el = e.target;
-    if (!el) return;
-    const tag = el.tagName;
-    const isInputControl = (tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable);
-
-    if (isInputControl) {
-      setTimeout(() => {
-        const active = document.activeElement;
-        const activeTag = active ? active.tagName : "";
-        const activeType = active ? (active.type || "").toLowerCase() : "";
-        const activeIsInput = active && (activeTag === "INPUT" || activeTag === "TEXTAREA" || active.isContentEditable);
-        const activeExcluded = ["checkbox", "radio", "submit", "button", "file", "color", "range"].includes(activeType);
-
-        if (!activeIsInput || activeExcluded) {
-          showNav();
-        }
-      }, 120);
-    }
+  document.addEventListener("focusout", () => {
+    setTimeout(() => {
+      if (!isInputEl(document.activeElement)) {
+        showFromKeyboard();
+      }
+    }, 150);
   }, true);
 
-  // Visual Viewport API for dynamic keyboard height tracking
+  // iOS Safari touchstart event on input elements
+  document.addEventListener("touchstart", (e) => {
+    if (isInputEl(e.target)) {
+      hideForKeyboard();
+    }
+  }, { passive: true });
+
+  // 2. Visual Viewport API for dynamic height tracking
   if (window.visualViewport) {
-    const baseHeight = window.visualViewport.height;
+    let baseHeight = window.visualViewport.height;
     window.visualViewport.addEventListener("resize", () => {
       if (!isMobile()) return;
       const currentHeight = window.visualViewport.height;
-      if (baseHeight - currentHeight > 140) {
-        hideNav();
-      } else if (currentHeight >= baseHeight - 40) {
-        const active = document.activeElement;
-        const activeTag = active ? active.tagName : "";
-        const activeIsInput = active && (activeTag === "INPUT" || activeTag === "TEXTAREA");
-        if (!activeIsInput) {
-          showNav();
-        }
+      if (baseHeight - currentHeight > 120 || isInputEl(document.activeElement)) {
+        hideForKeyboard();
+      } else if (currentHeight >= baseHeight - 40 && !isInputEl(document.activeElement)) {
+        showFromKeyboard();
       }
     });
   }
+
+  // 3. Scroll Auto-Hiding for Mobile
+  let isScrollingTimer = null;
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener("scroll", () => {
+    if (!isMobile()) return;
+
+    // Do not override if keyboard is active or an input is focused
+    if (isInputEl(document.activeElement) || document.body.classList.contains("keyboard-active")) {
+      return;
+    }
+
+    const currentScrollY = window.scrollY;
+    if (Math.abs(currentScrollY - lastScrollY) > 5) {
+      mobileNav.classList.add("scroll-hidden");
+    }
+    lastScrollY = currentScrollY;
+
+    clearTimeout(isScrollingTimer);
+    isScrollingTimer = setTimeout(() => {
+      if (!isInputEl(document.activeElement)) {
+        mobileNav.classList.remove("scroll-hidden");
+      }
+    }, 500);
+  }, { passive: true });
 }
 
-initMobileKeyboardNavHiding();
+initMobileNavAutoHiding();
 
 const navLogo = document.getElementById("nav-logo");
 if (navLogo) {
