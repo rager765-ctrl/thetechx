@@ -2922,6 +2922,20 @@ input, textarea, select, [contenteditable="true"] {
   justify-items: center;
   z-index: 9999;
   padding-bottom: env(safe-area-inset-bottom);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Hide Mobile Bottom Nav when Keyboard is Active */
+body.keyboard-active .mobile-bottom-nav,
+.mobile-bottom-nav.keyboard-hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.keyboard-active {
+  padding-bottom: 0 !important;
 }
 
 .mobile-bottom-nav::before {
