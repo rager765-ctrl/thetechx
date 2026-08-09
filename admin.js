@@ -3910,7 +3910,7 @@ function initWhatsAppConfigSync() {
     if (positionSelect) positionSelect.value = data.position || "auto";
     if (groupLinkInput) groupLinkInput.value = data.groupLink || "";
     if (labelInput) labelInput.value = data.label || "Join our WhatsApp Community";
-    if (welcomeInput) welcomeInput.value = data.welcomeText || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+    if (welcomeInput) welcomeInput.value = data.welcomeText || "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!";
 
     if (statusBadge) {
       if (isEnabled && data.groupLink) {
@@ -3941,7 +3941,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const position = document.getElementById("admin-wa-position") ? document.getElementById("admin-wa-position").value : "auto";
       const groupLink = document.getElementById("admin-wa-group-link").value.trim();
       const label = document.getElementById("admin-wa-label").value.trim() || "Join our WhatsApp Community";
-      const welcomeText = document.getElementById("admin-wa-welcome-text").value.trim() || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+      const welcomeText = document.getElementById("admin-wa-welcome-text").value.trim() || "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!";
 
       if (enabled && !groupLink) {
         showToast("Please enter a valid WhatsApp Group Link.", "error");

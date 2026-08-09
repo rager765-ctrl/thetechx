@@ -21,8 +21,8 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 48px 32px;
-      max-width: 500px;
+      padding: 40px 28px;
+      max-width: 520px;
       width: 100%;
       text-align: center;
       box-shadow: var(--shadow-xl);
@@ -33,16 +33,16 @@
       to { transform: scale(1); opacity: 1; }
     }
     .success-icon {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
       border-radius: var(--radius-full);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 40px;
-      margin: 0 auto 24px;
+      font-size: 36px;
+      margin: 0 auto 20px;
       box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
       animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
     }
@@ -51,10 +51,41 @@
       70% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
+    .wa-success-box {
+      margin: 20px 0 24px 0;
+      padding: 20px 16px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: var(--radius-md);
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.1);
+    }
+    .btn-wa-join {
+      background-color: #25D366;
+      color: white !important;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 13px 24px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+      transition: all 0.2s ease-in-out;
+    }
+    .btn-wa-join:hover {
+      background-color: #1ea952;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+    }
     .countdown-text {
       font-size: 13px;
       color: var(--text-light);
-      margin-top: 24px;
+      margin-top: 18px;
     }
   </style>
 </head>
@@ -63,20 +94,69 @@
     <div class="success-icon">
       <i class="fa-solid fa-check"></i>
     </div>
-    <h2 style="font-size: 28px; margin-bottom: 12px; color: var(--text-main);">Registration Submitted!</h2>
-    <p style="font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
-      Your team registration has been successfully recorded in the system. The organizers have been notified and your documents are now visible in the administrative portal.
+    <h2 style="font-size: 26px; margin-bottom: 8px; color: var(--text-main);">Registration Submitted!</h2>
+    <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+      Your team registration has been recorded successfully!
     </p>
-    <a href="index.html" class="btn btn-primary btn-block btn-lg" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+
+    <!-- MANDATORY WHATSAPP GROUP CARD -->
+    <div class="wa-success-box">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+        <i class="fa-brands fa-whatsapp" style="font-size: 24px; color: #25D366;"></i>
+        <h3 style="font-size: 16px; font-weight: 700; color: #166534; margin: 0;">Required Next Step: Join WhatsApp Group</h3>
+      </div>
+      <p style="font-size: 13px; color: #15803d; line-height: 1.5; margin: 0 0 16px 0;">
+        All <strong>1st to 3rd year undergraduate participants</strong> must join the official HatchPoint WhatsApp Group for real-time announcements, mentorship guidance, and challenge updates.
+      </p>
+      <a id="success-wa-join-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn-wa-join">
+        <i class="fa-brands fa-whatsapp" style="font-size: 22px;"></i> Join Official WhatsApp Group Now
+      </a>
+      <div style="margin-top: 12px; font-size: 12px; color: #475569; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <i class="fa-solid fa-compass" style="color: #25D366;"></i>
+        <span>Can't join now? Click the green floating WhatsApp button at the bottom-right of any page later.</span>
+      </div>
+    </div>
+
+    <a href="index.html" class="btn btn-secondary btn-block btn-lg" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
       <i class="fa-solid fa-house"></i> Return to Home Page
     </a>
     <div class="countdown-text" id="countdown-container">
-      Redirecting to the Home Page in <span id="countdown-seconds" style="font-weight: 700; color: var(--primary);">5</span> seconds...
+      Redirecting to Home Page in <span id="countdown-seconds" style="font-weight: 700; color: var(--primary);">15</span> seconds...
     </div>
   </div>
 
-  <script>
-    let secondsLeft = 5;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA91WlL0vnYEYZcQo51KTDMWPPSw1eZayM",
+      authDomain: "the-tech-x.firebaseapp.com",
+      projectId: "the-tech-x",
+      storageBucket: "the-tech-x.firebasestorage.app",
+      messagingSenderId: "997772121695",
+      appId: "1:997772121695:web:0fb74ffa3bc64240a66dea",
+      measurementId: "G-VQ00H9FPKF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const firestore = getFirestore(app);
+
+    const waBtn = document.getElementById("success-wa-join-btn");
+
+    async function loadWaLink() {
+      try {
+        const docSnap = await getDoc(doc(firestore, "settings", "whatsapp_widget"));
+        if (docSnap.exists() && docSnap.data().groupLink) {
+          waBtn.href = docSnap.data().groupLink;
+        }
+      } catch (err) {
+        console.warn("Could not load WhatsApp link directly:", err);
+      }
+    }
+    loadWaLink();
+
+    let secondsLeft = 15;
     const countdownEl = document.getElementById("countdown-seconds");
     const interval = setInterval(() => {
       secondsLeft--;

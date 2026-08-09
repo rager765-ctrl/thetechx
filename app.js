@@ -1747,7 +1747,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mode: "popup",
     groupLink: "",
     label: "Join WhatsApp Group",
-    welcomeText: "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!"
+    welcomeText: "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!"
   };
 
   // Sync with Firestore settings
@@ -1789,7 +1789,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (popupText) {
-      popupText.textContent = currentWaConfig.welcomeText || "Join our official Tech X WhatsApp group for live updates, announcements, and direct community support!";
+      popupText.textContent = currentWaConfig.welcomeText || "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!";
     }
 
     if (joinGroupBtn && currentWaConfig.groupLink) {

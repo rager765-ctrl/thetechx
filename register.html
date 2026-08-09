@@ -57,6 +57,33 @@
         </p>
         <div class="rules-list">
           <div class="rules-item">
+            <div class="rules-icon-wrap" style="background: rgba(59, 130, 246, 0.12); color: var(--primary);">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="rules-item-content">
+              <h4>Undergraduate Eligibility (1st – 3rd Year Only)</h4>
+              <p>The challenge is strictly open to <strong>1st, 2nd, and 3rd year undergraduate students (100 to 300 Level)</strong> across all academic departments. All team members must be within 1st to 3rd year.</p>
+            </div>
+          </div>
+
+          <div class="rules-item">
+            <div class="rules-icon-wrap" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">
+              <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <div class="rules-item-content">
+              <h4>Mandatory WhatsApp Group Join</h4>
+              <p>After completing registration, all team members are required to join the official HatchPoint WhatsApp group for live announcements, mentor connections, and event updates.</p>
+              <div style="margin-top: 8px; font-size: 12.5px; color: #1e293b; background: #f0fdf4; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <strong style="color: #166534;"><i class="fa-solid fa-compass"></i> How to find &amp; join the WhatsApp Group:</strong>
+                <ul style="margin: 6px 0 0 16px; padding: 0; line-height: 1.5; color: #15803d;">
+                  <li><strong>Post-Registration Screen:</strong> A direct <em>"Join WhatsApp Group"</em> button will be presented immediately upon submitting your team registration.</li>
+                  <li><strong>Floating Icon on Site:</strong> Click the green floating WhatsApp widget at the bottom-right corner of any page at any time.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="rules-item">
             <div class="rules-icon-wrap">
               <i class="fa-solid fa-shield-halved"></i>
             </div>
@@ -85,9 +112,8 @@
               <i class="fa-solid fa-users"></i>
             </div>
             <div class="rules-item-content">
-              <h4>Team Formation</h4>
-              <p>Registration is open to all. Teams must consist of 3 to 5 members (minimum 3, maximum 5). Academic/institutional
-                email accounts should be used where applicable.</p>
+              <h4>Team Formation & Eligibility</h4>
+              <p>Registration is open strictly to 1st to 3rd year undergraduate students. Teams must consist of 3 to 5 members (minimum 3, maximum 5). Academic/institutional email accounts should be used where applicable.</p>
             </div>
           </div>
         </div>
@@ -122,6 +148,9 @@
         </div>
         <h2>Team Registration</h2>
         <p>Register your team and submit your concept note</p>
+        <div style="margin-top: 6px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 6px 14px; border-radius: var(--radius-md); font-size: 13px; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-graduation-cap"></i> <strong>Eligibility:</strong> Open strictly to 1st, 2nd &amp; 3rd Year Undergraduates
+        </div>
         <div style="margin-top: 8px;">
           <button type="button" id="btn-show-rules"
             style="color: var(--primary); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; border: 1px dashed var(--primary); padding: 4px 10px; border-radius: var(--radius-sm); background: var(--primary-light);">
@@ -260,7 +289,7 @@
                 <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
               </div>
               <span class="file-upload-label" id="file-upload-label">Click to browse or drag &amp; drop</span>
-              <span class="file-upload-hint"><strong style="color: var(--primary);">.docx (Encouraged)</strong> &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 2.5 MB</span>
+              <span class="file-upload-hint">.docx &nbsp;&bull;&nbsp; .pptx &nbsp;&bull;&nbsp; .pdf &nbsp;&bull;&nbsp; Max 2.5 MB</span>
             </div>
 
             <!-- Selected file info chip (hidden until file chosen) -->
@@ -329,6 +358,45 @@
   <div id="toast" class="toast-notification">
     <i class="fa-solid fa-circle-check" style="color: var(--success);" id="toast-icon"></i>
     <span id="toast-message">Action successful!</span>
+  </div>
+
+  <!-- FLOATING WHATSAPP GROUP WIDGET -->
+  <div id="whatsapp-floating-widget" style="display: none;">
+    <!-- FLOATING POPUP MENU CARD -->
+    <div class="whatsapp-menu-popup" id="whatsapp-menu-popup">
+      <div class="whatsapp-popup-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="wa-header-icon-box">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: white;">HatchPoint WhatsApp Community</h4>
+            <span class="wa-online-status"><i class="fa-solid fa-circle"></i> Official Group</span>
+          </div>
+        </div>
+        <button id="close-whatsapp-popup" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="whatsapp-popup-body">
+        <p id="whatsapp-popup-text" style="font-size: 13px; color: #475569; margin: 0 0 14px; line-height: 1.5;">
+          Join our official WhatsApp group to connect with fellow participants, receive live event updates, and get instant answers!
+        </p>
+
+        <!-- CTA Direct Group Join Link -->
+        <a id="whatsapp-popup-join-btn" href="#" target="_blank" class="whatsapp-cta-btn">
+          <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i>
+          <span>Join WhatsApp Group</span>
+          <i class="fa-solid fa-arrow-right-long" style="margin-left: auto; font-size: 14px; opacity: 0.8;"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- FLOATING WHATSAPP LOGO BUTTON -->
+    <div class="whatsapp-float-btn" id="whatsapp-float-btn" title="Join WhatsApp Group">
+      <div class="whatsapp-pulse-ring"></div>
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="whatsapp-tooltip-badge" id="whatsapp-tooltip-badge">Join Group</span>
+    </div>
   </div>
 
   <!-- Main JavaScript File -->

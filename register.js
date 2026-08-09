@@ -874,4 +874,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateMemberCountUI();
+
+  // === WHATSAPP FLOATING WIDGET LOGIC FOR REGISTER PAGE ===
+  function initWhatsAppWidgetOnRegister() {
+    const widgetContainer = document.getElementById("whatsapp-floating-widget");
+    const floatBtn = document.getElementById("whatsapp-float-btn");
+    const menuPopup = document.getElementById("whatsapp-menu-popup");
+    const closePopupBtn = document.getElementById("close-whatsapp-popup");
+    const joinGroupBtn = document.getElementById("whatsapp-popup-join-btn");
+    const popupText = document.getElementById("whatsapp-popup-text");
+    const tooltipBadge = document.getElementById("whatsapp-tooltip-badge");
+
+    if (!widgetContainer || !floatBtn) return;
+
+    let currentWaConfig = {
+      enabled: true,
+      mode: "popup",
+      groupLink: "",
+      label: "Join WhatsApp Group",
+      welcomeText: "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!"
+    };
+
+    try {
+      const docRef = doc(firestore, "settings", "whatsapp_widget");
+      onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          currentWaConfig = { ...currentWaConfig, ...data };
+        }
+        updateUI();
+      });
+    } catch (e) {
+      console.warn("Firestore WhatsApp sync fallback on register:", e);
+      updateUI();
+    }
+
+    function updateUI() {
+      if (currentWaConfig.enabled && currentWaConfig.groupLink) {
+        widgetContainer.style.display = "block";
+      } else {
+        widgetContainer.style.display = "none";
+        if (menuPopup) menuPopup.classList.remove("active");
+        return;
+      }
+      if (tooltipBadge) tooltipBadge.textContent = currentWaConfig.label || "Join Group";
+      if (popupText) popupText.textContent = currentWaConfig.welcomeText || "Join our official HatchPoint WhatsApp group for live updates, announcements, and direct community support!";
+      if (joinGroupBtn && currentWaConfig.groupLink) joinGroupBtn.href = currentWaConfig.groupLink;
+    }
+
+    floatBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!currentWaConfig.groupLink) return;
+      if (currentWaConfig.mode === "direct") {
+        window.open(currentWaConfig.groupLink, "_blank", "noopener,noreferrer");
+      } else if (menuPopup) {
+        menuPopup.classList.toggle("active");
+      }
+    });
+
+    if (closePopupBtn && menuPopup) {
+      closePopupBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuPopup.classList.remove("active");
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      if (menuPopup && menuPopup.classList.contains("active") && !widgetContainer.contains(e.target)) {
+        menuPopup.classList.remove("active");
+      }
+    });
+  }
+
+  initWhatsAppWidgetOnRegister();
 });
